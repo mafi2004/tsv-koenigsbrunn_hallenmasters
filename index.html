@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Funino Spielplan – 3 Felder · 3 Gruppen</title>
+  <meta name="description" content="Dynamisch anpassbarer Spielplan für Funino-Hallenturniere mit 3 Feldern und 3 Gruppen. Filter, Export, Druckansicht." />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+      --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --error:#ef4444;
+      --groupA:#10b981; --groupB:#f97316; --groupC:#6366f1;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; background:linear-gradient(180deg,#0b1023, #0f172a 50%, #0b1023); color:var(--text)}
+    header{position:sticky; top:0; z-index:10; background:rgba(15,23,42,.8); backdrop-filter:saturate(120%) blur(6px); border-bottom:1px solid #1f2937; padding:12px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+    header h1{font-size:1.1rem; margin:0; letter-spacing:.3px}
+    .badge{font-size:.75rem; padding:4px 8px; border:1px solid #374151; border-radius:999px; color:var(--muted)}
+    .container{max-width:1200px; margin:16px auto; padding:0 16px; display:grid; grid-template-columns:320px 1fr; gap:16px}
+    @media (max-width: 980px){.container{grid-template-columns:1fr}}
+    .card{background:radial-gradient(1200px 300px at 0% 0%,rgba(34,197,94,.08),transparent 70%), radial-gradient(900px 300px at 100% 0%,rgba(59,130,246,.08),transparent 70%), var(--panel); border:1px solid #1f2937; border-radius:12px; padding:16px; box-shadow:0 20px 40px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03)}
+    .card h2{margin:0 0 10px 0; font-size:1rem; color:#e2e8f0}
+    .grid{display:grid; gap:10px}
+    .grid-2{grid-template-columns:1fr 1fr}
+    .grid-3{grid-template-columns:repeat(3,1fr)}
+    label{font-size:.85rem; color:var(--muted)}
+    input[type="text"], input[type="time"], input[type="number"], textarea, select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid #374151; background:#111827; color:var(--text); outline:none}
+    textarea{min-height:120px; resize:vertical; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .btn{background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:10px 14px; border-radius:10px; cursor:pointer; transition:.15s; font-weight:600}
+    .btn:hover{transform:translateY(-1px); border-color:#475569}
+    .btn.primary{background:linear-gradient(135deg, #22c55e, #16a34a); border-color:transparent; color:#052e16}
+    .btn.accent{background:linear-gradient(135deg, #3b82f6, #2563eb); border-color:transparent}
+    .btn.warn{background:linear-gradient(135deg, #f59e0b, #d97706); border-color:transparent}
+    .btn.ghost{background:transparent; border-color:#334155; color:#cbd5e1}
+    .hint{font-size:.8rem; color:var(--muted)}
+    .pill{font-size:.75rem; padding:2px 8px; border-radius:999px; border:1px solid #334155}
+    .legend{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .dot{width:10px; height:10px; border-radius:50%}
+    .A{background:var(--groupA)} .B{background:var(--groupB)} .C{background:var(--groupC)}
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:12px; border:1px solid #1f2937}
+    thead th{position:sticky; top:63px; background:#0b1226; color:#cbd5e1; font-weight:700}
+    th, td{padding:10px 12px; border-bottom:1px solid #1f2937; text-align:left; font-size:.92rem}
+    tbody tr:hover{background:#0b12261a}
+    .groupTag{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; font-weight:700; font-size:.8rem}
+    .groupTag.A{background:color-mix(in srgb, var(--groupA) 20%, transparent); color:#d1fae5; border:1px solid color-mix(in srgb, var(--groupA) 40%, #000)}
+    .groupTag.B{background:color-mix(in srgb, var(--groupB) 20%, transparent); color:#fff7ed; border:1px solid color-mix(in srgb, var(--groupB) 40%, #000)}
+    .groupTag.C{background:color-mix(in srgb, var(--groupC) 20%, transparent); color:#eef2ff; border:1px solid color-mix(in srgb, var(--groupC) 40%, #000)}
+    .footer{color:#94a3b8; font-size:.8rem; text-align:center; margin:24px 0}
+    .hidden{display:none !important}
+    .sticky-actions{position:sticky; bottom:0; background:rgba(15,23,42,.85); backdrop-filter:blur(6px); padding:10px; border-top:1px solid #1f2937; display:flex; gap:8px; justify-content:flex-end}
+    @media print{header, .config, .sticky-actions {display:none !important} body {background:#fff; color:#000} .card {box-shadow:none; border:1px solid #ddd} thead th {position:static; background:#fff; color:#000}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Funino Spielplan · 3 Felder</h1>
+    <span class="badge">3 Gruppen × 6 Teams · Parallele Spiele</span>
+    <span class="badge">Live anpassbar · Export · Druckansicht</span>
+  </header>
+
+  <div class="container">
+    <section class="card config" id="config">
+      <h2>Turnier-Konfiguration</h2>
+      <div class="grid">
+        <div class="grid grid-2">
+          <div>
+            <label for="startTime">Startzeit</label>
+            <input type="time" id="startTime" value="10:00">
+          </div>
+          <div>
+            <label for="gameMinutes">Spielzeit (Minuten)</label>
+            <input type="number" id="gameMinutes" value="10" min="1" step="1">
+          </div>
+          <div>
+            <label for="breakMinutes">Pausenzeit (Minuten)</label>
+            <input type="number" id="breakMinutes" value="2" min="0" step="1">
+          </div>
+          <div>
+            <label for="fieldsCount">Felder</label>
+            <input type="number" id="fieldsCount" value="3" min="1" max="8">
+          </div>
+        </div>
+
+        <div>
+          <label for="rotationPattern">Gruppen-Rotationsmuster (Komma-getrennt)</label>
+          <input type="text" id="rotationPattern" value="A,B,C,A,B,C" />
+          <div class="hint">Definiert, welche Gruppe in welchem Zeitslot spielt. Beispiel: <code>A,B,C</code> → A, dann B, dann C, wiederholen.</div>
+        </div>
+
+        <div class="grid grid-3">
+          <div>
+            <label>Gruppe A Teams (je Zeile ein Team)</label>
+            <textarea id="teamsA">A1\nA2\nA3\nA4\nA5\nA6</textarea>
+          </div>
+          <div>
+            <label>Gruppe B Teams</label>
+            <textarea id="teamsB">B1\nB2\nB3\nB4\nB5\nB6</textarea>
+          </div>
+          <div>
+            <label>Gruppe C Teams</label>
+            <textarea id="teamsC">C1\nC2\nC3\nC4\nC5\nC6</textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btn primary" id="btnGenerate">Spielplan generieren</button>
+          <button class="btn" id="btnSave">Einstellungen speichern</button>
+          <button class="btn ghost" id="btnLoad">Gespeichertes laden</button>
+          <button class="btn warn" id="btnReset">Zurücksetzen</button>
+        </div>
+
+        <div class="legend">
+          <span class="pill"><span class="dot A"></span> Gruppe A</span>
+          <span class="pill"><span class="dot B"></span> Gruppe B</span>
+          <span class="pill"><span class="dot C"></span> Gruppe C</span>
+          <span class="pill">Felder: dynamisch</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Spielplan</h2>
+      <div class="row" style="justify-content:space-between; gap:8px; margin-bottom:8px">
+        <div class="row">
+          <label>Filter:&nbsp;</label>
+          <select id="filterGroup">
+            <option value="">Alle Gruppen</option>
+            <option value="A">Gruppe A</option>
+            <option value="B">Gruppe B</option>
+            <option value="C">Gruppe C</option>
+          </select>
+          <select id="filterField">
+            <option value="">Alle Felder</option>
+            <option value="Feld 1">Feld 1</option>
+            <option value="Feld 2">Feld 2</option>
+            <option value="Feld 3">Feld 3</option>
+          </select>
+          <input type="text" id="filterTeam" placeholder="Team suchen (z. B. A3)" />
+        </div>
+        <div class="row">
+          <button class="btn" id="btnExportCSV">CSV exportieren</button>
+          <button class="btn" id="btnExportJSON">JSON exportieren</button>
+          <button class="btn accent" onclick="window.print()">Drucken/PDF</button>
+        </div>
+      </div>
+
+      <div class="hint" style="margin-bottom:8px">Tipp: Tippe im Suchfeld z. B. „A1“ oder „Feld 2“ – die Liste filtert live.</div>
+
+      <div class="tableWrap">
+        <table id="scheduleTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Start</th>
+              <th>Ende</th>
+              <th>Gruppe</th>
+              <th>Runde</th>
+              <th>Feld</th>
+              <th>Team 1</th>
+              <th>Team 2</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+
+      <div class="sticky-actions">
+        <button class="btn primary" id="btnRegenerate">Spielplan neu berechnen</button>
+        <button class="btn ghost" id="btnScrollTop">Nach oben</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="footer">Entwickelt für Funino/Hallenturniere · 3 Felder · 3 Gruppen · © 2025</div>
+
+  <script>
+    const $ = (sel)=>document.querySelector(sel);
+    const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
+
+    function parseTeams(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
+    function pad2(n){return String(n).padStart(2,'0')}
+    function addMinutes(timeHHMM, minutes){ const [h,m] = timeHHMM.split(':').map(Number); const d = new Date(2000,0,1,h,m,0,0); d.setMinutes(d.getMinutes()+minutes); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+
+    function roundRobin(teams){
+      const n = teams.length;
+      if(n % 2 !== 0){ teams = [...teams, 'FREI']; }
+      const arr = [...teams];
+      const half = arr.length / 2;
+      const rounds = [];
+      for(let r=0;r<arr.length-1;r++){
+        const left = arr.slice(0, half);
+        const right = arr.slice(half).reverse();
+        const pairs = [];
+        for(let i=0;i<left.length;i++){
+          if(left[i] !== 'FREI' && right[i] !== 'FREI'){
+            pairs.push([left[i], right[i]]);
+          }
+        }
+        rounds.push(pairs);
+        const fixed = arr[0];
+        const moved = arr.splice(1);
+        moved.unshift(moved.pop());
+        arr.splice(1, 0, ...moved);
+        arr[0] = fixed;
+      }
+      return rounds;
+    }
+
+    function buildTimeSlots(start, minutesPerSlot, count){
+      const slots = []; let t = start;
+      for(let i=0;i<count;i++){ const end = addMinutes(t, minutesPerSlot); slots.push({start:t, end}); t = addMinutes(end, 0); }
+      return slots;
+    }
+
+    function generateSchedule(config){
+      const { groups, fieldsCount, startTime, gameMinutes, breakMinutes, rotationPattern } = config;
+      const rr = {}; for(const g of Object.keys(groups)){ rr[g] = roundRobin(groups[g]); }
+      const rot = rotationPattern.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+      if(rot.length === 0) throw new Error("Rotationsmuster ist leer.");
+
+      const roundsDone = {A:0, B:0, C:0, D:0, E:0};
+      const roundsTarget = {}; for(const g of Object.keys(groups)){ roundsTarget[g] = rr[g].length; }
+
+      const slotAssignments = []; let guard = 10000;
+      while(Object.entries(roundsDone).some(([g,done]) => (roundsTarget[g]||0) > done) && guard-- > 0){
+        for(const g of rot){
+          if((roundsTarget[g]||0) > (roundsDone[g]||0)){
+            slotAssignments.push({group:g, round: roundsDone[g]});
+            roundsDone[g] = (roundsDone[g]||0) + 1;
+          }
+          const anyRemaining = Object.keys(roundsTarget).some(G => roundsDone[G] < (roundsTarget[G]||0));
+          if(!anyRemaining) break;
+        }
+      }
+      if(guard <= 0) throw new Error("Abbruch: Unerwartete Endlosschleife in der Rotation.");
+
+      const minutesPerSlot = gameMinutes + breakMinutes;
+      const slots = buildTimeSlots(startTime, minutesPerSlot, slotAssignments.length);
+
+      const schedule = [];
+      for(let i=0;i<slotAssignments.length;i++){
+        const {group, round} = slotAssignments[i];
+        const pairs = rr[group][round];
+        const start = slots[i].start; const end = addMinutes(start, gameMinutes);
+        for(let f=0; f<fieldsCount; f++){
+          const pair = pairs[f]; if(!pair) continue;
+          schedule.push({ slot: i+1, start, end, group, round: round+1, field: `Feld ${f+1}`, team1: pair[0], team2: pair[1] });
+        }
+      }
+      return schedule;
+    }
+
+    let currentSchedule = [];
+    function renderSchedule(){
+      const tbody = document.getElementById('scheduleBody');
+      tbody.innerHTML = '';
+      const fg = document.getElementById('filterGroup').value.toUpperCase();
+      const ff = document.getElementById('filterField').value;
+      const ft = document.getElementById('filterTeam').value.trim().toLowerCase();
+
+      const filtered = currentSchedule.filter(m => {
+        if(fg && m.group !== fg) return false;
+        if(ff && m.field !== ff) return false;
+        if(ft){ const hay = `${m.team1} ${m.team2} ${m.field} ${m.group}`.toLowerCase(); if(!hay.includes(ft)) return false; }
+        return true;
+      });
+
+      for(const m of filtered){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${m.slot}</td><td>${m.start}</td><td>${m.end}</td><td><span class=\"groupTag ${m.group}\">${m.group}</span></td><td>${m.round}</td><td>${m.field}</td><td>${m.team1}</td><td>${m.team2}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function collectConfig(){
+      const groups = {
+        A: parseTeams(document.getElementById('teamsA').value),
+        B: parseTeams(document.getElementById('teamsB').value),
+        C: parseTeams(document.getElementById('teamsC').value),
+      };
+      const startTime = document.getElementById('startTime').value || '10:00';
+      const gameMinutes = parseInt(document.getElementById('gameMinutes').value, 10);
+      const breakMinutes = parseInt(document.getElementById('breakMinutes').value, 10);
+      const fieldsCount = parseInt(document.getElementById('fieldsCount').value, 10);
+      const rotationPattern = document.getElementById('rotationPattern').value;
+      for(const g of Object.keys(groups)){ if(groups[g].length === 0) delete groups[g]; }
+      return { groups, startTime, gameMinutes, breakMinutes, fieldsCount, rotationPattern };
+    }
+
+    function exportCSV(rows){
+      const header = ["Slot","Start","Ende","Gruppe","Runde","Feld","Team1","Team2"];
+      const lines = [header.join(";")];
+      for(const m of rows){ lines.push([m.slot,m.start,m.end,m.group,m.round,m.field,m.team1,m.team2].join(";")); }
+      const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+      const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "spielplan.csv"; a.click(); URL.revokeObjectURL(url);
+    }
+    function exportJSON(rows){
+      const blob = new Blob([JSON.stringify(rows,null,2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "spielplan.json"; a.click(); URL.revokeObjectURL(url);
+    }
+
+    function saveConfig(){ const cfg = collectConfig(); localStorage.setItem("funino_cfg_v1", JSON.stringify(cfg)); }
+    function loadConfig(){
+      const raw = localStorage.getItem("funino_cfg_v1"); if(!raw) return;
+      try{
+        const cfg = JSON.parse(raw);
+        if(cfg.startTime) document.getElementById('startTime').value = cfg.startTime;
+        if(cfg.gameMinutes) document.getElementById('gameMinutes').value = cfg.gameMinutes;
+        if(cfg.breakMinutes !== undefined) document.getElementById('breakMinutes').value = cfg.breakMinutes;
+        if(cfg.fieldsCount) document.getElementById('fieldsCount').value = cfg.fieldsCount;
+        if(cfg.rotationPattern) document.getElementById('rotationPattern').value = cfg.rotationPattern;
+        if(cfg.groups?.A) document.getElementById('teamsA').value = cfg.groups.A.join("\n");
+        if(cfg.groups?.B) document.getElementById('teamsB').value = cfg.groups.B.join("\n");
+        if(cfg.groups?.C) document.getElementById('teamsC').value = cfg.groups.C.join("\n");
+      }catch(e){ console.warn("Konnte gespeicherte Daten nicht laden:", e); }
+    }
+    function resetAll(){ localStorage.removeItem("funino_cfg_v1"); window.location.reload(); }
+
+    document.getElementById('btnGenerate').addEventListener('click', ()=>{ try{ const cfg = collectConfig(); currentSchedule = generateSchedule(cfg); renderSchedule(); }catch(e){ alert("Fehler beim Generieren: " + e.message); } });
+    document.getElementById('btnRegenerate').addEventListener('click', ()=>{ const cfg = collectConfig(); currentSchedule = generateSchedule(cfg); renderSchedule(); });
+    document.getElementById('btnSave').addEventListener('click', ()=>{ saveConfig(); });
+    document.getElementById('btnLoad').addEventListener('click', ()=>{ loadConfig(); alert("Geladen (falls vorhanden)"); });
+    document.getElementById('btnReset').addEventListener('click', ()=>{ if(confirm("Alles zurücksetzen?")) resetAll(); });
+
+    document.getElementById('filterGroup').addEventListener('change', renderSchedule);
+    document.getElementById('filterField').addEventListener('change', renderSchedule);
+    document.getElementById('filterTeam').addEventListener('input', renderSchedule);
+    document.getElementById('btnExportCSV').addEventListener('click', ()=>exportCSV(currentSchedule));
+    document.getElementById('btnExportJSON').addEventListener('click', ()=>exportJSON(currentSchedule));
+    document.getElementById('btnScrollTop').addEventListener('click', ()=>window.scrollTo({top:0,behavior:"smooth"}));
+
+    loadConfig();
+    (function initial(){ try{ const cfg = collectConfig(); currentSchedule = generateSchedule(cfg); renderSchedule(); }catch(e){ console.warn(e); } })();
+  </script>
+</body>
+</html>
