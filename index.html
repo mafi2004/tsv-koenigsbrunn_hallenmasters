@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TSV Königsbrunn – Hallenmasters | Funino Spielplan (dynamisch)</title>
-  <meta name="description" content="Dynamisch anpassbarer Funino-Spielplan mit Ergebnis-Erfassung und feldübergreifenden Auf-/Abstiegsregeln." />
+  <meta name="description" content="Dynamisch anpassbarer Funino-Spielplan mit Ergebnis-Erfassung, Sieger-Buttons und feldübergreifenden Auf-/Abstiegsregeln." />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <style>
     :root{
@@ -28,12 +28,13 @@
     input[type="text"], input[type="time"], input[type="number"], textarea, select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid #374151; background:#111827; color:var(--text); outline:none}
     textarea{min-height:120px; resize:vertical; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .btn{background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:10px 14px; border-radius:10px; cursor:pointer; transition:.15s; font-weight:600}
+    .btn{background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:8px 12px; border-radius:8px; cursor:pointer; transition:.15s; font-weight:600; font-size:.85rem}
     .btn:hover{transform:translateY(-1px); border-color:#475569}
     .btn.primary{background:linear-gradient(135deg, #22c55e, #16a34a); border-color:transparent; color:#052e16}
     .btn.accent{background:linear-gradient(135deg, #3b82f6, #2563eb); border-color:transparent}
     .btn.warn{background:linear-gradient(135deg, #f59e0b, #d97706); border-color:transparent}
     .btn.ghost{background:transparent; border-color:#334155; color:#cbd5e1}
+    .btn.inline{padding:4px 8px; font-size:.8rem}
     .hint{font-size:.8rem; color:var(--muted)}
     .pill{font-size:.75rem; padding:2px 8px; border-radius:999px; border:1px solid #334155}
     .legend{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
@@ -47,10 +48,7 @@
     .groupTag.A{background:color-mix(in srgb, var(--groupA) 20%, transparent); color:#d1fae5; border:1px solid color-mix(in srgb, var(--groupA) 40%, #000)}
     .groupTag.B{background:color-mix(in srgb, var(--groupB) 20%, transparent); color:#fff7ed; border:1px solid color-mix(in srgb, var(--groupB) 40%, #000)}
     .groupTag.C{background:color-mix(in srgb, var(--groupC) 20%, transparent); color:#eef2ff; border:1px solid color-mix(in srgb, var(--groupC) 40%, #000)}
-    .footer{color:#94a3b8; font-size:.8rem; text-align:center; margin:24px 0}
-    .sticky-actions{position:sticky; bottom:0; background:rgba(15,23,42,.85); backdrop-filter:blur(6px); padding:10px; border-top:1px solid #1f2937; display:flex; gap:8px; justify-content:flex-end}
-    .scoreInputs{display:flex; gap:6px; align-items:center}
-    .scoreInputs input{width:60px; text-align:center}
+    .saved{color:#22c55e; font-size:.8rem; margin-left:6px}
     .tbd{color:#f59e0b; font-style:italic}
     .errorText{color:#ef4444; font-size:.85rem}
     @media print{header, .config, .sticky-actions {display:none !important} body {background:#fff; color:#000} .card {box-shadow:none; border:1px solid #ddd} thead th {position:static; background:#fff; color:#000}}
@@ -60,7 +58,7 @@
   <header>
     <h1>TSV Königsbrunn – Hallenmasters · Dynamischer Funino Spielplan</h1>
     <span class="badge">Ergebnis-abhängige Feldrotation</span>
-    <span class="badge">3 Felder · 3 Gruppen × 6 Teams</span>
+    <span class="badge">Sieger-Buttons integriert</span>
   </header>
 
   <div class="container">
@@ -110,68 +108,26 @@
 
         <details class="card" style="background:#0b1226; border-color:#1e293b">
           <summary><strong>Regeln für Ergebnis-abhängige Paarungen</strong> (pro Gruppe anpassbar)</summary>
-          <p class="hint">Definiere, welche Teams aus der <em>vorherigen Runde</em> in der <em>nächsten Runde</em> auf welchem Feld spielen. Bezeichner: <code>W1,L1,W2,L2,W3,L3</code> → Sieger/Verlierer von Feld 1/2/3.</p>
+          <p class="hint">Bezeichner: <code>W1,L1,W2,L2,W3,L3</code> → Sieger/Verlierer von Feld 1/2/3 der <em>vorherigen</em> Runde.</p>
           <div class="grid grid-3">
             <div>
               <h3>Gruppe A</h3>
               <label>Feld 1</label>
               <div class="row">
-                <select id="A_F1_H">
-                  <option>W1</option>
-                  <option>L1</option>
-                  <option>W2</option>
-                  <option>L2</option>
-                  <option>W3</option>
-                  <option>L3</option>
-                </select>
-                <select id="A_F1_A">
-                  <option>W1</option>
-                  <option selected>L2</option>
-                  <option>W2</option>
-                  <option>L1</option>
-                  <option>W3</option>
-                  <option>L3</option>
-                </select>
+                <select id="A_F1_H"><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>W3</option><option>L3</option></select>
+                <select id="A_F1_A"><option>W1</option><option selected>L2</option><option>W2</option><option>L1</option><option>W3</option><option>L3</option></select>
               </div>
               <label>Feld 2</label>
               <div class="row">
-                <select id="A_F2_H">
-                  <option selected>W3</option>
-                  <option>W1</option>
-                  <option>L1</option>
-                  <option>W2</option>
-                  <option>L2</option>
-                  <option>L3</option>
-                </select>
-                <select id="A_F2_A">
-                  <option selected>L1</option>
-                  <option>W1</option>
-                  <option>W2</option>
-                  <option>L2</option>
-                  <option>W3</option>
-                  <option>L3</option>
-                </select>
+                <select id="A_F2_H"><option selected>W3</option><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>L3</option></select>
+                <select id="A_F2_A"><option selected>L1</option><option>W1</option><option>W2</option><option>L2</option><option>W3</option><option>L3</option></select>
               </div>
               <label>Feld 3</label>
               <div class="row">
-                <select id="A_F3_H">
-                  <option selected>L3</option>
-                  <option>W1</option>
-                  <option>L1</option>
-                  <option>W2</option>
-                  <option>L2</option>
-                  <option>W3</option>
-                </select>
-                <select id="A_F3_A">
-                  <option selected>W2</option>
-                  <option>W1</option>
-                  <option>L1</option>
-                  <option>L2</option>
-                  <option>W3</option>
-                  <option>L3</option>
-                </select>
+                <select id="A_F3_H"><option selected>L3</option><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>W3</option></select>
+                <select id="A_F3_A"><option selected>W2</option><option>W1</option><option>L1</option><option>L2</option><option>W3</option><option>L3</option></select>
               </div>
-              <div class="hint">Voreinstellung spiegelt deine Vorgabe: W3→F2 gegen L1, W1 bleibt (F1), L3 bleibt (F3). Gegner sind L2 bzw. W2.</div>
+              <div class="hint">Voreinstellung: W3→F2 vs L1, W1 bleibt (F1), L3 bleibt (F3). Gegner L2 bzw. W2.</div>
             </div>
             <div>
               <h3>Gruppe B</h3>
@@ -228,7 +184,9 @@
         </div>
       </div>
 
-      <div class="hint" style="margin-bottom:8px">Gib die Ergebnisse ein und klicke "Speichern" pro Spiel. Die <strong>nächste Runde</strong> wird für die betreffende Gruppe automatisch berechnet.</div>
+      <div class="hint" style="margin-bottom:8px">
+        Ergebnisse eingeben ODER per Button den **Sieger markieren**. Nach dem Speichern wird die <strong>nächste Runde</strong> der jeweiligen Gruppe automatisch berechnet.
+      </div>
 
       <div class="tableWrap">
         <table id="scheduleTable">
@@ -279,6 +237,10 @@
       return pairs; // length <= fieldsCount
     }
 
+    function getSavedResult(group, round, field){
+      return results[group]?.[round]?.[field];
+    }
+
     function computePrevRoundOutcomes(group, round){
       const r = results[group]?.[round];
       if(!r) return null;
@@ -292,7 +254,7 @@
         let W = match.team1, L = match.team2;
         if(g2>g1){ W = match.team2; L = match.team1; }
         else if(g2===g1){
-          // Draw: cannot decide automatically
+          // Bei Gleichstand ohne markierten Sieger: unklar
           return {draw:true};
         }
         out[`W${f}`]=W; out[`L${f}`]=L;
@@ -320,7 +282,6 @@
     }
 
     function nextRoundPairsFromOutcomes(outcomes, mapping){
-      // mapping: { 'Feld 1': ['W1','L2'], 'Feld 2':['W3','L1'], 'Feld 3':['L3','W2'] }
       const pairs = [];
       for(let f=1; f<=3; f++){
         const refs = mapping[`Feld ${f}`];
@@ -329,18 +290,6 @@
         pairs.push([a||'TBD', b||'TBD']);
       }
       return pairs;
-    }
-
-    function roundRobin(teams){ // fallback, if needed
-      const n = teams.length; if(n % 2 !== 0){ teams = [...teams, 'FREI']; }
-      const arr = [...teams]; const half = arr.length / 2; const rounds = [];
-      for(let r=0;r<arr.length-1;r++){
-        const left = arr.slice(0, half); const right = arr.slice(half).reverse();
-        const pairs = []; for(let i=0;i<left.length;i++){ if(left[i] !== 'FREI' && right[i] !== 'FREI'){ pairs.push([left[i], right[i]]); } }
-        rounds.push(pairs);
-        const fixed = arr[0]; const moved = arr.splice(1); moved.unshift(moved.pop()); arr.splice(1, 0, ...moved); arr[0] = fixed;
-      }
-      return rounds;
     }
 
     function buildTimeSlots(start, minutesPerSlot, count){
@@ -361,19 +310,17 @@
     function generateDynamicSchedule(cfg){
       const { groups, fieldsCount, startTime, gameMinutes, breakMinutes, rotationPattern } = cfg;
       const rot = rotationPattern.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
-      const roundsNeeded = {}; // we don't predefine; we build as far as results allow, but we create slots for max 6 rounds
-      for(const g of Object.keys(groups)){ roundsNeeded[g] = 6; } // heuristic; adjust in UI if needed
+      const roundsNeeded = {}; for(const g of Object.keys(groups)){ roundsNeeded[g] = 6; }
 
       const slotAssignments = []; let guard = 10000;
       while(Object.keys(roundsNeeded).some(g=>roundsNeeded[g]>0) && guard-- > 0){
         for(const g of rot){ if(roundsNeeded[g]>0){ slotAssignments.push({group:g}); roundsNeeded[g]--; } }
-        if(slotAssignments.length>60) break; // safety
+        if(slotAssignments.length>60) break;
       }
 
       const minutesPerSlot = cfg.gameMinutes + cfg.breakMinutes;
       const slots = buildTimeSlots(startTime, minutesPerSlot, slotAssignments.length);
 
-      // Build schedule iteratively per group's round
       const roundIndexPerGroup = {A:0,B:0,C:0};
       const schedule = [];
       const seedPairsPerGroup = {};
@@ -381,15 +328,14 @@
 
       for(let i=0;i<slotAssignments.length;i++){
         const {group} = slotAssignments[i];
-        const round = roundIndexPerGroup[group]; // 0-based
+        const round = roundIndexPerGroup[group];
         const start = slots[i].start; const end = addMinutes(start, gameMinutes);
         let pairs;
         if(round===0){ pairs = seedPairsPerGroup[group]; }
         else{
           const outcomes = computePrevRoundOutcomes(group, round-1);
           const mapping = cfg.rules[group];
-          if(!outcomes){ pairs = [['TBD','TBD'],['TBD','TBD'],['TBD','TBD']]; }
-          else if(outcomes.draw){ pairs = [['TBD','TBD'],['TBD','TBD'],['TBD','TBD']]; }
+          if(!outcomes || outcomes.draw){ pairs = [['TBD','TBD'],['TBD','TBD'],['TBD','TBD']]; }
           else { pairs = nextRoundPairsFromOutcomes(outcomes, mapping); }
         }
         for(let f=0; f<fieldsCount; f++){
@@ -399,6 +345,12 @@
         roundIndexPerGroup[group]++;
       }
       return schedule;
+    }
+
+    function saveResult(group, round, field, g1, g2){
+      if(!results[group]) results[group] = {};
+      if(!results[group][round]) results[group][round] = {};
+      results[group][round][field] = {g1, g2};
     }
 
     function renderSchedule(){
@@ -418,6 +370,9 @@
       for(const m of filtered){
         const tr = document.createElement('tr');
         const t1 = m.team1 || 'TBD'; const t2 = m.team2 || 'TBD';
+        const saved = getSavedResult(m.group, m.round-1, m.field);
+        const g1v = (saved && Number.isFinite(saved.g1)) ? saved.g1 : '';
+        const g2v = (saved && Number.isFinite(saved.g2)) ? saved.g2 : '';
         tr.innerHTML = `
           <td>${m.slot}</td>
           <td>${m.start}</td>
@@ -428,28 +383,38 @@
           <td>${t1}</td>
           <td>${t2}</td>
           <td>
-            <div class="scoreInputs">
-              <input type="number" min="0" placeholder="0" data-key="g1" />
+            <div class="row" style="gap:6px; align-items:center">
+              <input type="number" min="0" placeholder="0" data-key="g1" value="${g1v}" style="width:64px; text-align:center" />
               <span style="opacity:.7">:</span>
-              <input type="number" min="0" placeholder="0" data-key="g2" />
-              <button class="btn" data-action="save">Speichern</button>
+              <input type="number" min="0" placeholder="0" data-key="g2" value="${g2v}" style="width:64px; text-align:center" />
+              <button class="btn inline" data-action="save">Speichern</button>
+              <span class="hint">oder</span>
+              <button class="btn inline" data-action="t1win">${t1} siegt</button>
+              <button class="btn inline" data-action="t2win">${t2} siegt</button>
+              ${saved?'<span class="saved">✓ gespeichert</span>':''}
             </div>
-            <div class="hint">Ergebnisse für <strong>${m.group} Runde ${m.round}</strong> ${m.field}</div>
           </td>
         `;
         const inputs = tr.querySelectorAll('input');
         const btnSave = tr.querySelector('button[data-action="save"]');
-        btnSave.addEventListener('click', ()=>{
-          const g1 = parseInt(inputs[0].value,10); const g2 = parseInt(inputs[1].value,10);
-          if(Number.isNaN(g1) || Number.isNaN(g2)){ alert('Bitte beide Tore eingeben.'); return; }
-          if(!results[m.group]) results[m.group] = {};
-          if(!results[m.group][m.round-1]) results[m.group][m.round-1] = {};
-          results[m.group][m.round-1][m.field] = {g1, g2};
-          // Recompute from next slot onward
+        const btnT1 = tr.querySelector('button[data-action="t1win"]');
+        const btnT2 = tr.querySelector('button[data-action="t2win"]');
+
+        const commit = (a,b)=>{
+          if(!Number.isFinite(a) || !Number.isFinite(b)){ alert('Bitte gültige Tore eingeben.'); return; }
+          saveResult(m.group, m.round-1, m.field, a, b);
           const cfg = collectConfig();
           currentSchedule = generateDynamicSchedule(cfg);
           renderSchedule();
+        };
+
+        btnSave.addEventListener('click', ()=>{
+          const g1 = parseInt(inputs[0].value,10); const g2 = parseInt(inputs[1].value,10);
+          commit(g1, g2);
         });
+        btnT1.addEventListener('click', ()=>{ commit(1,0); });
+        btnT2.addEventListener('click', ()=>{ commit(0,1); });
+
         tbody.appendChild(tr);
       }
     }
@@ -463,10 +428,9 @@
       const blob = new Blob([JSON.stringify(rows,null,2)], {type:"application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "spielplan.json"; a.click(); URL.revokeObjectURL(url);
     }
 
-    function saveConfig(){ const cfg = collectConfig(); localStorage.setItem("funino_cfg_v2", JSON.stringify(cfg)); localStorage.setItem("funino_results_v2", JSON.stringify(results)); }
-    function loadConfig(){ const raw = localStorage.getItem("funino_cfg_v2"); const rawR = localStorage.getItem("funino_results_v2"); if(raw){ try{ const cfg = JSON.parse(raw);
+    function saveConfig(){ const cfg = collectConfig(); localStorage.setItem("funino_cfg_v3", JSON.stringify(cfg)); localStorage.setItem("funino_results_v3", JSON.stringify(results)); }
+    function loadConfig(){ const raw = localStorage.getItem("funino_cfg_v3"); const rawR = localStorage.getItem("funino_results_v3"); if(raw){ try{ const cfg = JSON.parse(raw);
         if(cfg.startTime) $('#startTime').value = cfg.startTime; if(cfg.gameMinutes) $('#gameMinutes').value = cfg.gameMinutes; if(cfg.breakMinutes!==undefined) $('#breakMinutes').value = cfg.breakMinutes; if(cfg.fieldsCount) $('#fieldsCount').value = cfg.fieldsCount; if(cfg.rotationPattern) $('#rotationPattern').value = cfg.rotationPattern; if(cfg.groups?.A) $('#teamsA').value = cfg.groups.A.join("\n"); if(cfg.groups?.B) $('#teamsB').value = cfg.groups.B.join("\n"); if(cfg.groups?.C) $('#teamsC').value = cfg.groups.C.join("\n");
-        // rules
         const setVal=(id,val)=>{ const el=document.getElementById(id); if(el && val) el.value=val; };
         const r=cfg.rules||{}; const GA=r.A||{}; const GB=r.B||{}; const GC=r.C||{};
         setVal('A_F1_H', GA['Feld 1']?.[0]); setVal('A_F1_A', GA['Feld 1']?.[1]); setVal('A_F2_H', GA['Feld 2']?.[0]); setVal('A_F2_A', GA['Feld 2']?.[1]); setVal('A_F3_H', GA['Feld 3']?.[0]); setVal('A_F3_A', GA['Feld 3']?.[1]);
@@ -475,7 +439,7 @@
       }catch(e){ console.warn('Konnte Konfiguration nicht laden:', e); } }
       if(rawR){ try{ results = JSON.parse(rawR); }catch(e){ results = {}; } }
     }
-    function resetAll(){ localStorage.removeItem("funino_cfg_v2"); localStorage.removeItem("funino_results_v2"); window.location.reload(); }
+    function resetAll(){ localStorage.removeItem("funino_cfg_v3"); localStorage.removeItem("funino_results_v3"); window.location.reload(); }
 
     $('#btnGenerate').addEventListener('click', ()=>{ try{ const cfg = collectConfig(); currentSchedule = generateDynamicSchedule(cfg); renderSchedule(); }catch(e){ alert('Fehler beim Generieren: ' + e.message); } });
     $('#btnRegenerate').addEventListener('click', ()=>{ const cfg = collectConfig(); currentSchedule = generateDynamicSchedule(cfg); renderSchedule(); });
@@ -490,7 +454,6 @@
     $('#btnExportJSON').addEventListener('click', ()=>exportJSON(currentSchedule));
     $('#btnScrollTop').addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
 
-    // Init
     loadConfig();
     (function initial(){ try{ const cfg = collectConfig(); currentSchedule = generateDynamicSchedule(cfg); renderSchedule(); }catch(e){ console.warn(e); } })();
   </script>

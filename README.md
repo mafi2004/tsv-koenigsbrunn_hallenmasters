@@ -1,47 +1,28 @@
 
-# TSV Königsbrunn – Hallenmasters · Dynamischer Funino-Spielplan
+# TSV Königsbrunn – Hallenmasters · Dynamischer Funino-Spielplan (mit Sieger-Buttons)
 
-Diese GitHub Pages Seite bietet einen **Ergebnis-abhängigen Spielplan**: Nach jeder Runde werden die Paarungen der nächsten Runde gemäß frei konfigurierbaren Regeln (Sieger/Verlierer je Feld) **automatisch berechnet**.
+Diese GitHub Pages Seite bietet einen **Ergebnis-abhängigen Spielplan**: Nach jeder Runde werden die Paarungen der nächsten Runde gemäß frei konfigurierbaren Regeln (Sieger/Verlierer je Feld) **automatisch berechnet**. Zusätzlich kannst du per **Sieger-Button** (Team1/Team2) ohne Toreingabe direkt einen Sieger markieren.
 
-## Features
-- 3 Felder · 3 Gruppen à 6 Teams (anpassbar)
-- **Ergebnis-Erfassung** pro Spiel (Toreingabe)
-- **Regel-Editor**: definiere pro Gruppe, wie Sieger/Verlierer der vorherigen Runde den nächsten Paarungen zugeordnet werden (\`W1/L1/W2/L2/W3/L3\` → Sieger/Verlierer von Feld 1/2/3)
-- **Seed-Runde**: Runde 1 wird aus der Teamliste initialisiert (0/1 auf Feld1, 2/3 auf Feld2, 4/5 auf Feld3)
-- Filter, CSV/JSON-Export, Druckansicht
-- Persistenz: `localStorage`
-
-## Beispielregel (Gruppe A)
-- Sieger von Feld 3 → **Feld 2** gegen Verlierer von Feld 1
-- Sieger von Feld 1 **bleibt** (Feld 1)
-- Verlierer von Feld 3 **bleibt** (Feld 3)
-- Standard-Gegner: Feld 1: \`W1 vs L2\`; Feld 2: \`W3 vs L1\`; Feld 3: \`L3 vs W2\`. Du kannst das im Regel-Editor ändern.
+## Neu in dieser Version
+- **Sieger-Buttons** pro Spiel ("Team1 siegt" / "Team2 siegt"): setzt intern 1:0 bzw. 0:1 und triggert die Neuberechnung.
+- Anzeige "✓ gespeichert" bei bereits hinterlegten Ergebnissen.
+- Vorbelegung der Toreingabefelder mit gespeicherten Werten.
 
 ## Nutzung
-1. Teams je Gruppe eingeben (pro Zeile ein Team).
+1. Teams je Gruppe eintragen (pro Zeile ein Team).
 2. Zeiten und Rotationsmuster setzen.
 3. **Slots & Runde 1 anlegen**.
-4. Ergebnisse pro Spiel eingeben → die **nächste Runde** für die betreffende Gruppe wird automatisch berechnet.
+4. Für jedes Spiel: Entweder Tore eingeben und **Speichern**, oder **Sieger-Button** klicken.
 
 ## Deployment (GitHub Pages)
 1. Repository anlegen: `tsv-koenigsbrunn-hallenmasters`
-2. Dateien im Repo-Root hochladen (siehe Ordnerstruktur unten).
+2. Dateien im Repo-Root hochladen.
 3. `Settings → Pages → Deploy from a branch → main / root`.
 
-## Ordnerstruktur
-```
-.
-├── index.html           # Seite mit CSS/JS & Rule-Editor
-├── assets/
-│   └── favicon.svg      # Favicon
-├── .nojekyll            # Jekyll deaktivieren
-└── LICENSE              # MIT-Lizenz
-```
-
 ## Hinweise
-- **Unentschieden**: Bei Gleichstand kann die nächste Runde nicht abgeleitet werden. Bitte einen Sieger festlegen (Hausregel: 1 Punkt Unterschied, Golden Goal, oder manuelle Markierung). 
-- **Validierung**: Der Rule-Editor prüft derzeit keine Duplikate. Achte darauf, dass jede der sechs Rollen (\`W1,L1,W2,L2,W3,L3\`) genau einmal verwendet wird.
-- **Mehr Runden**: Standardmäßig werden Slots für bis zu 6 Runden pro Gruppe angelegt. Du kannst das im Code (`roundsNeeded`) anpassen.
+- **Unentschieden**: Markiere den Sieger über den Button (falls ihr Golden Goal o. Ä. nutzt). Ohne Sieger bleibt die nächste Runde für diese Gruppe **TBD**.
+- **Regel-Editor**: Stelle sicher, dass die Rollen `W1,L1,W2,L2,W3,L3` sinnvoll verteilt sind (aktuell keine Duplikatsprüfung).
+- **Rundenanzahl**: Standardmäßig bis zu 6 Runden pro Gruppe (im Code `roundsNeeded` anpassbar).
 
 ## Lizenz
 MIT (siehe LICENSE)
