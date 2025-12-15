@@ -4,13 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TSV Königsbrunn – Hallenmasters | Funino: Nächste Runde (Champions-League-Modus)</title>
-  <meta name="description" content="Funino-Spielplan: zeigt pro Gruppe immer nur die nächste Runde. Champions-League-Modus: W3→F2 vs L1, W2→F1 vs W1, L2→F3 vs L3. Nächste Runde erst nach 3 Ergebnissen." />
+  <meta name="description" content="Funino-Spielplan: pro Gruppe nur die nächste Runde. Champions-League-Modus: W1–W2, W3–L1, L3–L2. Nächste Runde erst nach 3 Ergebnissen. Sticky-Header fixiert mit dynamischem Offset." />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <style>
-    :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --error:#ef4444; --groupA:#10b981; --groupB:#f97316; --groupC:#6366f1; }
+    :root{
+      --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+      --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --error:#ef4444;
+      --groupA:#10b981; --groupB:#f97316; --groupC:#6366f1;
+      /* Sticky-Header Fix */
+      --page-header-height: 64px;   /* Fallback, wird per JS dynamisch gesetzt */
+      --table-sticky-gap: 8px;      /* Abstand unterhalb des Seiten-Headers */
+      --table-sticky-top: calc(var(--page-header-height) + var(--table-sticky-gap));
+    }
     *{box-sizing:border-box}
+    html{scroll-padding-top: calc(var(--page-header-height) + 16px);} /* bessere Anker-/Scroll-Experience */
     body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; background:linear-gradient(180deg,#0b1023, #0f172a 50%, #0b1023); color:var(--text)}
-    header{position:sticky; top:0; z-index:10; background:rgba(15,23,42,.8); backdrop-filter:saturate(120%) blur(6px); border-bottom:1px solid #1f2937; padding:12px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+    header{position:sticky; top:0; z-index:10; background:rgba(15,23,42,.85); backdrop-filter:saturate(120%) blur(6px); border-bottom:1px solid #1f2937; padding:12px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap}
     header h1{font-size:1.1rem; margin:0; letter-spacing:.3px}
     .badge{font-size:.75rem; padding:4px 8px; border:1px solid #374151; border-radius:999px; color:var(--muted)}
     .container{max-width:1200px; margin:16px auto; padding:0 16px; display:grid; grid-template-columns:360px 1fr; gap:16px}
@@ -37,7 +46,7 @@
     .dot{width:10px; height:10px; border-radius:50%}
     .A{background:var(--groupA)} .B{background:var(--groupB)} .C{background:var(--groupC)}
     table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:12px; border:1px solid #1f2937}
-    thead th{position:sticky; top:63px; background:#0b1226; color:#cbd5e1; font-weight:700}
+    thead th{position:sticky; top: var(--table-sticky-top); z-index: 2; background:#0b1226; color:#cbd5e1; font-weight:700; box-shadow:0 2px 0 rgba(0,0,0,.15)}
     th, td{padding:10px 12px; border-bottom:1px solid #1f2937; text-align:left; font-size:.92rem}
     tbody tr:hover{background:#0b12261a}
     .groupTag{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; font-weight:700; font-size:.8rem}
@@ -189,6 +198,16 @@
     const $ = (sel)=>document.querySelector(sel);
     const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
 
+    // Sticky-Header: dynamischen Offset aus Seiten-Header setzen
+    function updateStickyTopFromHeader(){
+      const h = document.querySelector('header');
+      if(!h) return;
+      const headerHeight = h.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--page-header-height', headerHeight + 'px');
+    }
+    window.addEventListener('load', updateStickyTopFromHeader);
+    window.addEventListener('resize', updateStickyTopFromHeader);
+
     const ROLES = ['W1','L1','W2','L2','W3','L3'];
 
     function parseTeams(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
@@ -332,17 +351,40 @@
       }
     }
 
-    function saveConfig(){ const cfg = collectConfig(); const mapping={A:getRuleMappingFor('A'),B:getRuleMappingFor('B'),C:getRuleMappingFor('C')}; localStorage.setItem('funino_cfg_v5', JSON.stringify({...cfg, mapping, preset:$('#preset').value})); localStorage.setItem('funino_state_v5', JSON.stringify({results,matches,currentRound})); }
-    function loadConfig(){ const raw=localStorage.getItem('funino_cfg_v5'); const rawS=localStorage.getItem('funino_state_v5'); if(raw){ try{ const cfg=JSON.parse(raw); if(cfg.startTime) $('#startTime').value=cfg.startTime; if(cfg.gameMinutes) $('#gameMinutes').value=cfg.gameMinutes; if(cfg.breakMinutes!==undefined) $('#breakMinutes').value=cfg.breakMinutes; if(cfg.rotationPattern) $('#rotationPattern').value=cfg.rotationPattern; if(cfg.groups?.A) $('#teamsA').value=cfg.groups.A.join("\n"); if(cfg.groups?.B) $('#teamsB').value=cfg.groups.B.join("\n"); if(cfg.groups?.C) $('#teamsC').value=cfg.groups.C.join("\n"); $('#preset').value = cfg.preset||'cl';
-        // rule editor values
-        for(const g of ['A','B','C']){
-          for(const f of [1,2,3]){
-            const ids=[`${g}_F${f}_H`,`${g}_F${f}_A`];
-            for(const id of ids){ const el=document.getElementById(id); if(cfg.mapping?.[g] && cfg.mapping[g][`Feld ${f}`]){ el.value = cfg.mapping[g][`Feld ${f}`][id.endsWith('_H')?0:1]; } }
+    function saveConfig(){
+      const cfg = collectConfig();
+      const mapping={A:getRuleMappingFor('A'),B:getRuleMappingFor('B'),C:getRuleMappingFor('C')};
+      localStorage.setItem('funino_cfg_v5', JSON.stringify({...cfg, mapping, preset:$('#preset').value}));
+      localStorage.setItem('funino_state_v5', JSON.stringify({results,matches,currentRound}));
+    }
+    function loadConfig(){
+      const raw=localStorage.getItem('funino_cfg_v5');
+      const rawS=localStorage.getItem('funino_state_v5');
+      if(raw){
+        try{
+          const cfg=JSON.parse(raw);
+          if(cfg.startTime) $('#startTime').value=cfg.startTime;
+          if(cfg.gameMinutes) $('#gameMinutes').value=cfg.gameMinutes;
+          if(cfg.breakMinutes!==undefined) $('#breakMinutes').value=cfg.breakMinutes;
+          if(cfg.rotationPattern) $('#rotationPattern').value=cfg.rotationPattern;
+          if(cfg.groups?.A) $('#teamsA').value=cfg.groups.A.join("\n");
+          if(cfg.groups?.B) $('#teamsB').value=cfg.groups.B.join("\n");
+          if(cfg.groups?.C) $('#teamsC').value=cfg.groups.C.join("\n");
+          $('#preset').value = cfg.preset||'cl';
+          for(const g of ['A','B','C']){
+            for(const f of [1,2,3]){
+              const ids=[`${g}_F${f}_H`,`${g}_F${f}_A`];
+              for(const id of ids){ const el=document.getElementById(id); if(cfg.mapping?.[g] && cfg.mapping[g][`Feld ${f}`]){ el.value = cfg.mapping[g][`Feld ${f}`][id.endsWith('_H')?0:1]; } }
+            }
           }
-        }
-      }catch(e){ console.warn('Konfiguration laden fehlgeschlagen', e); } }
-      if(rawS){ try{ const s=JSON.parse(rawS); results=s.results||{}; matches=s.matches||[]; currentRound=s.currentRound||{A:1,B:1,C:1}; }catch(e){ console.warn('State laden fehlgeschlagen', e); } }
+        }catch(e){ console.warn('Konfiguration laden fehlgeschlagen', e); }
+      }
+      if(rawS){
+        try{
+          const s=JSON.parse(rawS);
+          results=s.results||{}; matches=s.matches||[]; currentRound=s.currentRound||{A:1,B:1,C:1};
+        }catch(e){ console.warn('State laden fehlgeschlagen', e); }
+      }
     }
 
     function resetAll(){ localStorage.removeItem('funino_cfg_v5'); localStorage.removeItem('funino_state_v5'); window.location.reload(); }
