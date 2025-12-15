@@ -49,6 +49,7 @@
             <th>Feld</th>
             <th>Team 1</th>
             <th>Team 2</th>
+            <th>Ergebnis</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -57,19 +58,43 @@
   </main>
   <footer>TSV Königsbrunn – Hallenmasters · Zuschauer · © 2025</footer>
 
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-  function updateStickyTopFromHeader(){ var h=document.querySelector('header'); if(!h) return; document.documentElement.style.setProperty('--page-header-height', Math.ceil(h.getBoundingClientRect().height)+'px'); }
-  window.addEventListener('load', updateStickyTopFromHeader); window.addEventListener('resize', updateStickyTopFromHeader);
+  // Hilfsfunktionen
+  const $ = sel => document.querySelector(sel);
+
+  function updateStickyTopFromHeader(){
+    var h=document.querySelector('header');
+    if(!h) return;
+    document.documentElement.style.setProperty('--page-header-height', Math.ceil(h.getBoundingClientRect().height)+'px');
+  }
+  window.addEventListener('load', updateStickyTopFromHeader);
+  window.addEventListener('resize', updateStickyTopFromHeader);
   if('ResizeObserver' in window){ new ResizeObserver(updateStickyTopFromHeader).observe(document.querySelector('header')); }
 
-  const $=sel=>document.querySelector(sel);
-  function getHashParam(){ const h=window.location.hash||''; const m=h.match(/#s=([^\s]+)/); return m?decodeURIComponent(m[1]):null; }
-  function render(data){ $('#title').textContent=data.title||'Spielplan'; const gen=new Date(data.generatedAt||Date.now()); $('#generated').textContent='Stand: '+gen.toLocaleString(); const tb=$('#tbody'); tb.innerHTML=''; const fg=$('#filterGroup').value.toUpperCase(); const ff=$('#filterField').value; const ft=($('#filterTeam').value||'').toLowerCase(); const rows=(data.matches||[]).filter(m=>{ if(fg && m.group!==fg) return false; if(ff && m.field!==ff) return false; if(ft){ const hay=(m.team1+' '+m.team2).toLowerCase(); if(!hay.includes(ft)) return false; } return true; }).sort((a,b)=>{ if(a.start<b.start) return -1; if(a.start>b.start) return 1; return a.field.localeCompare(b.field); }); for(const m of rows){ const tr=document.createElement('tr'); tr.innerHTML=`<td>${m.start}</td><td>${m.end}</td><td><span class="groupTag">${m.group}</span></td><td>${m.round}</td><td>${m.field}</td><td>${m.team1}</td><td>${m.team2}</td>`; tb.appendChild(tr); } }
+  // Daten rendern
+  function render(matches){
+    $('#title').textContent = "Spielplan";
+    $('#generated').textContent = 'Stand: ' + new Date().toLocaleString();
+    const tb = $('#tbody');
+    tb.innerHTML = '';
 
-  async function load(){ const hp=getHashParam(); let json=null; if(hp){ json=hp; } if(!json){ try{ const res=await fetch('schedule.json'); if(res.ok){ json=await res.text(); } }catch(e){} } if(!json){ $('#generated').textContent='(keine Daten)'; return; } const data=JSON.parse(json); render(data); }
+    const fg = $('#filterGroup').value.toUpperCase();
+    const ff = $('#filterField').value;
+    const ft = ($('#filterTeam').value||'').toLowerCase();
 
-  ['change','input'].forEach(ev=>{ $('#filterGroup').addEventListener(ev, load); $('#filterField').addEventListener(ev, load); $('#filterTeam').addEventListener(ev, load); });
-  load(); setInterval(load,30000);
-</script>
-</body>
-</html>
+    const rows = matches.filter(m=>{
+      if(fg && m.group !== fg) return false;
+      if(ff && m.field !== ff) return false;
+      if(ft){
+        const hay = (m.teamA+' '+m.teamB).toLowerCase();
+        if(!hay.includes(ft)) return false;
+      }
+      return true;
+    }).sort((a,b)=>a.start.localeCompare(b.start));
+
+    for(const m of rows){
+      const tr=document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m.start||'-'}</td>
+        <td>${m.end||'-'}</td>
