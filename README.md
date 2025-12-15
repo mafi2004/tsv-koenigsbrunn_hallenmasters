@@ -1,28 +1,45 @@
 
-# TSV Königsbrunn – Hallenmasters · Nächste Runde (Champions‑League‑Modus, Patch 2)
+# TSV Königsbrunn – Hallenmasters · Kombi-Projekt (Admin + Zuschauer)
 
-**Änderungen gegenüber der letzten Version:**
+Dieses Projekt enthält **zwei Seiten**:
 
-1. **Sticky‑Header Fix (robust):**
-   - `ResizeObserver` misst dynamisch die `<header>`‑Höhe → CSS‑Variable `--page-header-height` wird automatisch aktualisiert.
-   - `thead th { top: var(--table-sticky-top) }` verhindert das Überdecken der ersten Datenzeile.
-   - `html { scroll-padding-top: ... }` verbessert das Scroll‑Verhalten.
+- `admin.html` – **Admin-Dashboard** für Konfiguration, Ergebnisse, und Veröffentlichung.
+- `viewer.html` – **Read-Only Zuschauer-Ansicht** mit Zeiten, Feldern, Gruppen und Teams.
 
-2. **„Zu wenige Slots…“ behoben:**
-   - Slot‑Generierung filtert das Rotationsmuster auf **tatsächlich vorhandene Gruppen** (z. B. nur `A`).
-   - **Automatisches Erweitern** der Slots, wenn für eine Gruppe weitere Runden benötigt werden (`ensureSlotFor`).
+## Datenfluss (ohne Backend)
+- Die Admin-Seite erzeugt aus dem aktuellen Zustand ein kompaktes JSON-Payload (nur **nächste Runde je Gruppe** mit Zeiten).
+- **Veröffentlichung:**
+  1. **Share-Link** (empfohlen): Ein Klick auf **„Zuschauer-Link generieren“** erstellt einen Link `viewer.html?s=<BASE64>`, der die Daten **im URL-Parameter** transportiert – ideal für schnelles Teilen per Messenger.
+  2. **JSON-Export:** Button **„Export schedule.json“** speichert eine Datei. Du kannst sie ins **Repo-Root** hochladen, dann lädt `viewer.html` diese Datei automatisch.
 
-3. **Champions‑League‑Modus (Preset)** bleibt: `F1=W1‑W2`, `F2=W3‑L1`, `F3=L3‑L2`. Regel‑Editor weiterhin vorhanden.
+> Hinweis: Ohne Server kann die Admin-Seite nicht direkt Dateien ins Repo schreiben. Der **Share-Link** ist deshalb der einfachste Weg.
 
-## Nutzung
-1. Preset wählen (oder eigenes Mapping)
-2. **Slots & Runde 1 anlegen**
-3. Pro Gruppe alle 3 Ergebnisse speichern (Tore oder Sieger‑Buttons) → automatische Erzeugung der **nächsten Runde**
+## Champions‑League‑Modus (Preset)
+- Feld 1: `W1 vs W2`
+- Feld 2: `W3 vs L1`
+- Feld 3: `L3 vs L2`
+
+Du kannst das Mapping im **Regel‑Editor** überschreiben (pro Gruppe A/B/C).
+
+## „Nur nächste Runde“
+- Die Admin-Seite zeigt pro Gruppe **nur die nächste Runde**.
+- Erst nach **drei gespeicherten Ergebnissen** (kein Unentschieden) wird die nächste Runde erstellt.
+
+## Sticky‑Header Fix
+Die Tabellenköpfe überdecken keine Daten mehr. Ein **ResizeObserver** misst die `<header>`‑Höhe und setzt einen dynamischen Offset (auch mobil/responsive).
 
 ## Deployment (GitHub Pages)
-1. Repository: `tsv-koenigsbrunn-hallenmasters`
-2. Dateien ins Repo‑Root
-3. **Settings → Pages → Deploy from a branch → main / root**
+1. Repository anlegen: `tsv-koenigsbrunn-hallenmasters`
+2. Dateien im **Root** hochladen:
+   - `admin.html`, `viewer.html`, `assets/`, `.nojekyll`
+3. Settings → Pages → Deploy from a branch → **main / root**
+4. Admin-Link öffnen: `https://<account>.github.io/tsv-koenigsbrunn-hallenmasters/admin.html`
+5. Zuschauer-Link über **„Zuschauer-Link generieren“** kopieren und verteilen.
+
+## Optional
+- Statusleisten „A: 2/3 Ergebnisse“
+- Live-Tabelle (Punkte, Tore, TD)
+- Branding (Logo, Farben), Impressum/Datenschutz
 
 ## Lizenz
 MIT (siehe LICENSE)
