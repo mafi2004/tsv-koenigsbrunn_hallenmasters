@@ -1,20 +1,20 @@
-# TSV Königsbrunn – Hallenmasters · Kombi (Shortlink + QR)
+# TSV Königsbrunn – Hallenmasters · Kombi (Shortlink + QR, 2‑Spalten Layout)
 
-Diese Version kombiniert Admin- und Zuschauer-Seite mit einem **kurzen Zuschauer-Link** (Kompression + URL-Hash) **und QR-Code**.
-
-## Was ist neu?
-- **Kurzlink**: Admin erzeugt `viewer.html#s=<komprimiert>` (LZ-String, URI-safe). Der Hash wird nicht an den Server geschickt.
-- **QR-Code**: Button "QR-Code anzeigen" erzeugt einen scannbaren Code direkt im Browser (ohne externe Pakete). PNG-Download inklusive.
-- **Fallback**: Export als `schedule.json`; die Zuschauer-Seite lädt diese automatisch, wenn kein Hash vorhanden ist.
+Diese Version bringt:
+- **2‑Spalten Layout**: links Konfiguration, rechts die Tabelle „Nur nächste Runde“.
+- **Kurzlink** via Hash + Kompression (LZ‑String, URI‑safe), keine „URI Too Long“.
+- **QR‑Code**: Anzeige im Modal + PNG‑Download.
+- **Sticky‑Header Fix**: Tabellenkopf überdeckt keine Daten.
+- **Slot‑Logik** für beliebige Gruppen (A allein funktioniert) mit automatischer Erweiterung.
 
 ## Nutzung
 1. `admin.html` öffnen → konfigurieren → **Slots & Runde 1**.
-2. Ergebnisse pflegen → **Zuschauer-Link (kurz)** oder **QR-Code anzeigen**.
-3. Link/QR teilen; Zuschauer öffnen `viewer.html`.
-4. Optional: `schedule.json` ins Repo-Root legen.
+2. Ergebnisse speichern oder Sieger‑Buttons benutzen.
+3. **Zuschauer‑Link (kurz)** erzeugen **oder** **QR‑Code anzeigen**.
+4. Zuschauer öffnen `viewer.html#s=...` oder nutzen `schedule.json` (Fallback).
 
-## Deployment (GitHub Pages)
-- Dateien ins Root hochladen: `admin.html`, `viewer.html`, `assets/`, `.nojekyll`.
+## Deployment
+- Dateien ins Repo‑Root: `admin.html`, `viewer.html`, `assets/`, `.nojekyll`.
 - Admin: `https://<account>.github.io/<repo>/admin.html`
 
 ## Lizenz

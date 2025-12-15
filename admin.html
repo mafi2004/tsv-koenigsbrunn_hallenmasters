@@ -12,9 +12,9 @@
     body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; background:#0f172a; color:#e5e7eb}
     header{position:sticky; top:0; z-index:20; background:#111827; padding:12px 16px; border-bottom:1px solid #1f2937; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
     header h1{margin:0; font-size:1.1rem}
-    main{max-width:1200px; margin:16px auto; padding:0 16px}
-    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
-    .card{background:#111827; border:1px solid #1f2937; border-radius:12px; padding:16px; margin-bottom:12px}
+    .container{max-width:1200px; margin:16px auto; padding:0 16px; display:grid; grid-template-columns:380px 1fr; gap:16px}
+    @media (max-width: 1080px){ .container{ grid-template-columns:1fr } }
+    .card{background:#111827; border:1px solid #1f2937; border-radius:12px; padding:16px}
     .btn{background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600}
     .btn.primary{background:#22c55e; color:#052e16; border:0}
     .btn.accent{background:#3b82f6}
@@ -26,9 +26,10 @@
     thead th{position:sticky; top:var(--table-sticky-top); background:#0b1226; color:#cbd5e1; padding:10px; font-weight:700; z-index:10}
     th, td{padding:10px 12px; border-bottom:1px solid #1f2937; text-align:left}
     .groupTag{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; border:1px solid #334155}
+    .hint{font-size:.85rem; color:#94a3b8}
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .modal{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center}
     .modal .inner{background:#0b1226; border:1px solid #1f2937; border-radius:12px; padding:16px; max-width:90vw}
-    .hint{font-size:.85rem; color:#94a3b8}
   </style>
 </head>
 <body>
@@ -36,8 +37,8 @@
   <h1>TSV Königsbrunn – Hallenmasters · Admin</h1>
   <a class="btn" href="viewer.html" target="_blank">Zuschauer-Ansicht öffnen</a>
 </header>
-<main>
-  <section class="card">
+<div class="container">
+  <section class="card" id="config">
     <h2>Konfiguration</h2>
     <div class="grid grid-2">
       <div><label>Titel</label><input id="title" value="TSV Königsbrunn – Hallenmasters"></div>
@@ -53,7 +54,7 @@
     </div>
     <div class="row"><label>Preset</label>
       <select id="preset"><option value="custom">Custom</option><option value="cl" selected>Champions League</option></select>
-      <span class="hint">CL: F1=W1-W2, F2=W3-L1, F3=L3-L2</span>
+      <span class="hint">CL: F1=W1-W2 · F2=W3-L1 · F3=L3-L2</span>
     </div>
     <details class="card" style="background:#0b1226; border-color:#1e293b">
       <summary><strong>Regel-Editor</strong> (optional; überschreibt Preset)</summary>
@@ -87,14 +88,27 @@
     </div>
     <div class="hint" id="shareOut"></div>
   </section>
-  <section class="card">
-    <h2>Nächste Runde je Gruppe</h2>
+
+  <section class="card" id="schedule">
+    <h2>Nur nächste Runde je Gruppe</h2>
     <table>
-      <thead><tr><th>#</th><th>Start</th><th>Ende</th><th>Gruppe</th><th>Runde</th><th>Feld</th><th>Team 1</th><th>Team 2</th><th>Aktion</th></tr></thead>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Start</th>
+          <th>Ende</th>
+          <th>Gruppe</th>
+          <th>Runde</th>
+          <th>Feld</th>
+          <th>Team 1</th>
+          <th>Team 2</th>
+          <th>Ergebnis</th>
+        </tr>
+      </thead>
       <tbody id="tb"></tbody>
     </table>
   </section>
-</main>
+</div>
 
 <!-- QR Modal -->
 <div class="modal" id="qrModal">
@@ -111,7 +125,7 @@
 
 <script>
   // Sticky header height
-  function updateStickyTopFromHeader(){ const h=document.querySelector('header'); if(!h) return; document.documentElement.style.setProperty('--page-header-height', Math.ceil(h.getBoundingClientRect().height)+'px'); }
+  function updateStickyTopFromHeader(){ var h=document.querySelector('header'); if(!h) return; document.documentElement.style.setProperty('--page-header-height', Math.ceil(h.getBoundingClientRect().height)+'px'); }
   window.addEventListener('load', updateStickyTopFromHeader); window.addEventListener('resize', updateStickyTopFromHeader);
   if('ResizeObserver' in window){ new ResizeObserver(updateStickyTopFromHeader).observe(document.querySelector('header')); }
 
@@ -119,7 +133,6 @@
   var LZString=(function(){var f=String.fromCharCode;var keyStrUriSafe="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$";var baseReverseDic={};function getBaseValue(alphabet, character){if(!baseReverseDic[alphabet]){baseReverseDic[alphabet]={};for(var i=0;i<alphabet.length;i++){baseReverseDic[alphabet][alphabet.charAt(i)]=i;}}return baseReverseDic[alphabet][character];}function compressToEncodedURIComponent(input){if(input==null)return"";return _compress(input,6,function(a){return keyStrUriSafe.charAt(a);});}function _compress(uncompressed,bitsPerChar,getCharFromInt){if(uncompressed==null)return"";var i,value,context_dictionary={},context_dictionaryToCreate={},context_c="",context_wc="",context_w="",context_enlargeIn=2,context_dictSize=3,context_numBits=2,context_data=[],context_data_val=0,context_data_position=0;for(i=0;i<uncompressed.length;i+=1){context_c=uncompressed.charAt(i);if(!Object.prototype.hasOwnProperty.call(context_dictionary,context_c)){context_dictionary[context_c]=context_dictSize++;context_dictionaryToCreate[context_c]=true;}context_wc=context_w+context_c;if(Object.prototype.hasOwnProperty.call(context_dictionary,context_wc)){context_w=context_wc;}else{if(Object.prototype.hasOwnProperty.call(context_dictionaryToCreate,context_w)){if(context_w.charCodeAt(0)<256){for(var j=0;j<context_numBits;j++){context_data_val=context_data_val<<1;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}}value=context_w.charCodeAt(0);for(var j=0;j<8;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }else{value=1;for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|value;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=0;}value=context_w.charCodeAt(0);for(var j=0;j<16;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}delete context_dictionaryToCreate[context_w];}else{value=context_dictionary[context_w];for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}context_dictionary[context_wc]=context_dictSize++;context_w=String(context_c);} }if(context_w!=""){if(Object.prototype.hasOwnProperty.call(context_dictionaryToCreate,context_w)){if(context_w.charCodeAt(0)<256){for(var j=0;j<context_numBits;j++){context_data_val=context_data_val<<1;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}}value=context_w.charCodeAt(0);for(var j=0;j<8;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }else{value=1;for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|value;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=0;}value=context_w.charCodeAt(0);for(var j=0;j<16;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}delete context_dictionaryToCreate[context_w];}else{value=context_dictionary[context_w];for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}} }value=2;for(var i=0;i<context_numBits;i++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;}while(true){context_data_val=context_data_val<<1;if(context_data_position==bitsPerChar-1){context_data.push(getCharFromInt(context_data_val));break;}else{context_data_position++;}}return context_data.join('');}return {compressToEncodedURIComponent:compressToEncodedURIComponent};})();
 
   // Minimal QR code generator (qrcode.js – MIT, trimmed)
-  /*! QRCode.js v1.0.0 (MIT) */
   (function(){function QR8bitByte(data){this.mode=1;this.data=data;this.parsedData=[];for(var i=0;i<this.data.length;i++){var byte=this.data.charCodeAt(i);this.parsedData.push(byte);}this.getLength=function(){return this.parsedData.length};this.write=function(buffer){for(var i=0;i<this.parsedData.length;i++){buffer.put(this.parsedData[i],8)}}}
   function QRCodeModel(typeNumber,errorCorrectLevel){this.typeNumber=typeNumber;this.errorCorrectLevel=errorCorrectLevel;this.modules=null;this.moduleCount=0;this.dataCache=null;this.dataList=[];this.addData=function(data){var newData=new QR8bitByte(data);this.dataList.push(newData);this.dataCache=null};this.isDark=function(row,col){return this.modules[row][col]};this.getModuleCount=function(){return this.moduleCount};this.make=function(){this.moduleCount=41;this.modules=new Array(this.moduleCount);for(var row=0;row<this.moduleCount;row++){this.modules[row]=new Array(this.moduleCount);for(var col=0;col<this.moduleCount;col++){this.modules[row][col]=false}}this.setupPositionProbePattern(0,0);this.setupPositionProbePattern(this.moduleCount-7,0);this.setupPositionProbePattern(0,this.moduleCount-7);this.mapData(this.createData())};this.setupPositionProbePattern=function(row,col){for(var r=-1;r<=7;r++){if(row+r<=-1||this.moduleCount<=row+r)continue;for(var c=-1;c<=7;c++){if(col+c<=-1||this.moduleCount<=col+c)continue;this.modules[row+r][col+c]=(r>=0&&r<=6&&(c==0||c==6))||(c>=0&&c<=6&&(r==0||r==6))||(r>=2&&r<=4&&c>=2&&c<=4)}}};this.mapData=function(data){var inc=-1;var row=this.moduleCount-1;var bitIndex=0;for(var col=this.moduleCount-1;col>0;col-=2){if(col==6)col--;while(true){for(var c=0;c<2;c++){if(this.modules[row][col-c]===false){this.modules[row][col-c]=((data[bitIndex>>3]>>(7-(bitIndex%8)))&1)==1;bitIndex++;}}row+=inc;if(row<0||this.moduleCount<=row){row-=inc;inc=-inc;break}}}};this.createData=function(){var buffer=[];for(var i=0;i<this.dataList.length;i++){var data=this.dataList[i];buffer.push(0x40);buffer.push(data.getLength());for(var j=0;j<data.parsedData.length;j++){buffer.push(data.parsedData[j])}}return buffer}}
   function QRCode(element,opts){this._el=element;this._htOption=opts||{};this._oQRCode=new QRCodeModel(4,'M');}
@@ -128,52 +141,81 @@
   window.SimpleQRCode = QRCode;
   })();
 
-  const ROLES=['W1','L1','W2','L2','W3','L3'];
-  const $=s=>document.querySelector(s);
-  function parseTeams(t){return t.split(/\r?\n/).map(s=>s.trim()).filter(Boolean)}
-  function pad2(n){return String(n).padStart(2,'0')}
-  function addMinutes(hm,m){const [h,mi]=hm.split(':').map(Number);const d=new Date(2000,0,1,h,mi);d.setMinutes(d.getMinutes()+m);return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`}
-  function buildSelect(sel){sel.innerHTML='';for(const r of ROLES){const o=document.createElement('option');o.value=r;o.textContent=r;sel.appendChild(o)}}
-  for(const g of ['A','B','C']){ for(const f of [1,2,3]){ buildSelect($(`#${g}_F${f}_H`)); buildSelect($(`#${g}_F${f}_A`)); } }
-  function applyCL(){ for(const g of ['A','B','C']){ $(`#${g}_F1_H`.replace('F1_H','F1_H'))?.value='W1'; $(`#${g}_F1_A`)?.value='W2'; $(`#${g}_F2_H`)?.value='W3'; $(`#${g}_F2_A`)?.value='L1'; $(`#${g}_F3_H`)?.value='L3'; $(`#${g}_F3_A`)?.value='L2'; } }
-  applyCL();
-  $('#preset').addEventListener('change',()=>{ if($('#preset').value==='cl') applyCL(); });
+  // --- Core ---
+  var ROLES=['W1','L1','W2','L2','W3','L3'];
+  function $(sel){ return document.querySelector(sel); }
+  function parseTeams(t){ return t.split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean); }
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function addMinutes(hm,m){ var parts=hm.split(':'); var h=parseInt(parts[0],10)||0; var mi=parseInt(parts[1],10)||0; var d=new Date(2000,0,1,h,mi); d.setMinutes(d.getMinutes()+m); return pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+  function buildSelect(el){ el.innerHTML=''; for(var i=0;i<ROLES.length;i++){ var r=ROLES[i]; var o=document.createElement('option'); o.value=r; o.textContent=r; el.appendChild(o);} }
+  ;(function initRule(){ ['A','B','C'].forEach(function(g){ [1,2,3].forEach(function(f){ buildSelect($('#'+g+'_F'+f+'_H')); buildSelect($('#'+g+'_F'+f+'_A')); }); }); applyCL(); })();
+  function applyCL(){ ['A','B','C'].forEach(function(g){ $('#'+g+'_F1_H').value='W1'; $('#'+g+'_F1_A').value='W2'; $('#'+g+'_F2_H').value='W3'; $('#'+g+'_F2_A').value='L1'; $('#'+g+'_F3_H').value='L3'; $('#'+g+'_F3_A').value='L2'; }); }
+  $('#preset').addEventListener('change', function(){ if($('#preset').value==='cl'){ applyCL(); } });
 
-  let matches=[], results={}, currentRound={A:1,B:1,C:1}, slots=[], slotsAssign=[], rotation=[];
-  function collectCfg(){ const groups={A:parseTeams($('#teamsA').value),B:parseTeams($('#teamsB').value),C:parseTeams($('#teamsC').value)}; for(const k of Object.keys(groups)){ if(groups[k].length===0) delete groups[k]; }
-    const mapping={}; for(const g of ['A','B','C']){ mapping[g]={}; for(const f of [1,2,3]){ mapping[g][`Feld ${f}`]=[$(`#${g}_F${f}_H`).value, $(`#${g}_F${f}_A`).value]; } }
-    return { title:$('#title').value||'Turnier', startTime:$('#startTime').value||'10:00', gm:parseInt($('#gameMinutes').value,10), bm:parseInt($('#breakMinutes').value,10), rot:$('#rotationPattern').value, groups, mapping };
+  var matches=[]; var results={}; var currentRound={A:1,B:1,C:1}; var slots=[]; var slotsAssign=[]; var rotation=[];
+  function collectCfg(){ var groups={ A:parseTeams($('#teamsA').value), B:parseTeams($('#teamsB').value), C:parseTeams($('#teamsC').value) }; Object.keys(groups).forEach(function(k){ if(groups[k].length===0) delete groups[k]; });
+    var mapping={}; ['A','B','C'].forEach(function(g){ mapping[g]={}; [1,2,3].forEach(function(f){ mapping[g]['Feld '+f]=[ $('#'+g+'_F'+f+'_H').value, $('#'+g+'_F'+f+'_A').value ]; }); });
+    return { title:$('#title').value||'Turnier', startTime:$('#startTime').value||'10:00', gm:parseInt($('#gameMinutes').value,10)||10, bm:parseInt($('#breakMinutes').value,10)||2, rot:$('#rotationPattern').value, groups:groups, mapping:mapping };
   }
-  function seedPairs(arr){ return [[arr[0],arr[1]],[arr[2],arr[3]],[arr[4],arr[5]]].filter(p=>p[0]&&p[1]); }
-  function buildSlots(start, per, rotRaw, present, max=120){ const rr=rotRaw.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean); rotation=rr.filter(g=>present.includes(g)); if(rotation.length===0) rotation=[...present]; let s=[],a=[],t=start; for(let i=0;i<max;i++){ const g=rotation[i%rotation.length]; const end=addMinutes(t,per); a.push({group:g}); s.push({start:t,end,group:g}); t=end; } slotsAssign=a; slots=s; }
-  function ensureSlot(group,n){ let cnt=0; for(const a of slotsAssign) if(a.group===group) cnt++; const cfg=collectCfg(); let t=slots.length?slots[slots.length-1].end:cfg.startTime; while(cnt<n){ for(const g of rotation){ const end=addMinutes(t,cfg.gm+cfg.bm); slotsAssign.push({group:g}); slots.push({start:t,end,group:g}); t=end; } cnt++; } }
-  function nthIndex(group,n){ ensureSlot(group,n); let c=0; for(let i=0;i<slotsAssign.length;i++){ if(slotsAssign[i].group===group){ c++; if(c===n) return i; } } return -1; }
-  function addRound(group,round,pairs){ const idx=nthIndex(group,round); const cfg=collectCfg(); const slot=slots[idx]; const end=addMinutes(slot.start,cfg.gm); for(let f=1;f<=3;f++){ const p=pairs[f-1]||['TBD','TBD']; matches.push({slot:idx+1,start:slot.start,end,group,round,field:`Feld ${f}`,team1:p[0],team2:p[1]}); } }
-  function generate(){ matches=[]; results={}; currentRound={A:1,B:1,C:1}; const cfg=collectCfg(); const present=Object.keys(cfg.groups); buildSlots(cfg.startTime,cfg.gm+cfg.bm,cfg.rot,present,120); for(const g of present){ addRound(g,1,seedPairs(cfg.groups[g])); } render(); }
-  function saveRes(g,r,field,g1,g2){ if(!results[g]) results[g]={}; if(!results[g][r]) results[g][r]={}; results[g][r][field]={g1,g2}; onSaved(g,r); }
-  function all3(g,r){ const rr=results[g]?.[r]; if(!rr) return false; for(let f=1; f<=3; f++){ const x=rr[`Feld ${f}`]; if(!x || x.g1===undefined || x.g2===undefined || x.g1===x.g2) return false; } return true; }
-  function outcomes(g,r){ const rr=results[g]?.[r]; if(!rr) return null; const out={}; for(let f=1; f<=3; f++){ const m=matches.find(x=>x.group===g && x.round===r && x.field===`Feld ${f}`); const x=rr[`Feld ${f}`]; if(!m||!x) return null; const W=x.g1>x.g2?m.team1:m.team2; const L=x.g1>x.g2?m.team2:m.team1; out[`W${f}`]=W; out[`L${f}`]=L; } return out; }
-  function nextPairs(out,m){ const pairs=[]; for(let f=1; f<=3; f++){ const refs=m[`Feld ${f}`]||[]; pairs.push([out?.[refs[0]]||'TBD', out?.[refs[1]]||'TBD']); } return pairs; }
-  function onSaved(g,r){ if(!all3(g,r)){ render(); return; } const cfg=collectCfg(); const out=outcomes(g,r); if(!out){ render(); return; } const np=nextPairs(out, cfg.mapping[g]); const nr=r+1; addRound(g,nr,np); currentRound[g]=nr; render(); }
-  function render(){ const tb=document.getElementById('tb'); tb.innerHTML=''; const filtered=matches.filter(m=>m.round===currentRound[m.group]); for(const m of filtered){ const tr=document.createElement('tr'); tr.innerHTML=`<td>${m.slot}</td><td>${m.start}</td><td>${m.end}</td><td>${m.group}</td><td>${m.round}</td><td>${m.field}</td><td>${m.team1}</td><td>${m.team2}</td><td><button data-a="t1">${m.team1} siegt</button> <button data-a="t2">${m.team2} siegt</button></td>`; const b1=tr.querySelector('button[data-a="t1"]'); const b2=tr.querySelector('button[data-a="t2"]'); b1.addEventListener('click',()=>saveRes(m.group,m.round,m.field,1,0)); b2.addEventListener('click',()=>saveRes(m.group,m.round,m.field,0,1)); tb.appendChild(tr); } }
+  function seedPairs(arr){ return [[arr[0],arr[1]],[arr[2],arr[3]],[arr[4],arr[5]]].filter(function(p){return p[0]&&p[1];}); }
+  function buildSlots(start, per, rotRaw, present, max){ max=max||120; var rr=rotRaw.split(',').map(function(s){return s.trim().toUpperCase();}).filter(Boolean); rotation=rr.filter(function(g){return present.indexOf(g)>-1;}); if(rotation.length===0) rotation=present.slice(); var a=[]; var s=[]; var t=start; for(var i=0;i<max;i++){ var g=rotation[i%rotation.length]; var end=addMinutes(t,per); a.push({group:g}); s.push({start:t,end:end,group:g}); t=end; } slotsAssign=a; slots=s; }
+  function countOcc(group){ var c=0; for(var i=0;i<slotsAssign.length;i++){ if(slotsAssign[i].group===group) c++; } return c; }
+  function ensureSlot(group,n){ if(countOcc(group)>=n) return; var cfg=collectCfg(); var per=cfg.gm+cfg.bm; var t=slots.length?slots[slots.length-1].end:cfg.startTime; var guard=0; while(countOcc(group)<n && guard++<500){ for(var i=0;i<rotation.length;i++){ var g=rotation[i]; var end=addMinutes(t, per); slotsAssign.push({group:g}); slots.push({start:t,end:end,group:g}); t=end; } } }
+  function nthIndex(group,n){ ensureSlot(group,n); var c=0; for(var i=0;i<slotsAssign.length;i++){ if(slotsAssign[i].group===group){ c++; if(c===n) return i; } } return -1; }
+  function addRound(group, round, pairs){ var idx=nthIndex(group, round); if(idx<0){ alert('Zu wenige Slots für Gruppe '+group+' Runde '+round); return; } var cfg=collectCfg(); var slot=slots[idx]; var end=addMinutes(slot.start, cfg.gm); for(var f=1; f<=3; f++){ var p=pairs[f-1]||['TBD','TBD']; matches.push({ slot:idx+1, start:slot.start, end:end, group:group, round:round, field:'Feld '+f, team1:p[0], team2:p[1] }); } }
+  function generate(){ matches=[]; results={}; currentRound={A:1,B:1,C:1}; var cfg=collectCfg(); var present=Object.keys(cfg.groups); buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); present.forEach(function(g){ addRound(g,1,seedPairs(cfg.groups[g])); }); render(); }
 
-  function publishPayload(){ const cfg=collectCfg(); const pub=matches.filter(m=>m.round===currentRound[m.group]); return { title:cfg.title, generatedAt:new Date().toISOString(), matches:pub }; }
-  function makeShortLink(){ const data=publishPayload(); const json=JSON.stringify(data); const enc=LZString.compressToEncodedURIComponent(json); const base=window.location.origin+window.location.pathname.replace('admin.html','viewer.html'); const url=base+'#s='+enc; document.getElementById('shareOut').innerHTML='<strong>Zuschauer-Link:</strong> <a target="_blank" href="'+url+'">'+url+'</a>'; return url; }
+  function getSaved(group, round, field){ return (results[group]&&results[group][round]&&results[group][round][field])||null; }
+  function allThree(group, round){ var r=results[group]&&results[group][round]; if(!r) return false; for(var f=1; f<=3; f++){ var x=r['Feld '+f]; if(!x || typeof x.g1!=='number' || typeof x.g2!=='number' || x.g1===x.g2) return false; } return true; }
+  function computeOutcomes(group, round){ var r=results[group]&&results[group][round]; if(!r) return null; var out={}; for(var f=1; f<=3; f++){ var match=matches.find(function(m){ return m.group===group && m.round===round && m.field==='Feld '+f; }); var res=r['Feld '+f]; if(!match || !res) return null; var W=res.g1>res.g2?match.team1:match.team2; var L=res.g1>res.g2?match.team2:match.team1; out['W'+f]=W; out['L'+f]=L; } return out; }
+  function nextPairs(out, mapping){ var pairs=[]; for(var f=1; f<=3; f++){ var refs=mapping['Feld '+f]||[]; var a=out?out[refs[0]]:'TBD'; var b=out?out[refs[1]]:'TBD'; pairs.push([a||'TBD', b||'TBD']); } return pairs; }
+  function onSaved(group, round){ if(!allThree(group, round)){ render(); return; } var cfg=collectCfg(); var out=computeOutcomes(group, round); if(!out){ render(); return; } var pairs=nextPairs(out, cfg.mapping[group]); var nr=round+1; addRound(group, nr, pairs); currentRound[group]=nr; render(); }
+  function saveResult(group, round, field, g1, g2){ if(!results[group]) results[group]={}; if(!results[group][round]) results[group][round]={}; results[group][round][field]={g1:g1, g2:g2}; onSaved(group, round); }
 
-  // QR modal controls
-  const modal=$('#qrModal'); const qrBox=$('#qr'); const qrHint=$('#qrLinkHint'); let qrInstance=null;
-  function openQR(){ const url=makeShortLink(); if(!qrInstance) qrInstance=new SimpleQRCode(qrBox,{width:256}); qrInstance.clear(); qrInstance.makeCode(url); qrHint.textContent=url; modal.style.display='flex'; }
-  function closeQR(){ modal.style.display='none'; }
-  function downloadQR(){ const canvas=qrBox.querySelector('canvas'); if(!canvas) return; const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='qr-zuschauer-link.png'; a.click(); }
+  function render(){ var tbody=document.getElementById('tb'); tbody.innerHTML=''; var filtered=matches.filter(function(m){ return m.round===currentRound[m.group]; }); filtered.forEach(function(m){ var tr=document.createElement('tr'); var t1=m.team1||'TBD', t2=m.team2||'TBD'; var saved=getSaved(m.group, m.round, m.field);
+      var g1v = saved && typeof saved.g1==='number' ? saved.g1 : ''; var g2v = saved && typeof saved.g2==='number' ? saved.g2 : '';
+      tr.innerHTML = '<td>'+m.slot+'</td>' +
+        '<td>'+m.start+'</td>'+
+        '<td>'+m.end+'</td>'+
+        '<td><span class="groupTag">'+m.group+'</span></td>'+
+        '<td>'+m.round+'</td>'+
+        '<td>'+m.field+'</td>'+
+        '<td>'+t1+'</td>'+
+        '<td>'+t2+'</td>'+
+        '<td><div class="row" style="gap:6px; align-items:center">'+
+          '<input type="number" min="0" placeholder="0" data-k="g1" value="'+g1v+'" style="width:64px; text-align:center" />'+
+          '<span style="opacity:.7">:</span>'+
+          '<input type="number" min="0" placeholder="0" data-k="g2" value="'+g2v+'" style="width:64px; text-align:center" />'+
+          '<button class="btn" data-action="save">Speichern</button>'+
+          '<button class="btn" data-action="t1win">'+t1+' siegt</button>'+
+          '<button class="btn" data-action="t2win">'+t2+' siegt</button>'+
+        '</div></td>';
+      var inputs=tr.querySelectorAll('input');
+      function commit(a,b){ if(typeof a!=='number' || isNaN(a) || typeof b!=='number' || isNaN(b)){ alert('Bitte gültige Tore eingeben.'); return; } saveResult(m.group, m.round, m.field, a, b); }
+      tr.querySelector('button[data-action="save"]').addEventListener('click', function(){ var a=parseInt(inputs[0].value,10); var b=parseInt(inputs[1].value,10); commit(a,b); });
+      tr.querySelector('button[data-action="t1win"]').addEventListener('click', function(){ commit(1,0); });
+      tr.querySelector('button[data-action="t2win"]').addEventListener('click', function(){ commit(0,1); });
+      tbody.appendChild(tr);
+    });
+  }
 
-  // Wire
-  document.getElementById('btnGenerate').addEventListener('click',generate);
-  document.getElementById('btnRegenerate').addEventListener('click',()=>{ const cfg=collectCfg(); const present=Object.keys(cfg.groups); buildSlots(cfg.startTime,cfg.gm+cfg.bm,cfg.rot,present,120); render(); });
-  document.getElementById('btnShare').addEventListener('click',makeShortLink);
-  document.getElementById('btnQR').addEventListener('click',openQR);
-  document.getElementById('btnCloseQR').addEventListener('click',closeQR);
-  document.getElementById('btnDownloadQR').addEventListener('click',downloadQR);
-  document.getElementById('btnExport').addEventListener('click',()=>{ const data=publishPayload(); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='schedule.json'; a.click(); URL.revokeObjectURL(url); });
+  function publishPayload(){ var cfg=collectCfg(); var pub=matches.filter(function(m){ return m.round===currentRound[m.group]; }); return { title:cfg.title, generatedAt:new Date().toISOString(), matches:pub }; }
+  function makeShortLink(){ var data=publishPayload(); var json=JSON.stringify(data); var enc=LZString.compressToEncodedURIComponent(json); var base=window.location.origin+window.location.pathname.replace('admin.html','viewer.html'); var url=base+'#s='+enc; document.getElementById('shareOut').innerHTML='<strong>Zuschauer-Link:</strong> <a target="_blank" href="'+url+'">'+url+'</a>'; return url; }
+
+  // Minimal QR code generator
+  function makeQR(url){ if(!window.SimpleQRCode){ alert('QR-Code Bibliothek nicht geladen.'); return; } var qrBox=document.getElementById('qr'); if(!window._qr){ window._qr=new SimpleQRCode(qrBox,{width:256}); } window._qr.clear(); window._qr.makeCode(url); document.getElementById('qrLinkHint').textContent=url; }
+  function openQR(){ var url=makeShortLink(); makeQR(url); document.getElementById('qrModal').style.display='flex'; }
+  function closeQR(){ document.getElementById('qrModal').style.display='none'; }
+  function downloadQR(){ var canvas=document.querySelector('#qr canvas'); if(!canvas) return; var a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='qr-zuschauer-link.png'; a.click(); }
+
+  // Wiring
+  document.getElementById('btnGenerate').addEventListener('click', generate);
+  document.getElementById('btnRegenerate').addEventListener('click', function(){ var cfg=collectCfg(); var present=Object.keys(cfg.groups); buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); render(); });
+  document.getElementById('btnShare').addEventListener('click', makeShortLink);
+  document.getElementById('btnQR').addEventListener('click', openQR);
+  document.getElementById('btnCloseQR').addEventListener('click', closeQR);
+  document.getElementById('btnDownloadQR').addEventListener('click', downloadQR);
+  document.getElementById('btnExport').addEventListener('click', function(){ var data=publishPayload(); var blob=new Blob([JSON.stringify(data,null,2)], {type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='schedule.json'; a.click(); URL.revokeObjectURL(url); });
 
   // Init
   generate();
