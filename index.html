@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TSV Königsbrunn – Hallenmasters | Funino: Nächste Runde (Champions-League-Modus)</title>
-  <meta name="description" content="Funino-Spielplan: pro Gruppe nur die nächste Runde. Champions-League-Modus: W1–W2, W3–L1, L3–L2. Nächste Runde erst nach 3 Ergebnissen. Sticky-Header fixiert mit dynamischem Offset." />
+  <meta name="description" content="Funino-Spielplan: pro Gruppe nur die nächste Runde. Champions-League-Modus: W1–W2, W3–L1, L3–L2. Nächste Runde erst nach 3 Ergebnissen. Sticky-Header dynamisch mit ResizeObserver." />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <style>
     :root{
@@ -12,14 +12,14 @@
       --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --error:#ef4444;
       --groupA:#10b981; --groupB:#f97316; --groupC:#6366f1;
       /* Sticky-Header Fix */
-      --page-header-height: 64px;   /* Fallback, wird per JS dynamisch gesetzt */
+      --page-header-height: 64px;   /* Fallback, wird per JS mit ResizeObserver aktualisiert */
       --table-sticky-gap: 8px;      /* Abstand unterhalb des Seiten-Headers */
       --table-sticky-top: calc(var(--page-header-height) + var(--table-sticky-gap));
     }
     *{box-sizing:border-box}
     html{scroll-padding-top: calc(var(--page-header-height) + 16px);} /* bessere Anker-/Scroll-Experience */
     body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; background:linear-gradient(180deg,#0b1023, #0f172a 50%, #0b1023); color:var(--text)}
-    header{position:sticky; top:0; z-index:10; background:rgba(15,23,42,.85); backdrop-filter:saturate(120%) blur(6px); border-bottom:1px solid #1f2937; padding:12px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+    header{position:sticky; top:0; z-index:20; background:rgba(15,23,42,.9); backdrop-filter:saturate(120%) blur(6px); border-bottom:1px solid #1f2937; padding:12px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap}
     header h1{font-size:1.1rem; margin:0; letter-spacing:.3px}
     .badge{font-size:.75rem; padding:4px 8px; border:1px solid #374151; border-radius:999px; color:var(--muted)}
     .container{max-width:1200px; margin:16px auto; padding:0 16px; display:grid; grid-template-columns:360px 1fr; gap:16px}
@@ -45,8 +45,9 @@
     .legend{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .dot{width:10px; height:10px; border-radius:50%}
     .A{background:var(--groupA)} .B{background:var(--groupB)} .C{background:var(--groupC)}
+    .tableWrap{position:relative}
     table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:12px; border:1px solid #1f2937}
-    thead th{position:sticky; top: var(--table-sticky-top); z-index: 2; background:#0b1226; color:#cbd5e1; font-weight:700; box-shadow:0 2px 0 rgba(0,0,0,.15)}
+    thead th{position:sticky; top: var(--table-sticky-top); z-index: 10; background:#0b1226; color:#cbd5e1; font-weight:700; box-shadow:0 2px 0 rgba(0,0,0,.15)}
     th, td{padding:10px 12px; border-bottom:1px solid #1f2937; text-align:left; font-size:.92rem}
     tbody tr:hover{background:#0b12261a}
     .groupTag{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; font-weight:700; font-size:.8rem}
@@ -198,15 +199,22 @@
     const $ = (sel)=>document.querySelector(sel);
     const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
 
-    // Sticky-Header: dynamischen Offset aus Seiten-Header setzen
+    // Sticky-Header: dynamischer Offset (robust) mit ResizeObserver auf <header>
     function updateStickyTopFromHeader(){
       const h = document.querySelector('header');
       if(!h) return;
-      const headerHeight = h.getBoundingClientRect().height;
+      const headerHeight = Math.ceil(h.getBoundingClientRect().height);
       document.documentElement.style.setProperty('--page-header-height', headerHeight + 'px');
     }
     window.addEventListener('load', updateStickyTopFromHeader);
     window.addEventListener('resize', updateStickyTopFromHeader);
+    (function(){
+      const h = document.querySelector('header');
+      if('ResizeObserver' in window && h){
+        const ro = new ResizeObserver(()=>updateStickyTopFromHeader());
+        ro.observe(h);
+      }
+    })();
 
     const ROLES = ['W1','L1','W2','L2','W3','L3'];
 
@@ -217,6 +225,7 @@
     // --- State (Runden sind 1-basiert gespeichert) ---
     let slots = [];              // [{start,end,group}]
     let slotAssignments = [];    // [{group}]
+    let rotationActive = [];     // effektives Rotationsmuster nach Filterung der vorhandenen Gruppen
     let currentRound = {A:1,B:1,C:1};
     let matches = [];            // alle angelegten Matches
     let results = {};            // results[group][round][field] = {g1,g2}
@@ -267,13 +276,40 @@
       return pairs;
     }
 
-    function buildSlotAssignments(startTime, minutesPerSlot, rotationPattern, maxSlots=60){
-      const rot = rotationPattern.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean); const assigns=[]; const s=[]; let t=startTime;
+    // Build/extend slots for present groups only
+    function buildSlotAssignments(startTime, minutesPerSlot, rotationPattern, presentGroups, maxSlots=120){
+      const rotRaw = rotationPattern.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+      let rot = rotRaw.filter(g => presentGroups.includes(g));
+      if(rot.length === 0){ rot = [...presentGroups]; }
+      rotationActive = rot;
+      const assigns=[]; const s=[]; let t=startTime;
       for(let i=0;i<maxSlots;i++){ const g=rot[i % rot.length]; const end=addMinutes(t, minutesPerSlot); assigns.push({group:g}); s.push({start:t,end,group:g}); t=end; }
       return {assigns, slots:s};
     }
 
-    function nthGroupSlotIndex(group, n){ let c=0; for(let i=0;i<slotAssignments.length;i++){ if(slotAssignments[i].group===group){ c++; if(c===n) return i; } } return -1; }
+    function countOccurrences(group){ let c=0; for(const a of slotAssignments){ if(a.group===group) c++; } return c; }
+
+    function ensureSlotFor(group, n){
+      // falls wir noch nicht genug Vorkommen von 'group' haben, hänge weitere Rotationszyklen an
+      if(countOccurrences(group) >= n) return;
+      const minutesPerSlot = parseInt($('#gameMinutes').value,10) + parseInt($('#breakMinutes').value,10);
+      let t = slots.length ? slots[slots.length-1].end : ($('#startTime').value||'10:00');
+      let guard=0;
+      while(countOccurrences(group) < n && guard++ < 500){
+        for(const g of rotationActive){
+          const end = addMinutes(t, minutesPerSlot);
+          slotAssignments.push({group:g});
+          slots.push({start:t, end, group:g});
+          t = end;
+        }
+      }
+    }
+
+    function nthGroupSlotIndex(group, n){
+      ensureSlotFor(group, n);
+      let c=0; for(let i=0;i<slotAssignments.length;i++){ if(slotAssignments[i].group===group){ c++; if(c===n) return i; } }
+      return -1;
+    }
 
     function addRoundMatches(group, round, pairs){
       const idx = nthGroupSlotIndex(group, round); if(idx<0){ alert(`Zu wenige Slots für Gruppe ${group} Runde ${round}`); return; }
@@ -292,8 +328,10 @@
       matches=[]; results={}; currentRound={A:1,B:1,C:1};
       const cfg = collectConfig();
       const minutesPerSlot = cfg.gameMinutes + cfg.breakMinutes;
-      const built = buildSlotAssignments(cfg.startTime, minutesPerSlot, cfg.rotationPattern, 60); slotAssignments=built.assigns; slots=built.slots;
-      for(const g of Object.keys(cfg.groups)){ const pairs = seedPairs(cfg.groups[g]); addRoundMatches(g, 1, pairs); }
+      const present = Object.keys(cfg.groups);
+      const built = buildSlotAssignments(cfg.startTime, minutesPerSlot, cfg.rotationPattern, present, 120);
+      slotAssignments=built.assigns; slots=built.slots;
+      for(const g of present){ const pairs = seedPairs(cfg.groups[g]); addRoundMatches(g, 1, pairs); }
       renderSchedule();
     }
 
@@ -354,12 +392,12 @@
     function saveConfig(){
       const cfg = collectConfig();
       const mapping={A:getRuleMappingFor('A'),B:getRuleMappingFor('B'),C:getRuleMappingFor('C')};
-      localStorage.setItem('funino_cfg_v5', JSON.stringify({...cfg, mapping, preset:$('#preset').value}));
-      localStorage.setItem('funino_state_v5', JSON.stringify({results,matches,currentRound}));
+      localStorage.setItem('funino_cfg_v6', JSON.stringify({...cfg, mapping, preset:$('#preset').value}));
+      localStorage.setItem('funino_state_v6', JSON.stringify({results,matches,currentRound,rotationActive,slotAssignments,slots}));
     }
     function loadConfig(){
-      const raw=localStorage.getItem('funino_cfg_v5');
-      const rawS=localStorage.getItem('funino_state_v5');
+      const raw=localStorage.getItem('funino_cfg_v6');
+      const rawS=localStorage.getItem('funino_state_v6');
       if(raw){
         try{
           const cfg=JSON.parse(raw);
@@ -371,10 +409,11 @@
           if(cfg.groups?.B) $('#teamsB').value=cfg.groups.B.join("\n");
           if(cfg.groups?.C) $('#teamsC').value=cfg.groups.C.join("\n");
           $('#preset').value = cfg.preset||'cl';
+          const mapping = cfg.mapping || {};
           for(const g of ['A','B','C']){
             for(const f of [1,2,3]){
               const ids=[`${g}_F${f}_H`,`${g}_F${f}_A`];
-              for(const id of ids){ const el=document.getElementById(id); if(cfg.mapping?.[g] && cfg.mapping[g][`Feld ${f}`]){ el.value = cfg.mapping[g][`Feld ${f}`][id.endsWith('_H')?0:1]; } }
+              for(const id of ids){ const el=document.getElementById(id); if(mapping?.[g] && mapping[g][`Feld ${f}`]){ el.value = mapping[g][`Feld ${f}`][id.endsWith('_H')?0:1]; } }
             }
           }
         }catch(e){ console.warn('Konfiguration laden fehlgeschlagen', e); }
@@ -382,15 +421,15 @@
       if(rawS){
         try{
           const s=JSON.parse(rawS);
-          results=s.results||{}; matches=s.matches||[]; currentRound=s.currentRound||{A:1,B:1,C:1};
+          results=s.results||{}; matches=s.matches||[]; currentRound=s.currentRound||{A:1,B:1,C:1}; rotationActive=s.rotationActive||[]; slotAssignments=s.slotAssignments||[]; slots=s.slots||[];
         }catch(e){ console.warn('State laden fehlgeschlagen', e); }
       }
     }
 
-    function resetAll(){ localStorage.removeItem('funino_cfg_v5'); localStorage.removeItem('funino_state_v5'); window.location.reload(); }
+    function resetAll(){ localStorage.removeItem('funino_cfg_v6'); localStorage.removeItem('funino_state_v6'); window.location.reload(); }
 
     $('#btnGenerate').addEventListener('click', ()=>{ generateInitial(); });
-    $('#btnRegenerate').addEventListener('click', ()=>{ const cfg=collectConfig(); const minutesPerSlot=cfg.gameMinutes+cfg.breakMinutes; const built=buildSlotAssignments(cfg.startTime, minutesPerSlot, cfg.rotationPattern, 60); slotAssignments=built.assigns; slots=built.slots; renderSchedule(); });
+    $('#btnRegenerate').addEventListener('click', ()=>{ const cfg=collectConfig(); const minutesPerSlot=cfg.gameMinutes+cfg.breakMinutes; const present=Object.keys(cfg.groups); const built=buildSlotAssignments(cfg.startTime, minutesPerSlot, cfg.rotationPattern, present, 120); slotAssignments=built.assigns; slots=built.slots; renderSchedule(); });
     $('#btnSave').addEventListener('click', ()=>{ saveConfig(); });
     $('#btnLoad').addEventListener('click', ()=>{ loadConfig(); renderSchedule(); alert('Geladen (falls vorhanden)'); });
     $('#btnReset').addEventListener('click', ()=>{ if(confirm('Alles zurücksetzen?')) resetAll(); });

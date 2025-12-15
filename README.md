@@ -1,24 +1,27 @@
 
-# TSV Königsbrunn – Hallenmasters · Nächste Runde (Champions‑League‑Modus, Sticky‑Header Fix)
+# TSV Königsbrunn – Hallenmasters · Nächste Runde (Champions‑League‑Modus, Patch 2)
 
-Diese Variante zeigt **pro Gruppe immer nur die nächste Runde** und enthält den Fix, dass der **Sticky‑Tabellenkopf** nicht mehr die oberste Datenzeile überdeckt:
-- Dynamischer Offset per CSS‑Variablen `--page-header-height` + `--table-sticky-top`
-- JavaScript misst die `<header>`‑Höhe und setzt den Offset automatisch (auch responsive)
-- `html { scroll-padding-top: ... }` verbessert das Scroll‑Verhalten
+**Änderungen gegenüber der letzten Version:**
 
-## Preset „Champions‑League‑Modus“
-- **Feld 1:** `W1 vs W2`
-- **Feld 2:** `W3 vs L1`
-- **Feld 3:** `L3 vs L2`
+1. **Sticky‑Header Fix (robust):**
+   - `ResizeObserver` misst dynamisch die `<header>`‑Höhe → CSS‑Variable `--page-header-height` wird automatisch aktualisiert.
+   - `thead th { top: var(--table-sticky-top) }` verhindert das Überdecken der ersten Datenzeile.
+   - `html { scroll-padding-top: ... }` verbessert das Scroll‑Verhalten.
+
+2. **„Zu wenige Slots…“ behoben:**
+   - Slot‑Generierung filtert das Rotationsmuster auf **tatsächlich vorhandene Gruppen** (z. B. nur `A`).
+   - **Automatisches Erweitern** der Slots, wenn für eine Gruppe weitere Runden benötigt werden (`ensureSlotFor`).
+
+3. **Champions‑League‑Modus (Preset)** bleibt: `F1=W1‑W2`, `F2=W3‑L1`, `F3=L3‑L2`. Regel‑Editor weiterhin vorhanden.
 
 ## Nutzung
-1. Preset wählen (oder Regel‑Editor nutzen)
-2. **Slots & Runde 1 anlegen**
-3. Ergebnisse pro Gruppe speichern (Tore oder Sieger‑Buttons) → nach 3 Ergebnissen wird **die nächste Runde** automatisch erzeugt und angezeigt
+1. Preset wählen (oder eigenes Mapping)
+2. **Slots & Runde 1 anlegen**
+3. Pro Gruppe alle 3 Ergebnisse speichern (Tore oder Sieger‑Buttons) → automatische Erzeugung der **nächsten Runde**
 
 ## Deployment (GitHub Pages)
 1. Repository: `tsv-koenigsbrunn-hallenmasters`
-2. Dateien im Repo‑Root hochladen
+2. Dateien ins Repo‑Root
 3. **Settings → Pages → Deploy from a branch → main / root**
 
 ## Lizenz
