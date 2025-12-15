@@ -1,21 +1,19 @@
-# TSV Königsbrunn – Hallenmasters · Kombi (Shortlink + QR, 2‑Spalten Layout)
+# TSV Königsbrunn – Hallenmasters · Kombi (Shortlink + QR, 2‑Spalten Layout, Fix)
 
-Diese Version bringt:
-- **2‑Spalten Layout**: links Konfiguration, rechts die Tabelle „Nur nächste Runde“.
-- **Kurzlink** via Hash + Kompression (LZ‑String, URI‑safe), keine „URI Too Long“.
-- **QR‑Code**: Anzeige im Modal + PNG‑Download.
-- **Sticky‑Header Fix**: Tabellenkopf überdeckt keine Daten.
-- **Slot‑Logik** für beliebige Gruppen (A allein funktioniert) mit automatischer Erweiterung.
+**Fixes**
+- Regel‑Editor initialisiert die Selects **zuverlässig** (A/B/C × F1–F3) und setzt das CL‑Preset.
+- Button **„Slots & Runde 1“** ist neu **robust** (mit Fehlermeldung im roten Banner bei Problemen).
+- QR‑Modal + Shortlink funktionieren; PNG‑Download hängt sich an das gerenderte QR‑Canvas.
+- Sticky‑Header Fix aktiv, Slot‑Logik erweitert, Rotation auf vorhandene Gruppen gefiltert.
 
 ## Nutzung
 1. `admin.html` öffnen → konfigurieren → **Slots & Runde 1**.
-2. Ergebnisse speichern oder Sieger‑Buttons benutzen.
-3. **Zuschauer‑Link (kurz)** erzeugen **oder** **QR‑Code anzeigen**.
-4. Zuschauer öffnen `viewer.html#s=...` oder nutzen `schedule.json` (Fallback).
+2. Ergebnisse speichern oder Sieger‑Buttons (Team 1/2 siegt).
+3. **Zuschauer‑Link (kurz)** generieren oder **QR‑Code anzeigen**; Zuschauer öffnen `viewer.html#s=...`.
+4. Optional: `schedule.json` exportieren und ins Repo‑Root legen.
 
-## Deployment
+## Deployment (GitHub Pages)
 - Dateien ins Repo‑Root: `admin.html`, `viewer.html`, `assets/`, `.nojekyll`.
-- Admin: `https://<account>.github.io/<repo>/admin.html`
 
 ## Lizenz
 MIT

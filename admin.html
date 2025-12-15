@@ -30,6 +30,7 @@
     .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .modal{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center}
     .modal .inner{background:#0b1226; border:1px solid #1f2937; border-radius:12px; padding:16px; max-width:90vw}
+    .errorBar{display:none; background:#7f1d1d; color:#fee2e2; border:1px solid #991b1b; padding:8px 12px; border-radius:8px; margin-bottom:8px}
   </style>
 </head>
 <body>
@@ -40,6 +41,7 @@
 <div class="container">
   <section class="card" id="config">
     <h2>Konfiguration</h2>
+    <div id="errorBar" class="errorBar"></div>
     <div class="grid grid-2">
       <div><label>Titel</label><input id="title" value="TSV Königsbrunn – Hallenmasters"></div>
       <div><label>Startzeit</label><input id="startTime" type="time" value="10:00"></div>
@@ -129,6 +131,10 @@
   window.addEventListener('load', updateStickyTopFromHeader); window.addEventListener('resize', updateStickyTopFromHeader);
   if('ResizeObserver' in window){ new ResizeObserver(updateStickyTopFromHeader).observe(document.querySelector('header')); }
 
+  // Error banner
+  function showError(msg){ var b=document.getElementById('errorBar'); if(!b) return; b.textContent=msg; b.style.display='block'; }
+  function clearError(){ var b=document.getElementById('errorBar'); if(!b) return; b.style.display='none'; b.textContent=''; }
+
   // LZString minimal (URI safe) for compress
   var LZString=(function(){var f=String.fromCharCode;var keyStrUriSafe="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$";var baseReverseDic={};function getBaseValue(alphabet, character){if(!baseReverseDic[alphabet]){baseReverseDic[alphabet]={};for(var i=0;i<alphabet.length;i++){baseReverseDic[alphabet][alphabet.charAt(i)]=i;}}return baseReverseDic[alphabet][character];}function compressToEncodedURIComponent(input){if(input==null)return"";return _compress(input,6,function(a){return keyStrUriSafe.charAt(a);});}function _compress(uncompressed,bitsPerChar,getCharFromInt){if(uncompressed==null)return"";var i,value,context_dictionary={},context_dictionaryToCreate={},context_c="",context_wc="",context_w="",context_enlargeIn=2,context_dictSize=3,context_numBits=2,context_data=[],context_data_val=0,context_data_position=0;for(i=0;i<uncompressed.length;i+=1){context_c=uncompressed.charAt(i);if(!Object.prototype.hasOwnProperty.call(context_dictionary,context_c)){context_dictionary[context_c]=context_dictSize++;context_dictionaryToCreate[context_c]=true;}context_wc=context_w+context_c;if(Object.prototype.hasOwnProperty.call(context_dictionary,context_wc)){context_w=context_wc;}else{if(Object.prototype.hasOwnProperty.call(context_dictionaryToCreate,context_w)){if(context_w.charCodeAt(0)<256){for(var j=0;j<context_numBits;j++){context_data_val=context_data_val<<1;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}}value=context_w.charCodeAt(0);for(var j=0;j<8;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }else{value=1;for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|value;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=0;}value=context_w.charCodeAt(0);for(var j=0;j<16;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}delete context_dictionaryToCreate[context_w];}else{value=context_dictionary[context_w];for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}context_dictionary[context_wc]=context_dictSize++;context_w=String(context_c);} }if(context_w!=""){if(Object.prototype.hasOwnProperty.call(context_dictionaryToCreate,context_w)){if(context_w.charCodeAt(0)<256){for(var j=0;j<context_numBits;j++){context_data_val=context_data_val<<1;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}}value=context_w.charCodeAt(0);for(var j=0;j<8;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }else{value=1;for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|value;if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=0;}value=context_w.charCodeAt(0);for(var j=0;j<16;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}delete context_dictionaryToCreate[context_w];}else{value=context_dictionary[context_w];for(var j=0;j<context_numBits;j++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;} }context_enlargeIn--;if(context_enlargeIn==0){context_enlargeIn=Math.pow(2,context_numBits);context_numBits++;}} }value=2;for(var i=0;i<context_numBits;i++){context_data_val=(context_data_val<<1)|(value&1);if(context_data_position==bitsPerChar-1){context_data_position=0;context_data.push(getCharFromInt(context_data_val));context_data_val=0;}else{context_data_position++;}value=value>>1;}while(true){context_data_val=context_data_val<<1;if(context_data_position==bitsPerChar-1){context_data.push(getCharFromInt(context_data_val));break;}else{context_data_position++;}}return context_data.join('');}return {compressToEncodedURIComponent:compressToEncodedURIComponent};})();
 
@@ -144,26 +150,30 @@
   // --- Core ---
   var ROLES=['W1','L1','W2','L2','W3','L3'];
   function $(sel){ return document.querySelector(sel); }
+  function must(sel){ var el=$(sel); if(!el){ throw new Error('Element fehlt: '+sel); } return el; }
   function parseTeams(t){ return t.split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean); }
   function pad2(n){ return String(n).padStart(2,'0'); }
   function addMinutes(hm,m){ var parts=hm.split(':'); var h=parseInt(parts[0],10)||0; var mi=parseInt(parts[1],10)||0; var d=new Date(2000,0,1,h,mi); d.setMinutes(d.getMinutes()+m); return pad2(d.getHours())+':'+pad2(d.getMinutes()); }
   function buildSelect(el){ el.innerHTML=''; for(var i=0;i<ROLES.length;i++){ var r=ROLES[i]; var o=document.createElement('option'); o.value=r; o.textContent=r; el.appendChild(o);} }
-  ;(function initRule(){ ['A','B','C'].forEach(function(g){ [1,2,3].forEach(function(f){ buildSelect($('#'+g+'_F'+f+'_H')); buildSelect($('#'+g+'_F'+f+'_A')); }); }); applyCL(); })();
-  function applyCL(){ ['A','B','C'].forEach(function(g){ $('#'+g+'_F1_H').value='W1'; $('#'+g+'_F1_A').value='W2'; $('#'+g+'_F2_H').value='W3'; $('#'+g+'_F2_A').value='L1'; $('#'+g+'_F3_H').value='L3'; $('#'+g+'_F3_A').value='L2'; }); }
-  $('#preset').addEventListener('change', function(){ if($('#preset').value==='cl'){ applyCL(); } });
+  function initRuleEditor(){ ['A','B','C'].forEach(function(g){ [1,2,3].forEach(function(f){ buildSelect(must('#'+g+'_F'+f+'_H')); buildSelect(must('#'+g+'_F'+f+'_A')); }); }); applyCL(); }
+  function applyCL(){ ['A','B','C'].forEach(function(g){ if($('#'+g+'_F1_H')){ $('#'+g+'_F1_H').value='W1'; $('#'+g+'_F1_A').value='W2'; $('#'+g+'_F2_H').value='W3'; $('#'+g+'_F2_A').value='L1'; $('#'+g+'_F3_H').value='L3'; $('#'+g+'_F3_A').value='L2'; } }); }
+  must('#preset').addEventListener('change', function(){ if($('#preset').value==='cl'){ applyCL(); } });
 
   var matches=[]; var results={}; var currentRound={A:1,B:1,C:1}; var slots=[]; var slotsAssign=[]; var rotation=[];
-  function collectCfg(){ var groups={ A:parseTeams($('#teamsA').value), B:parseTeams($('#teamsB').value), C:parseTeams($('#teamsC').value) }; Object.keys(groups).forEach(function(k){ if(groups[k].length===0) delete groups[k]; });
-    var mapping={}; ['A','B','C'].forEach(function(g){ mapping[g]={}; [1,2,3].forEach(function(f){ mapping[g]['Feld '+f]=[ $('#'+g+'_F'+f+'_H').value, $('#'+g+'_F'+f+'_A').value ]; }); });
-    return { title:$('#title').value||'Turnier', startTime:$('#startTime').value||'10:00', gm:parseInt($('#gameMinutes').value,10)||10, bm:parseInt($('#breakMinutes').value,10)||2, rot:$('#rotationPattern').value, groups:groups, mapping:mapping };
+  function collectCfg(){ var groups={ A:parseTeams(must('#teamsA').value), B:parseTeams(must('#teamsB').value), C:parseTeams(must('#teamsC').value) }; Object.keys(groups).forEach(function(k){ if(groups[k].length===0) delete groups[k]; });
+    var mapping={}; ['A','B','C'].forEach(function(g){ mapping[g]={}; [1,2,3].forEach(function(f){ var hSel='#'+g+'_F'+f+'_H', aSel='#'+g+'_F'+f+'_A'; var h=$(hSel), a=$(aSel); mapping[g]['Feld '+f]=[ h ? h.value : 'W1', a ? a.value : 'W2' ]; }); });
+    return { title:must('#title').value||'Turnier', startTime:must('#startTime').value||'10:00', gm:parseInt(must('#gameMinutes').value,10)||10, bm:parseInt(must('#breakMinutes').value,10)||2, rot:must('#rotationPattern').value, groups:groups, mapping:mapping };
   }
   function seedPairs(arr){ return [[arr[0],arr[1]],[arr[2],arr[3]],[arr[4],arr[5]]].filter(function(p){return p[0]&&p[1];}); }
-  function buildSlots(start, per, rotRaw, present, max){ max=max||120; var rr=rotRaw.split(',').map(function(s){return s.trim().toUpperCase();}).filter(Boolean); rotation=rr.filter(function(g){return present.indexOf(g)>-1;}); if(rotation.length===0) rotation=present.slice(); var a=[]; var s=[]; var t=start; for(var i=0;i<max;i++){ var g=rotation[i%rotation.length]; var end=addMinutes(t,per); a.push({group:g}); s.push({start:t,end:end,group:g}); t=end; } slotsAssign=a; slots=s; }
+  function buildSlots(start, per, rotRaw, present, max){ max=max||120; var rr=rotRaw.split(',').map(function(s){return s.trim().toUpperCase();}).filter(Boolean); rotation=rr.filter(function(g){return present.indexOf(g)>-1;}); if(rotation.length===0) rotation=present.slice(); var a=[]; var s=[]; var t=start; for(var i=0;i<max;i++){ var g=rotation[i%rotation.length] || present[i%present.length]; var end=addMinutes(t,per); a.push({group:g}); s.push({start:t,end:end,group:g}); t=end; } slotsAssign=a; slots=s; }
   function countOcc(group){ var c=0; for(var i=0;i<slotsAssign.length;i++){ if(slotsAssign[i].group===group) c++; } return c; }
-  function ensureSlot(group,n){ if(countOcc(group)>=n) return; var cfg=collectCfg(); var per=cfg.gm+cfg.bm; var t=slots.length?slots[slots.length-1].end:cfg.startTime; var guard=0; while(countOcc(group)<n && guard++<500){ for(var i=0;i<rotation.length;i++){ var g=rotation[i]; var end=addMinutes(t, per); slotsAssign.push({group:g}); slots.push({start:t,end:end,group:g}); t=end; } } }
+  function ensureSlot(group,n){ if(countOcc(group)>=n) return; var cfg=collectCfg(); var per=cfg.gm+cfg.bm; var t=slots.length?slots[slots.length-1].end:cfg.startTime; var guard=0; while(countOcc(group)<n && guard++<500){ for(var i=0;i<rotation.length;i++){ var g=rotation[i]; var end=addMinutes(t, per); slotsAssign.push({group:g}); slots.push({start:t,end:end,group:g}); t=end; } if(rotation.length===0 && guard<3){ rotation=Object.keys(cfg.groups); } }
   function nthIndex(group,n){ ensureSlot(group,n); var c=0; for(var i=0;i<slotsAssign.length;i++){ if(slotsAssign[i].group===group){ c++; if(c===n) return i; } } return -1; }
-  function addRound(group, round, pairs){ var idx=nthIndex(group, round); if(idx<0){ alert('Zu wenige Slots für Gruppe '+group+' Runde '+round); return; } var cfg=collectCfg(); var slot=slots[idx]; var end=addMinutes(slot.start, cfg.gm); for(var f=1; f<=3; f++){ var p=pairs[f-1]||['TBD','TBD']; matches.push({ slot:idx+1, start:slot.start, end:end, group:group, round:round, field:'Feld '+f, team1:p[0], team2:p[1] }); } }
-  function generate(){ matches=[]; results={}; currentRound={A:1,B:1,C:1}; var cfg=collectCfg(); var present=Object.keys(cfg.groups); buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); present.forEach(function(g){ addRound(g,1,seedPairs(cfg.groups[g])); }); render(); }
+  function addRound(group, round, pairs){ var idx=nthIndex(group, round); if(idx<0){ throw new Error('Zu wenige Slots für Gruppe '+group+' Runde '+round); } var cfg=collectCfg(); var slot=slots[idx]; var end=addMinutes(slot.start, cfg.gm); for(var f=1; f<=3; f++){ var p=pairs[f-1]||['TBD','TBD']; matches.push({ slot:idx+1, start:slot.start, end:end, group:group, round:round, field:'Feld '+f, team1:p[0], team2:p[1] }); } }
+  function generate(){ try{ clearError(); matches=[]; results={}; currentRound={A:1,B:1,C:1}; var cfg=collectCfg(); var present=Object.keys(cfg.groups); if(present.length===0){ throw new Error('Keine Teams vorhanden. Bitte mindestens eine Gruppe befüllen.'); }
+      buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); present.forEach(function(g){ addRound(g,1,seedPairs(cfg.groups[g])); }); render(); }
+    catch(e){ console.error(e); showError(e.message||String(e)); }
+  }
 
   function getSaved(group, round, field){ return (results[group]&&results[group][round]&&results[group][round][field])||null; }
   function allThree(group, round){ var r=results[group]&&results[group][round]; if(!r) return false; for(var f=1; f<=3; f++){ var x=r['Feld '+f]; if(!x || typeof x.g1!=='number' || typeof x.g2!=='number' || x.g1===x.g2) return false; } return true; }
@@ -200,25 +210,29 @@
   }
 
   function publishPayload(){ var cfg=collectCfg(); var pub=matches.filter(function(m){ return m.round===currentRound[m.group]; }); return { title:cfg.title, generatedAt:new Date().toISOString(), matches:pub }; }
-  function makeShortLink(){ var data=publishPayload(); var json=JSON.stringify(data); var enc=LZString.compressToEncodedURIComponent(json); var base=window.location.origin+window.location.pathname.replace('admin.html','viewer.html'); var url=base+'#s='+enc; document.getElementById('shareOut').innerHTML='<strong>Zuschauer-Link:</strong> <a target="_blank" href="'+url+'">'+url+'</a>'; return url; }
+  function makeShortLink(){ try{ var data=publishPayload(); var json=JSON.stringify(data); var enc=LZString.compressToEncodedURIComponent(json); var base=window.location.origin+window.location.pathname.replace('admin.html','viewer.html'); var url=base+'#s='+enc; document.getElementById('shareOut').innerHTML='<strong>Zuschauer-Link:</strong> <a target="_blank" href="'+url+'">'+url+'</a>'; return url; } catch(e){ showError(e.message||String(e)); return ''; } }
 
   // Minimal QR code generator
-  function makeQR(url){ if(!window.SimpleQRCode){ alert('QR-Code Bibliothek nicht geladen.'); return; } var qrBox=document.getElementById('qr'); if(!window._qr){ window._qr=new SimpleQRCode(qrBox,{width:256}); } window._qr.clear(); window._qr.makeCode(url); document.getElementById('qrLinkHint').textContent=url; }
-  function openQR(){ var url=makeShortLink(); makeQR(url); document.getElementById('qrModal').style.display='flex'; }
+  function makeQR(url){ if(!window.SimpleQRCode){ showError('QR-Code Bibliothek nicht geladen.'); return; } var qrBox=document.getElementById('qr'); if(!window._qr){ window._qr=new SimpleQRCode(qrBox,{width:256}); } window._qr.clear(); window._qr.makeCode(url); document.getElementById('qrLinkHint').textContent=url; }
+  function openQR(){ var url=makeShortLink(); if(!url) return; makeQR(url); document.getElementById('qrModal').style.display='flex'; }
   function closeQR(){ document.getElementById('qrModal').style.display='none'; }
   function downloadQR(){ var canvas=document.querySelector('#qr canvas'); if(!canvas) return; var a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='qr-zuschauer-link.png'; a.click(); }
 
   // Wiring
-  document.getElementById('btnGenerate').addEventListener('click', generate);
-  document.getElementById('btnRegenerate').addEventListener('click', function(){ var cfg=collectCfg(); var present=Object.keys(cfg.groups); buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); render(); });
-  document.getElementById('btnShare').addEventListener('click', makeShortLink);
-  document.getElementById('btnQR').addEventListener('click', openQR);
-  document.getElementById('btnCloseQR').addEventListener('click', closeQR);
-  document.getElementById('btnDownloadQR').addEventListener('click', downloadQR);
-  document.getElementById('btnExport').addEventListener('click', function(){ var data=publishPayload(); var blob=new Blob([JSON.stringify(data,null,2)], {type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='schedule.json'; a.click(); URL.revokeObjectURL(url); });
-
-  // Init
-  generate();
+  window.addEventListener('DOMContentLoaded', function(){
+    try{
+      initRuleEditor();
+      must('#btnGenerate').addEventListener('click', generate);
+      must('#btnRegenerate').addEventListener('click', function(){ try{ clearError(); var cfg=collectCfg(); var present=Object.keys(cfg.groups); buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); render(); }catch(e){ showError(e.message||String(e)); } });
+      must('#btnShare').addEventListener('click', makeShortLink);
+      must('#btnQR').addEventListener('click', openQR);
+      must('#btnCloseQR').addEventListener('click', closeQR);
+      must('#btnDownloadQR').addEventListener('click', downloadQR);
+      must('#btnExport').addEventListener('click', function(){ try{ clearError(); var data=publishPayload(); var blob=new Blob([JSON.stringify(data,null,2)], {type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='schedule.json'; a.click(); URL.revokeObjectURL(url); }catch(e){ showError(e.message||String(e)); } });
+      // Initial table
+      generate();
+    }catch(e){ console.error(e); showError(e.message||String(e)); }
+  });
 </script>
 </body>
 </html>
