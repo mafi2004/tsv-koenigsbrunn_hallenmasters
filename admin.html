@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TSV Königsbrunn – Hallenmasters | Admin</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <style>
+    :root{ --page-header-height:64px; --table-sticky-gap:8px; --table-sticky-top:calc(var(--page-header-height) + var(--table-sticky-gap)); }
+    *{box-sizing:border-box}
+    html{scroll-padding-top: calc(var(--page-header-height) + 16px);} 
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; background:#0f172a; color:#e5e7eb}
+    header{position:sticky; top:0; z-index:20; background:#111827; padding:12px 16px; border-bottom:1px solid #1f2937; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    header h1{margin:0; font-size:1.1rem}
+    .container{max-width:1200px; margin:16px auto; padding:0 16px; display:grid; grid-template-columns:380px 1fr; gap:16px}
+    @media (max-width: 1080px){ .container{ grid-template-columns:1fr } }
+    .card{background:#111827; border:1px solid #1f2937; border-radius:12px; padding:16px}
+    .btn{background:#1f2937; color:#e5e7eb; border:1px solid #374151; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600}
+    .btn.primary{background:#22c55e; color:#052e16; border:0}
+    .btn.accent{background:#3b82f6}
+    .grid{display:grid; gap:8px}
+    .grid-2{grid-template-columns:1fr 1fr}
+    .grid-3{grid-template-columns:repeat(3,1fr)}
+    textarea,input,select{background:#0b1226; color:#e5e7eb; border:1px solid #374151; border-radius:8px; padding:8px}
+    table{width:100%; border-collapse:separate; border-spacing:0; border:1px solid #1f2937; border-radius:12px; overflow:hidden}
+    thead th{position:sticky; top:var(--table-sticky-top); background:#0b1226; color:#cbd5e1; padding:10px; font-weight:700; z-index:10}
+    th, td{padding:10px 12px; border-bottom:1px solid #1f2937; text-align:left}
+    .groupTag{display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px; border:1px solid #334155}
+    .hint{font-size:.85rem; color:#94a3b8}
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .modal{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center}
+    .modal .inner{background:#0b1226; border:1px solid #1f2937; border-radius:12px; padding:16px; max-width:90vw}
+    .errorBar{display:none; background:#7f1d1d; color:#fee2e2; border:1px solid #991b1b; padding:8px 12px; border-radius:8px; margin-bottom:8px}
+    footer{color:#94a3b8; font-size:.8rem; text-align:center; margin:24px 0}
+    footer .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  </style>
+</head>
+<body>
+<header>
+  <h1>TSV Königsbrunn – Hallenmasters · Admin</h1>
+  <a class="btn" href="viewer.html" target="_blank">Zuschauer-Ansicht öffnen</a>
+</header>
+<div class="container">
+  <section class="card" id="config">
+    <h2>Konfiguration</h2>
+    <div id="errorBar" class="errorBar"></div>
+    <div class="grid grid-2">
+      <div><label>Titel</label><input id="title" value="TSV Königsbrunn – Hallenmasters"></div>
+      <div><label>Startzeit</label><input id="startTime" type="time" value="10:00"></div>
+      <div><label>Spielzeit</label><input id="gameMinutes" type="number" value="10" min="1"></div>
+      <div><label>Pausen</label><input id="breakMinutes" type="number" value="2" min="0"></div>
+      <div><label>Rotation</label><input id="rotationPattern" value="A,B,C,A,B,C"></div>
+    </div>
+    <div class="grid grid-3">
+      <div><label>Teams A</label><textarea id="teamsA">A1\nA2\nA3\nA4\nA5\nA6</textarea></div>
+      <div><label>Teams B</label><textarea id="teamsB">B1\nB2\nB3\nB4\nB5\nB6</textarea></div>
+      <div><label>Teams C</label><textarea id="teamsC">C1\nC2\nC3\nC4\nC5\nC6</textarea></div>
+    </div>
+    <div class="row"><label>Preset</label>
+      <select id="preset"><option value="custom">Custom</option><option value="cl" selected>Champions League</option></select>
+      <span class="hint">CL: F1=W1-W2 · F2=W3-L1 · F3=L3-L2</span>
+    </div>
+    <details class="card" style="background:#0b1226; border-color:#1e293b">
+      <summary><strong>Regel-Editor</strong> (optional; überschreibt Preset)</summary>
+      <div class="grid grid-3">
+        <div>
+          <h3>A</h3>
+          <div class="row"><label>F1</label><select id="A_F1_H"></select><select id="A_F1_A"></select></div>
+          <div class="row"><label>F2</label><select id="A_F2_H"></select><select id="A_F2_A"></select></div>
+          <div class="row"><label>F3</label><select id="A_F3_H"></select><select id="A_F3_A"></select></div>
+        </div>
+        <div>
+          <h3>B</h3>
+          <div class="row"><label>F1</label><select id="B_F1_H"></select><select id="B_F1_A"></select></div>
+          <div class="row"><label>F2</label><select id="B_F2_H"></select><select id="B_F2_A"></select></div>
+          <div class="row"><label>F3</label><select id="B_F3_H"></select><select id="B_F3_A"></select></div>
+        </div>
+        <div>
+          <h3>C</h3>
+          <div class="row"><label>F1</label><select id="C_F1_H"></select><select id="C_F1_A"></select></div>
+          <div class="row"><label>F2</label><select id="C_F2_H"></select><select id="C_F2_A"></select></div>
+          <div class="row"><label>F3</label><select id="C_F3_H"></select><select id="C_F3_A"></select></div>
+        </div>
+      </div>
+    </details>
+    <div class="row">
+      <button class="btn primary" id="btnGenerate">Slots & Runde 1</button>
+      <button class="btn" id="btnRegenerate">Zeitslots neu berechnen</button>
+      <button class="btn accent" id="btnShare">Zuschauer-Link (kurz)</button>
+      <button class="btn" id="btnQR">QR-Code anzeigen</button>
+      <button class="btn" id="btnExport">schedule.json exportieren</button>
+    </div>
+    <div class="hint" id="shareOut"></div>
+  </section>
+
+  <section class="card" id="schedule">
+    <h2>Nur nächste Runde je Gruppe</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Start</th>
+          <th>Ende</th>
+          <th>Gruppe</th>
+          <th>Runde</th>
+          <th>Feld</th>
+          <th>Team 1</th>
+          <th>Team 2</th>
+          <th>Ergebnis</th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </section>
+</div>
+
+<footer>
+  <span>Admin-Seite Version <span class="mono" id="ver">v1.3.0</span></span>
+  · <span>Build: <span class="mono" id="build">2025-12-14 16:45</span></span>
+  · <span>Geladen: <span class="mono" id="loaded">–</span></span>
+</footer>
+
+<div class="modal" id="qrModal">
+  <div class="inner">
+    <h3 style="margin-top:0">QR-Code für Zuschauer-Link</h3>
+    <div id="qr" style="background:#fff; padding:12px; border-radius:8px; display:inline-block"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btnCloseQR">Schließen</button>
+      <button class="btn" id="btnDownloadQR">QR-Code als PNG herunterladen</button>
+    </div>
+    <div class="hint" id="qrLinkHint"></div>
+  </div>
+</div>
+
+<script>
+  function updateStickyTopFromHeader(){ var h=document.querySelector('header'); if(!h) return; document.documentElement.style.setProperty('--page-header-height', Math.ceil(h.getBoundingClientRect().height)+'px'); }
+  window.addEventListener('load', updateStickyTopFromHeader); window.addEventListener('resize', updateStickyTopFromHeader);
+  if('ResizeObserver' in window){ new ResizeObserver(updateStickyTopFromHeader).observe(document.querySelector('header')); }
+
+  function setFooterLoaded(){ try{ var el=document.getElementById('loaded'); if(el){ el.textContent=new Date().toLocaleString(); } }catch(e){} }
+
+  function showError(msg){ var b=document.getElementById('errorBar'); if(!b) return; b.textContent=msg; b.style.display='block'; }
+  function clearError(){ var b=document.getElementById('errorBar'); if(!b) return; b.style.display='none'; b.textContent=''; }
+
+  var ROLES=['W1','L1','W2','L2','W3','L3'];
+  function $(sel){ return document.querySelector(sel); }
+  function must(sel){ var el=$(sel); if(!el){ throw new Error('Element fehlt: '+sel); } return el; }
+  function parseTeams(t){ return t.split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean); }
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function addMinutes(hm,m){ var parts=hm.split(':'); var h=parseInt(parts[0],10)||0; var mi=parseInt(parts[1],10)||0; var d=new Date(2000,0,1,h,mi); d.setMinutes(d.getMinutes()+m); return pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+  function buildSelect(el){ el.innerHTML=''; for(var i=0;i<ROLES.length;i++){ var r=ROLES[i]; var o=document.createElement('option'); o.value=r; o.textContent=r; el.appendChild(o);} }
+  function initRuleEditor(){ ['A','B','C'].forEach(function(g){ [1,2,3].forEach(function(f){ buildSelect(must('#'+g+'_F'+f+'_H')); buildSelect(must('#'+g+'_F'+f+'_A')); }); }); applyCL(); }
+  function applyCL(){ ['A','B','C'].forEach(function(g){ if($('#'+g+'_F1_H')){ $('#'+g+'_F1_H').value='W1'; $('#'+g+'_F1_A').value='W2'; $('#'+g+'_F2_H').value='W3'; $('#'+g+'_F2_A').value='L1'; $('#'+g+'_F3_H').value='L3'; $('#'+g+'_F3_A').value='L2'; } }); }
+
+  var matches=[]; var results={}; var currentRound={A:1,B:1,C:1}; var slots=[]; var slotsAssign=[]; var rotation=[];
+  function collectCfg(){ var groups={ A:parseTeams(must('#teamsA').value), B:parseTeams(must('#teamsB').value), C:parseTeams(must('#teamsC').value) }; Object.keys(groups).forEach(function(k){ if(groups[k].length===0) delete groups[k]; });
+    var mapping={}; ['A','B','C'].forEach(function(g){ mapping[g]={}; [1,2,3].forEach(function(f){ var hSel='#'+g+'_F'+f+'_H', aSel='#'+g+'_F'+f+'_A'; var h=$(hSel), a=$(aSel); mapping[g]['Feld '+f]=[ h ? h.value : 'W1', a ? a.value : 'W2' ]; }); });
+    return { title:must('#title').value||'Turnier', startTime:must('#startTime').value||'10:00', gm:parseInt(must('#gameMinutes').value,10)||10, bm:parseInt(must('#breakMinutes').value,10)||2, rot:must('#rotationPattern').value, groups:groups, mapping:mapping };
+  }
+  function seedPairs(arr){ return [[arr[0],arr[1]],[arr[2],arr[3]],[arr[4],arr[5]]].filter(function(p){return p[0]&&p[1];}); }
+  function buildSlots(start, per, rotRaw, present, max){ max=max||120; var rr=rotRaw.split(',').map(function(s){return s.trim().toUpperCase();}).filter(Boolean); rotation=rr.filter(function(g){return present.indexOf(g)>-1;}); if(rotation.length===0) rotation=present.slice(); var a=[]; var s=[]; var t=start; for(var i=0;i<max;i++){ var g=rotation[i%rotation.length] || present[i%present.length]; var end=addMinutes(t,per); a.push({group:g}); s.push({start:t,end:end,group:g}); t=end; } slotsAssign=a; slots=s; }
+  function countOcc(group){ var c=0; for(var i=0;i<slotsAssign.length;i++){ if(slotsAssign[i].group===group) c++; } return c; }
+  function ensureSlot(group,n){ if(countOcc(group)>=n) return; var cfg=collectCfg(); var per=cfg.gm+cfg.bm; var t=slots.length?slots[slots.length-1].end:cfg.startTime; var guard=0; while(countOcc(group)<n && guard++<500){ for(var i=0;i<rotation.length;i++){ var g=rotation[i]; var end=addMinutes(t, per); slotsAssign.push({group:g}); slots.push({start:t,end:end,group:g}); t=end; } if(rotation.length===0 && guard<3){ rotation=Object.keys(cfg.groups); } }
+  function nthIndex(group,n){ ensureSlot(group,n); var c=0; for(var i=0;i<slotsAssign.length;i++){ if(slotsAssign[i].group===group){ c++; if(c===n) return i; } } return -1; }
+  function addRound(group, round, pairs){ var idx=nthIndex(group, round); if(idx<0){ throw new Error('Zu wenige Slots für Gruppe '+group+' Runde '+round); } var cfg=collectCfg(); var slot=slots[idx]; var end=addMinutes(slot.start, cfg.gm); for(var f=1; f<=3; f++){ var p=pairs[f-1]||['TBD','TBD']; matches.push({ slot:idx+1, start:slot.start, end:end, group:group, round:round, field:'Feld '+f, team1:p[0], team2:p[1] }); } }
+  function generate(){ try{ clearError(); matches=[]; results={}; currentRound={A:1,B:1,C:1}; var cfg=collectCfg(); var present=Object.keys(cfg.groups); if(present.length===0){ throw new Error('Keine Teams vorhanden. Bitte mindestens eine Gruppe befüllen.'); }
+      buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); present.forEach(function(g){ addRound(g,1,seedPairs(cfg.groups[g])); }); render(); setFooterLoaded(); }
+    catch(e){ console.error(e); showError(e.message||String(e)); }
+  }
+
+  function getSaved(group, round, field){ return (results[group]&&results[group][round]&&results[group][round][field])||null; }
+  function allThree(group, round){ var r=results[group]&&results[group][round]; if(!r) return false; for(var f=1; f<=3; f++){ var x=r['Feld '+f]; if(!x || typeof x.g1!=='number' || typeof x.g2!=='number' || x.g1===x.g2) return false; } return true; }
+  function computeOutcomes(group, round){ var r=results[group]&&results[group][round]; if(!r) return null; var out={}; for(var f=1; f<=3; f++){ var match=matches.find(function(m){ return m.group===group && m.round===round && m.field==='Feld '+f; }); var res=r['Feld '+f]; if(!match || !res) return null; var W=res.g1>res.g2?match.team1:match.team2; var L=res.g1>res.g2?match.team2:match.team1; out['W'+f]=W; out['L'+f]=L; } return out; }
+  function nextPairs(out, mapping){ var pairs=[]; for(var f=1; f<=3; f++){ var refs=mapping['Feld '+f]||[]; var a=out?out[refs[0]]:'TBD'; var b=out?out[refs[1]]:'TBD'; pairs.push([a||'TBD', b||'TBD']); } return pairs; }
+  function onSaved(group, round){ if(!allThree(group, round)){ render(); return; } var cfg=collectCfg(); var out=computeOutcomes(group, round); if(!out){ render(); return; } var pairs=nextPairs(out, cfg.mapping[group]); var nr=round+1; addRound(group, nr, pairs); currentRound[group]=nr; render(); }
+  function saveResult(group, round, field, g1, g2){ if(!results[group]) results[group]={}; if(!results[group][round]) results[group][round]={}; results[group][round][field]={g1:g1, g2:g2}; onSaved(group, round); }
+
+  function render(){ var tbody=document.getElementById('tb'); tbody.innerHTML=''; var filtered=matches.filter(function(m){ return m.round===currentRound[m.group]; }); filtered.forEach(function(m){ var tr=document.createElement('tr'); var t1=m.team1||'TBD', t2=m.team2||'TBD'; var saved=getSaved(m.group, m.round, m.field);
+      var g1v = saved && typeof saved.g1==='number' ? saved.g1 : ''; var g2v = saved && typeof saved.g2==='number' ? saved.g2 : '';
+      tr.innerHTML = '<td>'+m.slot+'</td>' +
+        '<td>'+m.start+'</td>'+
+        '<td>'+m.end+'</td>'+
+        '<td><span class="groupTag">'+m.group+'</span></td>'+
+        '<td>'+m.round+'</td>'+
+        '<td>'+m.field+'</td>'+
+        '<td>'+t1+'</td>'+
+        '<td>'+t2+'</td>'+
+        '<td><div class="row" style="gap:6px; align-items:center">'+
+          '<input type="number" min="0" placeholder="0" data-k="g1" value="'+g1v+'" style="width:64px; text-align:center" />'+
+          '<span style="opacity:.7">:</span>'+
+          '<input type="number" min="0" placeholder="0" data-k="g2" value="'+g2v+'" style="width:64px; text-align:center" />'+
+          '<button class="btn" data-action="save">Speichern</button>'+
+          '<button class="btn" data-action="t1win">'+t1+' siegt</button>'+
+          '<button class="btn" data-action="t2win">'+t2+' siegt</button>'+
+        '</div></td>';
+      var inputs=tr.querySelectorAll('input');
+      function commit(a,b){ if(typeof a!=='number' || isNaN(a) || typeof b!=='number' || isNaN(b)){ alert('Bitte gültige Tore eingeben.'); return; } saveResult(m.group, m.round, m.field, a, b); }
+      tr.querySelector('button[data-action="save"]').addEventListener('click', function(){ var a=parseInt(inputs[0].value,10); var b=parseInt(inputs[1].value,10); commit(a,b); });
+      tr.querySelector('button[data-action="t1win"]').addEventListener('click', function(){ commit(1,0); });
+      tr.querySelector('button[data-action="t2win"]').addEventListener('click', function(){ commit(0,1); });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function makeShortLink(){ try{ var data=publishPayload(); var json=JSON.stringify(data); var enc=encodeURIComponent(json); var base=window.location.origin+window.location.pathname.replace('admin.html','viewer.html'); var url=base+'#s='+enc; document.getElementById('shareOut').innerHTML='<strong>Zuschauer-Link:</strong> <a target="_blank" href="'+url+'">'+url+'</a>'; return url; } catch(e){ showError(e.message||String(e)); return ''; } }
+  function makeQR(url){ var qrBox=document.getElementById('qr'); if(!window._qr){ window._qr=new SimpleQRCode(qrBox,{width:256}); } window._qr.clear(); window._qr.makeCode(url); document.getElementById('qrLinkHint').textContent=url; }
+  function openQR(){ var url=makeShortLink(); if(!url) return; makeQR(url); document.getElementById('qrModal').style.display='flex'; }
+  function closeQR(){ document.getElementById('qrModal').style.display='none'; }
+  function downloadQR(){ var canvas=document.querySelector('#qr canvas'); if(!canvas) return; var a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='qr-zuschauer-link.png'; a.click(); }
+
+  window.addEventListener('DOMContentLoaded', function(){
+    try{
+      setFooterLoaded();
+      initRuleEditor();
+      must('#btnGenerate').addEventListener('click', generate);
+      must('#btnRegenerate').addEventListener('click', function(){ try{ clearError(); var cfg=collectCfg(); var present=Object.keys(cfg.groups); buildSlots(cfg.startTime, cfg.gm+cfg.bm, cfg.rot, present, 120); render(); setFooterLoaded(); }catch(e){ showError(e.message||String(e)); } });
+      must('#btnShare').addEventListener('click', function(){ setFooterLoaded(); makeShortLink(); });
+      must('#btnQR').addEventListener('click', function(){ setFooterLoaded(); openQR(); });
+      must('#btnCloseQR').addEventListener('click', closeQR);
+      must('#btnDownloadQR').addEventListener('click', downloadQR);
+      must('#btnExport').addEventListener('click', function(){ try{ clearError(); var data=publishPayload(); var blob=new Blob([JSON.stringify(data,null,2)], {type:'application/json'}); var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='schedule.json'; a.click(); URL.revokeObjectURL(url); setFooterLoaded(); }catch(e){ showError(e.message||String(e)); } });
+      generate();
+    }catch(e){ console.error(e); showError(e.message||String(e)); }
+  });
+</script>
+</body>
+</html>
