@@ -1,0 +1,15 @@
+{
+  "name": "funino-webpubsub-functions",
+  "version": "1.3.2",
+  "private": true,
+  "description": "Azure Functions (JavaScript) for Azure Web PubSub: negotiate & publish",
+  "main": "index.js",
+  "scripts": {
+    "start": "func start",
+    "build": "echo \"No build step for JS\"",
+    "postinstall": "echo \"Run 'func extensions install --package Microsoft.Azure.WebJobs.Extensions.WebPubSub' to add bindings\""
+  },
+  "dependencies": {
+    "ajv": "^8.12.0"
+  }
+}
