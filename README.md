@@ -1,28 +1,39 @@
 
-# TSV Königsbrunn – Hallenmasters · Dynamischer Funino-Spielplan (mit Sieger-Buttons)
+# TSV Königsbrunn – Hallenmasters · Funino-Spielplan (nur nächste Runde)
 
-Diese GitHub Pages Seite bietet einen **Ergebnis-abhängigen Spielplan**: Nach jeder Runde werden die Paarungen der nächsten Runde gemäß frei konfigurierbaren Regeln (Sieger/Verlierer je Feld) **automatisch berechnet**. Zusätzlich kannst du per **Sieger-Button** (Team1/Team2) ohne Toreingabe direkt einen Sieger markieren.
+Diese Version zeigt **pro Gruppe immer nur die nächste Runde**. Erst wenn **alle drei Ergebnisse** der aktuellen Runde gespeichert sind, wird die nächste Runde gemäß den konfigurierten Regeln automatisch **erzeugt und angezeigt**.
 
-## Neu in dieser Version
-- **Sieger-Buttons** pro Spiel ("Team1 siegt" / "Team2 siegt"): setzt intern 1:0 bzw. 0:1 und triggert die Neuberechnung.
-- Anzeige "✓ gespeichert" bei bereits hinterlegten Ergebnissen.
-- Vorbelegung der Toreingabefelder mit gespeicherten Werten.
+## So funktioniert's
+- **Slots & Runde 1 anlegen**: Erstellt Zeitslots aus Startzeit + (Spielzeit + Pause) basierend auf dem Rotationsmuster (z. B. `A,B,C`). Runde 1 wird aus der Teamliste initialisiert (0/1 auf Feld1, 2/3 auf Feld2, 4/5 auf Feld3).
+- **Ergebnisse speichern**: Für jede Gruppe müssen **alle 3 Felder** (Feld 1–3) ein Ergebnis erhalten (kein Unentschieden). Danach werden Sieger/Verlierer (`W1/L1/W2/L2/W3/L3`) ermittelt.
+- **Nächste Runde erzeugen**: Die Paarungen der nächsten Runde werden gemäß **Regel‑Editor** pro Gruppe zugeordnet und sofort angezeigt.
+- **Sieger-Buttons**: Du kannst ohne Toreingabe per Button "Team 1 siegt" / "Team 2 siegt" einen Sieger markieren (intern 1:0 bzw. 0:1).
 
-## Nutzung
-1. Teams je Gruppe eintragen (pro Zeile ein Team).
-2. Zeiten und Rotationsmuster setzen.
-3. **Slots & Runde 1 anlegen**.
-4. Für jedes Spiel: Entweder Tore eingeben und **Speichern**, oder **Sieger-Button** klicken.
+## Konfiguration
+- **Gruppen & Teams**: Je Zeile ein Team (A/B/C).
+- **Zeiten**: Startzeit, Spielzeit, Pause.
+- **Rotation**: Muster wie `A,B,C,A,B,C` bestimmt die **Slot‑Reihenfolge**; pro Gruppenrunde wird jeweils der **n-te Slot** der Gruppe genutzt.
+- **Regeln** (je Gruppe): Weise die Rollen `W1,L1,W2,L2,W3,L3` den Feldern 1–3 der nächsten Runde zu.
 
 ## Deployment (GitHub Pages)
-1. Repository anlegen: `tsv-koenigsbrunn-hallenmasters`
-2. Dateien im Repo-Root hochladen.
+1. Repository: `tsv-koenigsbrunn-hallenmasters`
+2. Dateien im Repo‑Root hochladen (siehe Struktur unten).
 3. `Settings → Pages → Deploy from a branch → main / root`.
 
+## Ordnerstruktur
+```
+.
+├── index.html           # Seite mit "nur nächste Runde"-Logik
+├── assets/
+│   └── favicon.svg
+├── .nojekyll
+└── LICENSE
+```
+
 ## Hinweise
-- **Unentschieden**: Markiere den Sieger über den Button (falls ihr Golden Goal o. Ä. nutzt). Ohne Sieger bleibt die nächste Runde für diese Gruppe **TBD**.
-- **Regel-Editor**: Stelle sicher, dass die Rollen `W1,L1,W2,L2,W3,L3` sinnvoll verteilt sind (aktuell keine Duplikatsprüfung).
-- **Rundenanzahl**: Standardmäßig bis zu 6 Runden pro Gruppe (im Code `roundsNeeded` anpassbar).
+- **Unentschieden**: Ohne Sieger wird die nächste Runde **nicht** erzeugt (TBD). Nutzt ggf. die Sieger‑Buttons.
+- **Felder**: Diese Version geht von **3 Feldern** aus (Fix). Anpassbar im Code.
+- **Persistenz**: `localStorage` speichert Ergebnisse, Matches und aktuelle Runde (`funino_*_v4`).
 
 ## Lizenz
 MIT (siehe LICENSE)

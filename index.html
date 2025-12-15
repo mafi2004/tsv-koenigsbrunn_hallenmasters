@@ -3,15 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TSV Königsbrunn – Hallenmasters | Funino Spielplan (dynamisch)</title>
-  <meta name="description" content="Dynamisch anpassbarer Funino-Spielplan mit Ergebnis-Erfassung, Sieger-Buttons und feldübergreifenden Auf-/Abstiegsregeln." />
+  <title>TSV Königsbrunn – Hallenmasters | Funino Spielplan (nur nächste Runde)</title>
+  <meta name="description" content="Funino-Spielplan: zeigt pro Gruppe immer nur die nächste Runde. Nach drei gespeicherten Ergebnissen wird automatisch die nächste Runde erzeugt und angezeigt." />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <style>
-    :root{
-      --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
-      --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --error:#ef4444;
-      --groupA:#10b981; --groupB:#f97316; --groupC:#6366f1;
-    }
+    :root{ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent-2:#3b82f6; --warn:#f59e0b; --error:#ef4444; --groupA:#10b981; --groupB:#f97316; --groupC:#6366f1; }
     *{box-sizing:border-box}
     body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; background:linear-gradient(180deg,#0b1023, #0f172a 50%, #0b1023); color:var(--text)}
     header{position:sticky; top:0; z-index:10; background:rgba(15,23,42,.8); backdrop-filter:saturate(120%) blur(6px); border-bottom:1px solid #1f2937; padding:12px 16px; display:flex; gap:16px; align-items:center; flex-wrap:wrap}
@@ -56,9 +52,8 @@
 </head>
 <body>
   <header>
-    <h1>TSV Königsbrunn – Hallenmasters · Dynamischer Funino Spielplan</h1>
-    <span class="badge">Ergebnis-abhängige Feldrotation</span>
-    <span class="badge">Sieger-Buttons integriert</span>
+    <h1>TSV Königsbrunn – Hallenmasters · Nächste Runde pro Gruppe</h1>
+    <span class="badge">Automatische Fortschreibung erst nach 3 Ergebnissen</span>
   </header>
 
   <div class="container">
@@ -81,14 +76,14 @@
           </div>
           <div>
             <label for="fieldsCount">Felder</label>
-            <input type="number" id="fieldsCount" value="3" min="1" max="3">
+            <input type="number" id="fieldsCount" value="3" min="3" max="3" disabled>
           </div>
         </div>
 
         <div>
           <label for="rotationPattern">Gruppen-Rotationsmuster (Komma-getrennt)</label>
           <input type="text" id="rotationPattern" value="A,B,C,A,B,C" />
-          <div class="hint">Definiert, welche Gruppe in welchem Zeitslot spielt. Beispiel: <code>A,B,C</code> → A, dann B, dann C, wiederholen.</div>
+          <div class="hint">Definiert die zeitliche Slot-Reihenfolge (z. B. A,B,C → A, dann B, dann C, wiederholen). Zeiten werden pro Gruppe pro Runde gemäß der <em>nächsten</em> Slot-Position berechnet.</div>
         </div>
 
         <div class="grid grid-3">
@@ -108,26 +103,16 @@
 
         <details class="card" style="background:#0b1226; border-color:#1e293b">
           <summary><strong>Regeln für Ergebnis-abhängige Paarungen</strong> (pro Gruppe anpassbar)</summary>
-          <p class="hint">Bezeichner: <code>W1,L1,W2,L2,W3,L3</code> → Sieger/Verlierer von Feld 1/2/3 der <em>vorherigen</em> Runde.</p>
+          <p class="hint">Bezeichner: <code>W1,L1,W2,L2,W3,L3</code> → Sieger/Verlierer von Feld 1/2/3 der vorherigen Runde.</p>
           <div class="grid grid-3">
             <div>
               <h3>Gruppe A</h3>
               <label>Feld 1</label>
-              <div class="row">
-                <select id="A_F1_H"><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>W3</option><option>L3</option></select>
-                <select id="A_F1_A"><option>W1</option><option selected>L2</option><option>W2</option><option>L1</option><option>W3</option><option>L3</option></select>
-              </div>
+              <div class="row"><select id="A_F1_H"><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>W3</option><option>L3</option></select><select id="A_F1_A"><option>W1</option><option selected>L2</option><option>W2</option><option>L1</option><option>W3</option><option>L3</option></select></div>
               <label>Feld 2</label>
-              <div class="row">
-                <select id="A_F2_H"><option selected>W3</option><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>L3</option></select>
-                <select id="A_F2_A"><option selected>L1</option><option>W1</option><option>W2</option><option>L2</option><option>W3</option><option>L3</option></select>
-              </div>
+              <div class="row"><select id="A_F2_H"><option selected>W3</option><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>L3</option></select><select id="A_F2_A"><option selected>L1</option><option>W1</option><option>W2</option><option>L2</option><option>W3</option><option>L3</option></select></div>
               <label>Feld 3</label>
-              <div class="row">
-                <select id="A_F3_H"><option selected>L3</option><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>W3</option></select>
-                <select id="A_F3_A"><option selected>W2</option><option>W1</option><option>L1</option><option>L2</option><option>W3</option><option>L3</option></select>
-              </div>
-              <div class="hint">Voreinstellung: W3→F2 vs L1, W1 bleibt (F1), L3 bleibt (F3). Gegner L2 bzw. W2.</div>
+              <div class="row"><select id="A_F3_H"><option selected>L3</option><option>W1</option><option>L1</option><option>W2</option><option>L2</option><option>W3</option></select><select id="A_F3_A"><option selected>W2</option><option>W1</option><option>L1</option><option>L2</option><option>W3</option><option>L3</option></select></div>
             </div>
             <div>
               <h3>Gruppe B</h3>
@@ -162,31 +147,15 @@
           <span class="pill"><span class="dot A"></span> Gruppe A</span>
           <span class="pill"><span class="dot B"></span> Gruppe B</span>
           <span class="pill"><span class="dot C"></span> Gruppe C</span>
-          <span class="pill">Felder: 3</span>
+          <span class="pill">Felder: immer 3</span>
         </div>
       </div>
     </section>
 
-    <!-- Spielplan & Ergebnis-Erfassung -->
+    <!-- Nächste Runde je Gruppe -->
     <section class="card">
-      <h2>Spielplan & Ergebnisse</h2>
-      <div class="row" style="justify-content:space-between; gap:8px; margin-bottom:8px">
-        <div class="row">
-          <label>Filter:&nbsp;</label>
-          <select id="filterGroup"><option value="">Alle Gruppen</option><option value="A">Gruppe A</option><option value="B">Gruppe B</option><option value="C">Gruppe C</option></select>
-          <select id="filterField"><option value="">Alle Felder</option><option value="Feld 1">Feld 1</option><option value="Feld 2">Feld 2</option><option value="Feld 3">Feld 3</option></select>
-          <input type="text" id="filterTeam" placeholder="Team suchen (z. B. A3)" />
-        </div>
-        <div class="row">
-          <button class="btn" id="btnExportCSV">CSV exportieren</button>
-          <button class="btn" id="btnExportJSON">JSON exportieren</button>
-          <button class="btn accent" onclick="window.print()">Drucken/PDF</button>
-        </div>
-      </div>
-
-      <div class="hint" style="margin-bottom:8px">
-        Ergebnisse eingeben ODER per Button den **Sieger markieren**. Nach dem Speichern wird die <strong>nächste Runde</strong> der jeweiligen Gruppe automatisch berechnet.
-      </div>
+      <h2>Nur nächste Runde pro Gruppe</h2>
+      <div class="hint" style="margin-bottom:8px">Es werden ausschließlich die <strong>jeweils nächsten</strong> Spiele je Gruppe angezeigt. Erst wenn alle drei Ergebnisse gespeichert sind, wird die nächste Runde erzeugt.</div>
 
       <div class="tableWrap">
         <table id="scheduleTable">
@@ -208,13 +177,13 @@
       </div>
 
       <div class="sticky-actions">
-        <button class="btn primary" id="btnRegenerate">Zeit-Slots neu berechnen</button>
+        <button class="btn primary" id="btnRegenerate">Zeitslots neu berechnen</button>
         <button class="btn ghost" id="btnScrollTop">Nach oben</button>
       </div>
     </section>
   </div>
 
-  <div class="footer">TSV Königsbrunn – Hallenmasters · Dynamischer Spielplan · © 2025</div>
+  <div class="footer">TSV Königsbrunn – Hallenmasters · Nur nächste Runde · © 2025</div>
 
   <script>
     const $ = (sel)=>document.querySelector(sel);
@@ -224,152 +193,117 @@
     function pad2(n){return String(n).padStart(2,'0')}
     function addMinutes(timeHHMM, minutes){ const [h,m] = timeHHMM.split(':').map(Number); const d = new Date(2000,0,1,h,m,0,0); d.setMinutes(d.getMinutes()+minutes); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
 
-    // State
-    let currentSchedule = []; // array of matches across slots
+    // --- State ---
+    let slots = []; // array of {start,end,group}
+    let slotAssignments = []; // [{group}]
+    let currentRound = {A:1,B:1,C:1};
+    let matches = []; // all generated matches so far
     let results = {}; // results[group][round][field] = {g1,g2}
 
-    function seedPairs(teams, fieldsCount){
-      const pairs = [];
-      for(let f=0; f<fieldsCount; f++){
-        const i = f*2;
-        if(teams[i] && teams[i+1]) pairs.push([teams[i], teams[i+1]]);
-      }
-      return pairs; // length <= fieldsCount
+    function seedPairs(teams){ return [[teams[0],teams[1]],[teams[2],teams[3]],[teams[4],teams[5]]].filter(p=>p[0]&&p[1]); }
+
+    function getRuleMappingFor(group){
+      function val(id){ return document.getElementById(id).value; }
+      const m = {};
+      if(group==='A'){ m['Feld 1']=[val('A_F1_H'),val('A_F1_A')]; m['Feld 2']=[val('A_F2_H'),val('A_F2_A')]; m['Feld 3']=[val('A_F3_H'),val('A_F3_A')]; }
+      else if(group==='B'){ m['Feld 1']=[val('B_F1_H'),val('B_F1_A')]; m['Feld 2']=[val('B_F2_H'),val('B_F2_A')]; m['Feld 3']=[val('B_F3_H'),val('B_F3_A')]; }
+      else if(group==='C'){ m['Feld 1']=[val('C_F1_H'),val('C_F1_A')]; m['Feld 2']=[val('C_F2_H'),val('C_F2_A')]; m['Feld 3']=[val('C_F3_H'),val('C_F3_A')]; }
+      return m;
     }
 
-    function getSavedResult(group, round, field){
-      return results[group]?.[round]?.[field];
-    }
-
-    function computePrevRoundOutcomes(group, round){
-      const r = results[group]?.[round];
-      if(!r) return null;
+    function computeOutcomesFor(group, round){
+      const r = results[group]?.[round]; if(!r) return null;
       const out = {};
       for(let f=1; f<=3; f++){
-        const res = r[`Feld ${f}`];
-        const match = currentSchedule.find(m => m.group===group && m.round===round+1 && m.field===`Feld ${f}`);
-        if(!match || !res) return null; // incomplete
-        const {g1,g2} = res;
-        if(g1===undefined || g2===undefined) return null;
-        let W = match.team1, L = match.team2;
-        if(g2>g1){ W = match.team2; L = match.team1; }
-        else if(g2===g1){
-          // Bei Gleichstand ohne markierten Sieger: unklar
-          return {draw:true};
-        }
+        const res = r[`Feld ${f}`]; const match = matches.find(m=>m.group===group && m.round===round+1 && m.field===`Feld ${f}`);
+        if(!match || !res) return null;
+        const {g1,g2} = res; if(g1===undefined || g2===undefined) return null;
+        if(g1===g2) return {draw:true};
+        const W = g1>g2 ? match.team1 : match.team2; const L = g1>g2 ? match.team2 : match.team1;
         out[`W${f}`]=W; out[`L${f}`]=L;
       }
       return out;
     }
 
-    function getRuleMappingFor(group){
-      function val(id){ return document.getElementById(id).value; }
-      const m = {};
-      if(group==='A'){
-        m['Feld 1'] = [val('A_F1_H'), val('A_F1_A')];
-        m['Feld 2'] = [val('A_F2_H'), val('A_F2_A')];
-        m['Feld 3'] = [val('A_F3_H'), val('A_F3_A')];
-      }else if(group==='B'){
-        m['Feld 1'] = [val('B_F1_H'), val('B_F1_A')];
-        m['Feld 2'] = [val('B_F2_H'), val('B_F2_A')];
-        m['Feld 3'] = [val('B_F3_H'), val('B_F3_A')];
-      }else if(group==='C'){
-        m['Feld 1'] = [val('C_F1_H'), val('C_F1_A')];
-        m['Feld 2'] = [val('C_F2_H'), val('C_F2_A')];
-        m['Feld 3'] = [val('C_F3_H'), val('C_F3_A')];
-      }
-      return m;
-    }
-
-    function nextRoundPairsFromOutcomes(outcomes, mapping){
+    function nextPairs(outcomes, mapping){
       const pairs = [];
       for(let f=1; f<=3; f++){
-        const refs = mapping[`Feld ${f}`];
-        if(!refs){ pairs.push(['TBD','TBD']); continue; }
-        const a = outcomes[refs[0]]; const b = outcomes[refs[1]];
-        pairs.push([a||'TBD', b||'TBD']);
+        const refs = mapping[`Feld ${f}`]||[]; const a = outcomes?.[refs[0]]||'TBD'; const b = outcomes?.[refs[1]]||'TBD';
+        pairs.push([a,b]);
       }
       return pairs;
     }
 
-    function buildTimeSlots(start, minutesPerSlot, count){
-      const slots = []; let t = start; for(let i=0;i<count;i++){ const end = addMinutes(t, minutesPerSlot); slots.push({start:t, end}); t = addMinutes(end, 0); } return slots; }
+    function buildSlotAssignments(startTime, minutesPerSlot, rotationPattern, maxSlots=60){
+      const rot = rotationPattern.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+      const assigns = []; const s=[]; let t=startTime;
+      for(let i=0;i<maxSlots;i++){
+        const g = rot[i % rot.length]; const end = addMinutes(t, minutesPerSlot);
+        assigns.push({group:g}); s.push({start:t,end,group:g}); t=end; // direkte Aneinanderreihung
+      }
+      return {assigns:s.map((x,i)=>assigns[i]) && assigns, slots:s};
+    }
+
+    function nthGroupSlotIndex(group, n){ // 1-based occurrence to slot index
+      let count=0; for(let i=0;i<slotAssignments.length;i++){ if(slotAssignments[i].group===group){ count++; if(count===n) return i; } } return -1;
+    }
+
+    function addRoundMatches(group, round, pairs){
+      const idx = nthGroupSlotIndex(group, round); if(idx<0){ alert(`Zu wenige Slots für Gruppe ${group} Runde ${round}`); return; }
+      const slot = slots[idx];
+      for(let f=1; f<=3; f++){
+        const p = pairs[f-1]; if(!p) continue;
+        matches.push({ slot: idx+1, start: slot.start, end: addMinutes(slot.start, parseInt($('#gameMinutes').value,10)), group, round, field:`Feld ${f}`, team1:p[0]||'TBD', team2:p[1]||'TBD' });
+      }
+    }
 
     function collectConfig(){
       const groups = { A: parseTeams($('#teamsA').value), B: parseTeams($('#teamsB').value), C: parseTeams($('#teamsC').value) };
-      const startTime = $('#startTime').value || '10:00';
-      const gameMinutes = parseInt($('#gameMinutes').value, 10);
-      const breakMinutes = parseInt($('#breakMinutes').value, 10);
-      const fieldsCount = parseInt($('#fieldsCount').value, 10);
+      const startTime = $('#startTime').value||'10:00';
+      const gameMinutes = parseInt($('#gameMinutes').value,10);
+      const breakMinutes = parseInt($('#breakMinutes').value,10);
       const rotationPattern = $('#rotationPattern').value;
-      for(const g of Object.keys(groups)){ if(groups[g].length === 0) delete groups[g]; }
-      const rules = { A: getRuleMappingFor('A'), B: getRuleMappingFor('B'), C: getRuleMappingFor('C') };
-      return { groups, startTime, gameMinutes, breakMinutes, fieldsCount, rotationPattern, rules };
+      const rules = {A:getRuleMappingFor('A'),B:getRuleMappingFor('B'),C:getRuleMappingFor('C')};
+      return {groups,startTime,gameMinutes,breakMinutes,rotationPattern,rules};
     }
 
-    function generateDynamicSchedule(cfg){
-      const { groups, fieldsCount, startTime, gameMinutes, breakMinutes, rotationPattern } = cfg;
-      const rot = rotationPattern.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
-      const roundsNeeded = {}; for(const g of Object.keys(groups)){ roundsNeeded[g] = 6; }
-
-      const slotAssignments = []; let guard = 10000;
-      while(Object.keys(roundsNeeded).some(g=>roundsNeeded[g]>0) && guard-- > 0){
-        for(const g of rot){ if(roundsNeeded[g]>0){ slotAssignments.push({group:g}); roundsNeeded[g]--; } }
-        if(slotAssignments.length>60) break;
-      }
-
+    function generateInitial(){
+      matches=[]; results={}; currentRound={A:1,B:1,C:1};
+      const cfg = collectConfig();
       const minutesPerSlot = cfg.gameMinutes + cfg.breakMinutes;
-      const slots = buildTimeSlots(startTime, minutesPerSlot, slotAssignments.length);
-
-      const roundIndexPerGroup = {A:0,B:0,C:0};
-      const schedule = [];
-      const seedPairsPerGroup = {};
-      for(const g of Object.keys(groups)){ seedPairsPerGroup[g] = seedPairs(groups[g], fieldsCount); }
-
-      for(let i=0;i<slotAssignments.length;i++){
-        const {group} = slotAssignments[i];
-        const round = roundIndexPerGroup[group];
-        const start = slots[i].start; const end = addMinutes(start, gameMinutes);
-        let pairs;
-        if(round===0){ pairs = seedPairsPerGroup[group]; }
-        else{
-          const outcomes = computePrevRoundOutcomes(group, round-1);
-          const mapping = cfg.rules[group];
-          if(!outcomes || outcomes.draw){ pairs = [['TBD','TBD'],['TBD','TBD'],['TBD','TBD']]; }
-          else { pairs = nextRoundPairsFromOutcomes(outcomes, mapping); }
-        }
-        for(let f=0; f<fieldsCount; f++){
-          const pair = pairs[f]; if(!pair) continue;
-          schedule.push({ slot: i+1, start, end, group, round: round+1, field: `Feld ${f+1}`, team1: pair[0], team2: pair[1] });
-        }
-        roundIndexPerGroup[group]++;
+      const built = buildSlotAssignments(cfg.startTime, minutesPerSlot, cfg.rotationPattern, 60);
+      slotAssignments = built.assigns; slots = built.slots;
+      // Runde 1 je Gruppe
+      for(const g of Object.keys(cfg.groups)){
+        const pairs = seedPairs(cfg.groups[g]); addRoundMatches(g, 1, pairs);
       }
-      return schedule;
     }
 
-    function saveResult(group, round, field, g1, g2){
-      if(!results[group]) results[group] = {};
-      if(!results[group][round]) results[group][round] = {};
-      results[group][round][field] = {g1, g2};
+    function allThreeResultsPresent(group, round){
+      const r = results[group]?.[round]; if(!r) return false;
+      for(let f=1; f<=3; f++){ const rr = r[`Feld ${f}`]; if(!rr || rr.g1===undefined || rr.g2===undefined) return false; if(rr.g1===rr.g2) return false; }
+      return true;
     }
+
+    function onResultSaved(group, round){
+      if(!allThreeResultsPresent(group, round)) return; // warten bis alle 3
+      const outcomes = computeOutcomesFor(group, round); if(!outcomes || outcomes.draw) return;
+      const mapping = getRuleMappingFor(group); const pairs = nextPairs(outcomes, mapping);
+      const nextRound = round+1; addRoundMatches(group, nextRound, pairs); currentRound[group] = nextRound;
+      renderSchedule();
+    }
+
+    function getSavedResult(group, round, field){ return results[group]?.[round]?.[field]; }
+
+    function saveResult(group, round, field, g1, g2){ if(!results[group]) results[group]={}; if(!results[group][round]) results[group][round]={}; results[group][round][field]={g1,g2}; onResultSaved(group, round); }
 
     function renderSchedule(){
-      const tbody = $('#scheduleBody');
-      tbody.innerHTML = '';
-      const fg = $('#filterGroup').value.toUpperCase();
-      const ff = $('#filterField').value;
-      const ft = $('#filterTeam').value.trim().toLowerCase();
-
-      const filtered = currentSchedule.filter(m => {
-        if(fg && m.group !== fg) return false;
-        if(ff && m.field !== ff) return false;
-        if(ft){ const hay = `${m.team1} ${m.team2} ${m.field} ${m.group}`.toLowerCase(); if(!hay.includes(ft)) return false; }
-        return true;
-      });
-
+      const tbody = $('#scheduleBody'); tbody.innerHTML='';
+      // Nur die Matches anzeigen, deren Runde == currentRound[group]
+      const filtered = matches.filter(m => m.round === currentRound[m.group]);
       for(const m of filtered){
         const tr = document.createElement('tr');
-        const t1 = m.team1 || 'TBD'; const t2 = m.team2 || 'TBD';
+        const t1 = m.team1||'TBD', t2 = m.team2||'TBD';
         const saved = getSavedResult(m.group, m.round-1, m.field);
         const g1v = (saved && Number.isFinite(saved.g1)) ? saved.g1 : '';
         const g2v = (saved && Number.isFinite(saved.g2)) ? saved.g2 : '';
@@ -399,63 +333,33 @@
         const btnSave = tr.querySelector('button[data-action="save"]');
         const btnT1 = tr.querySelector('button[data-action="t1win"]');
         const btnT2 = tr.querySelector('button[data-action="t2win"]');
-
-        const commit = (a,b)=>{
-          if(!Number.isFinite(a) || !Number.isFinite(b)){ alert('Bitte gültige Tore eingeben.'); return; }
-          saveResult(m.group, m.round-1, m.field, a, b);
-          const cfg = collectConfig();
-          currentSchedule = generateDynamicSchedule(cfg);
-          renderSchedule();
-        };
-
-        btnSave.addEventListener('click', ()=>{
-          const g1 = parseInt(inputs[0].value,10); const g2 = parseInt(inputs[1].value,10);
-          commit(g1, g2);
-        });
-        btnT1.addEventListener('click', ()=>{ commit(1,0); });
-        btnT2.addEventListener('click', ()=>{ commit(0,1); });
-
+        const commit = (a,b)=>{ if(!Number.isFinite(a) || !Number.isFinite(b)){ alert('Bitte gültige Tore eingeben.'); return; } saveResult(m.group, m.round-1, m.field, a, b); };
+        btnSave.addEventListener('click', ()=>{ const g1 = parseInt(inputs[0].value,10); const g2 = parseInt(inputs[1].value,10); commit(g1,g2); });
+        btnT1.addEventListener('click', ()=>commit(1,0));
+        btnT2.addEventListener('click', ()=>commit(0,1));
         tbody.appendChild(tr);
       }
     }
 
-    function exportCSV(rows){
-      const header = ["Slot","Start","Ende","Gruppe","Runde","Feld","Team1","Team2"]; const lines = [header.join(";")];
-      for(const m of rows){ lines.push([m.slot,m.start,m.end,m.group,m.round,m.field,m.team1||'TBD',m.team2||'TBD'].join(";")); }
-      const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "spielplan.csv"; a.click(); URL.revokeObjectURL(url);
-    }
-    function exportJSON(rows){
-      const blob = new Blob([JSON.stringify(rows,null,2)], {type:"application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "spielplan.json"; a.click(); URL.revokeObjectURL(url);
-    }
+    function exportCSV(rows){ const header=["Slot","Start","Ende","Gruppe","Runde","Feld","Team1","Team2"]; const lines=[header.join(";")]; for(const m of rows){ lines.push([m.slot,m.start,m.end,m.group,m.round,m.field,m.team1||'TBD',m.team2||'TBD'].join(";")); } const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="spielplan.csv"; a.click(); URL.revokeObjectURL(url); }
+    function exportJSON(rows){ const blob=new Blob([JSON.stringify(rows,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="spielplan.json"; a.click(); URL.revokeObjectURL(url); }
 
-    function saveConfig(){ const cfg = collectConfig(); localStorage.setItem("funino_cfg_v3", JSON.stringify(cfg)); localStorage.setItem("funino_results_v3", JSON.stringify(results)); }
-    function loadConfig(){ const raw = localStorage.getItem("funino_cfg_v3"); const rawR = localStorage.getItem("funino_results_v3"); if(raw){ try{ const cfg = JSON.parse(raw);
-        if(cfg.startTime) $('#startTime').value = cfg.startTime; if(cfg.gameMinutes) $('#gameMinutes').value = cfg.gameMinutes; if(cfg.breakMinutes!==undefined) $('#breakMinutes').value = cfg.breakMinutes; if(cfg.fieldsCount) $('#fieldsCount').value = cfg.fieldsCount; if(cfg.rotationPattern) $('#rotationPattern').value = cfg.rotationPattern; if(cfg.groups?.A) $('#teamsA').value = cfg.groups.A.join("\n"); if(cfg.groups?.B) $('#teamsB').value = cfg.groups.B.join("\n"); if(cfg.groups?.C) $('#teamsC').value = cfg.groups.C.join("\n");
-        const setVal=(id,val)=>{ const el=document.getElementById(id); if(el && val) el.value=val; };
-        const r=cfg.rules||{}; const GA=r.A||{}; const GB=r.B||{}; const GC=r.C||{};
-        setVal('A_F1_H', GA['Feld 1']?.[0]); setVal('A_F1_A', GA['Feld 1']?.[1]); setVal('A_F2_H', GA['Feld 2']?.[0]); setVal('A_F2_A', GA['Feld 2']?.[1]); setVal('A_F3_H', GA['Feld 3']?.[0]); setVal('A_F3_A', GA['Feld 3']?.[1]);
-        setVal('B_F1_H', GB['Feld 1']?.[0]); setVal('B_F1_A', GB['Feld 1']?.[1]); setVal('B_F2_H', GB['Feld 2']?.[0]); setVal('B_F2_A', GB['Feld 2']?.[1]); setVal('B_F3_H', GB['Feld 3']?.[0]); setVal('B_F3_A', GB['Feld 3']?.[1]);
-        setVal('C_F1_H', GC['Feld 1']?.[0]); setVal('C_F1_A', GC['Feld 1']?.[1]); setVal('C_F2_H', GC['Feld 2']?.[0]); setVal('C_F2_A', GC['Feld 2']?.[1]); setVal('C_F3_H', GC['Feld 3']?.[0]); setVal('C_F3_A', GC['Feld 3']?.[1]);
-      }catch(e){ console.warn('Konnte Konfiguration nicht laden:', e); } }
-      if(rawR){ try{ results = JSON.parse(rawR); }catch(e){ results = {}; } }
+    function saveConfig(){ const cfg = collectConfig(); localStorage.setItem('funino_cfg_v4', JSON.stringify(cfg)); localStorage.setItem('funino_results_v4', JSON.stringify(results)); localStorage.setItem('funino_matches_v4', JSON.stringify(matches)); localStorage.setItem('funino_round_v4', JSON.stringify(currentRound)); }
+    function loadConfig(){ const raw=localStorage.getItem('funino_cfg_v4'); const rawR=localStorage.getItem('funino_results_v4'); const rawM=localStorage.getItem('funino_matches_v4'); const rawCR=localStorage.getItem('funino_round_v4'); if(raw){ try{ const cfg=JSON.parse(raw); if(cfg.startTime) $('#startTime').value=cfg.startTime; if(cfg.gameMinutes) $('#gameMinutes').value=cfg.gameMinutes; if(cfg.breakMinutes!==undefined) $('#breakMinutes').value=cfg.breakMinutes; if(cfg.rotationPattern) $('#rotationPattern').value=cfg.rotationPattern; if(cfg.groups?.A) $('#teamsA').value = cfg.groups.A.join("\n"); if(cfg.groups?.B) $('#teamsB').value = cfg.groups.B.join("\n"); if(cfg.groups?.C) $('#teamsC').value = cfg.groups.C.join("\n"); const setVal=(id,val)=>{ const el=document.getElementById(id); if(el && val) el.value=val; }; const r=cfg.rules||{}; const GA=r.A||{}; const GB=r.B||{}; const GC=r.C||{}; setVal('A_F1_H',GA['Feld 1']?.[0]); setVal('A_F1_A',GA['Feld 1']?.[1]); setVal('A_F2_H',GA['Feld 2']?.[0]); setVal('A_F2_A',GA['Feld 2']?.[1]); setVal('A_F3_H',GA['Feld 3']?.[0]); setVal('A_F3_A',GA['Feld 3']?.[1]); setVal('B_F1_H',GB['Feld 1']?.[0]); setVal('B_F1_A',GB['Feld 1']?.[1]); setVal('B_F2_H',GB['Feld 2']?.[0]); setVal('B_F2_A',GB['Feld 2']?.[1]); setVal('B_F3_H',GB['Feld 3']?.[0]); setVal('B_F3_A',GB['Feld 3']?.[1]); setVal('C_F1_H',GC['Feld 1']?.[0]); setVal('C_F1_A',GC['Feld 1']?.[1]); setVal('C_F2_H',GC['Feld 2']?.[0]); setVal('C_F2_A',GC['Feld 2']?.[1]); setVal('C_F3_H',GC['Feld 3']?.[0]); setVal('C_F3_A',GC['Feld 3']?.[1]); }catch(e){ console.warn('Konfiguration laden fehlgeschlagen', e); } }
+      if(rawR){ try{ results = JSON.parse(rawR)||{}; }catch(e){ results={}; } }
+      if(rawM){ try{ matches = JSON.parse(rawM)||[]; }catch(e){ matches=[]; } }
+      if(rawCR){ try{ currentRound = JSON.parse(rawCR)||{A:1,B:1,C:1}; }catch(e){ currentRound={A:1,B:1,C:1}; } }
     }
-    function resetAll(){ localStorage.removeItem("funino_cfg_v3"); localStorage.removeItem("funino_results_v3"); window.location.reload(); }
+    function resetAll(){ localStorage.removeItem('funino_cfg_v4'); localStorage.removeItem('funino_results_v4'); localStorage.removeItem('funino_matches_v4'); localStorage.removeItem('funino_round_v4'); window.location.reload(); }
 
-    $('#btnGenerate').addEventListener('click', ()=>{ try{ const cfg = collectConfig(); currentSchedule = generateDynamicSchedule(cfg); renderSchedule(); }catch(e){ alert('Fehler beim Generieren: ' + e.message); } });
-    $('#btnRegenerate').addEventListener('click', ()=>{ const cfg = collectConfig(); currentSchedule = generateDynamicSchedule(cfg); renderSchedule(); });
+    $('#btnGenerate').addEventListener('click', ()=>{ generateInitial(); renderSchedule(); });
+    $('#btnRegenerate').addEventListener('click', ()=>{ const cfg=collectConfig(); const minutesPerSlot = cfg.gameMinutes + cfg.breakMinutes; const built = buildSlotAssignments(cfg.startTime, minutesPerSlot, cfg.rotationPattern, 60); slotAssignments = built.assigns; slots = built.slots; renderSchedule(); });
     $('#btnSave').addEventListener('click', ()=>{ saveConfig(); });
-    $('#btnLoad').addEventListener('click', ()=>{ loadConfig(); alert('Geladen (falls vorhanden)'); });
+    $('#btnLoad').addEventListener('click', ()=>{ loadConfig(); renderSchedule(); alert('Geladen (falls vorhanden)'); });
     $('#btnReset').addEventListener('click', ()=>{ if(confirm('Alles zurücksetzen?')) resetAll(); });
 
-    $('#filterGroup').addEventListener('change', renderSchedule);
-    $('#filterField').addEventListener('change', renderSchedule);
-    $('#filterTeam').addEventListener('input', renderSchedule);
-    $('#btnExportCSV').addEventListener('click', ()=>exportCSV(currentSchedule));
-    $('#btnExportJSON').addEventListener('click', ()=>exportJSON(currentSchedule));
-    $('#btnScrollTop').addEventListener('click', ()=>window.scrollTo({top:0,behavior:'smooth'}));
-
-    loadConfig();
-    (function initial(){ try{ const cfg = collectConfig(); currentSchedule = generateDynamicSchedule(cfg); renderSchedule(); }catch(e){ console.warn(e); } })();
+    // Init
+    loadConfig(); if(matches.length===0){ try{ generateInitial(); }catch(e){ console.warn(e); } } renderSchedule();
   </script>
 </body>
 </html>
