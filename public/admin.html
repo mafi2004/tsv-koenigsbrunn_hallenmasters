@@ -55,6 +55,22 @@
     tr.grpA td { background:rgba(29,78,216,.08); }
     tr.grpB td { background:rgba(220,38,38,.08); }
     tr.grpC td { background:rgba(22,163,74,.08); }
+	
+/* Sieger-Markierung direkt beim Teamnamen */
+.winIcon {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 1rem;          /* Icon-Größe */
+  vertical-align: middle;
+  /* sanfter Glow für bessere Lesbarkeit auf dunklem Hintergrund */
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.6));
+}
+
+/* Gewinner-Team: optional etwas hervorheben */
+.teamCell.winner {
+  font-weight: 700;
+   color: #fde68a;           /* warmes Gelb; passt zu dunklem Theme */
+
   </style>
 </head>
 <body>
@@ -88,6 +104,7 @@
         <h2>Teams</h2>
         <div class="row">
           <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
+		  <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
         </div>
       </header>
 
@@ -133,7 +150,13 @@
 
       <div class="tableWrap" style="padding:1rem">
         <table id="matchesTable">
-          <thead><tr><th>ID</th><th>Gruppe</th><th>Feld</th><th>Team A</th><th>Team B</th><th>Sieger</th><th>Aktion</th></tr></thead>
+          <thead><tr>
+<th>ID</th>
+<th>Gruppe</th>
+<th>Feld</th>
+<th>Team A</th>
+<th>Team B</th>
+</tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -228,6 +251,7 @@
 
     /* ===== API Wrapper ===== */
     const loadTeams    = () => safeFetch('/teams', { method:'GET' });
+	const deleteAllTeams = () => safeFetch('/teams', { method: 'DELETE' });
     const addTeam      = (name, groupName) => safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name:name, groupName:groupName }) });
     const deleteTeam   = (id) => safeFetch('/teams/' + encodeURIComponent(id), { method:'DELETE' });
 
@@ -275,56 +299,119 @@
     }
 
     /* ===== Rendering: Matches ===== */
-    function renderMatches(){
-      const tbody = document.querySelector('#matchesTable tbody'); if(!tbody) return; tbody.innerHTML='';
-      if (!Array.isArray(MATCHES)) { showMsg('#nextMsg','Spieldaten ungültig.',true); return; }
+    
+function renderMatches() {
+  const tbody = document.querySelector('#matchesTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
 
-      MATCHES.forEach(m => {
-        const tr = document.createElement('tr'); tr.classList.add(groupClass(m.groupName));
-        const id = m?.id ?? ''; const groupName = m?.groupName ?? ''; const field = m?.field ?? '';
-        const teamAId = m?.teamA_id ?? null; const teamBId = m?.teamB_id ?? null;
-        const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
-        const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
-        const winnerVal = m?.winner ?? null;
-        let winnerName = '';
-        if (winnerVal != null) {
-          const w = Number(winnerVal);
-          if (!Number.isNaN(w)) {
-            if (teamAId!=null && w===Number(teamAId)) winnerName = teamAName;
-            else if (teamBId!=null && w===Number(teamBId)) winnerName = teamBName;
-            else winnerName = String(winnerVal);
-          } else { winnerName = String(winnerVal); }
+  if (!Array.isArray(MATCHES)) {
+    showMsg('#nextMsg', 'Spieldaten ungültig (kein Array).', true);
+    return;
+  }
+
+  MATCHES.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.classList.add(groupClass(m.groupName));
+
+    const id        = m?.id ?? '';
+    const groupName = m?.groupName ?? '';
+    const field     = m?.field ?? '';
+    const teamAId   = m?.teamA_id ?? null;
+    const teamBId   = m?.teamB_id ?? null;
+    const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
+    const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
+    const winnerVal = m?.winner ?? null;
+
+    // Zellen: ID, Gruppe (Badge), Feld
+    const tdId    = document.createElement('td'); tdId.textContent = id;
+
+    const tdGroup = document.createElement('td');
+    const badge   = document.createElement('span');
+    badge.className = 'pill ' + groupClass(groupName);
+    badge.textContent = groupName;
+    tdGroup.appendChild(badge);
+
+    const tdField = document.createElement('td'); tdField.textContent = field;
+
+    // Team A
+    const tdA = document.createElement('td');
+    tdA.className = 'teamCell';
+    tdA.textContent = teamAName;
+    // Team B
+    const tdB = document.createElement('td');
+    tdB.className = 'teamCell';
+    tdB.textContent = teamBName;
+
+    // Gewinner-Icon direkt neben dem Teamnamen
+    if (winnerVal != null) {
+      const w = Number(winnerVal);
+      if (!Number.isNaN(w)) {
+        if (teamAId != null && w === Number(teamAId)) {
+          tdA.classList.add('winner');
+          const icon = document.createElement('span');
+          icon.className = 'winIcon';
+          icon.textContent = '🏆';
+          icon.title = 'Sieger';
+          tdA.appendChild(icon);
+        } else if (teamBId != null && w === Number(teamBId)) {
+          tdB.classList.add('winner');
+          const icon = document.createElement('span');
+          icon.className = 'winIcon';
+          icon.textContent = '🏆';
+          icon.title = 'Sieger';
+          tdB.appendChild(icon);
         }
-
-        const tdId=document.createElement('td'); tdId.textContent=id;
-        const tdGroup=document.createElement('td'); const badge=document.createElement('span'); badge.className='pill '+groupClass(groupName); badge.textContent=groupName; tdGroup.appendChild(badge);
-        const tdField=document.createElement('td'); tdField.textContent=field;
-        const tdA=document.createElement('td'); tdA.textContent=teamAName;
-        const tdB=document.createElement('td'); tdB.textContent=teamBName;
-        const tdWin=document.createElement('td'); tdWin.textContent=winnerName;
-
-        const tdAct=document.createElement('td'); tdAct.className='row';
-        const grpCls=groupClass(groupName);
-        const btnWinA=document.createElement('button'); btnWinA.className='btn '+grpCls; btnWinA.type='button'; btnWinA.dataset.action='winA'; btnWinA.dataset.id=String(id); if(teamAId!=null) btnWinA.dataset.team=String(teamAId); btnWinA.textContent='Sieger: Team A';
-        const btnWinB=document.createElement('button'); btnWinB.className='btn '+grpCls; btnWinB.type='button'; btnWinB.dataset.action='winB'; btnWinB.dataset.id=String(id); if(teamBId!=null) btnWinB.dataset.team=String(teamBId); btnWinB.textContent='Sieger: Team B';
-
-        tdAct.appendChild(btnWinA); tdAct.appendChild(btnWinB);
-
-        tr.appendChild(tdId); tr.appendChild(tdGroup); tr.appendChild(tdField);
-        tr.appendChild(tdA); tr.appendChild(tdB); tr.appendChild(tdWin); tr.appendChild(tdAct);
-        tbody.appendChild(tr);
-      });
-
-      tbody.querySelectorAll('button[data-action]').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const id = Number(e.currentTarget.dataset.id);
-          const winnerId = Number(e.currentTarget.dataset.team);
-          if (!Number.isFinite(id) || !Number.isFinite(winnerId)) { alert('Ungültige IDs'); return; }
-          try { await setWinner(id, winnerId); await refreshMatches(); }
-          catch (err) { alert('Fehler beim Setzen des Siegers: ' + err.message); }
-        });
-      });
+      }
     }
+
+    // Aktionen (Sieger setzen bleibt wie gehabt)
+    const tdAct = document.createElement('td'); tdAct.className = 'row';
+    const grpCls = groupClass(groupName);
+
+    const btnWinA = document.createElement('button');
+    btnWinA.className = 'btn ' + grpCls;
+    btnWinA.type = 'button';
+    btnWinA.dataset.action = 'winA';
+    btnWinA.dataset.id = String(id);
+    if (teamAId != null) btnWinA.dataset.team = String(teamAId);
+    btnWinA.textContent = 'Sieger: Team A';
+
+    const btnWinB = document.createElement('button');
+    btnWinB.className = 'btn ' + grpCls;
+    btnWinB.type = 'button';
+    btnWinB.dataset.action = 'winB';
+    btnWinB.dataset.id = String(id);
+    if (teamBId != null) btnWinB.dataset.team = String(teamBId);
+    btnWinB.textContent = 'Sieger: Team B';
+
+    tdAct.appendChild(btnWinA);
+    tdAct.appendChild(btnWinB);
+
+    tr.appendChild(tdId);
+    tr.appendChild(tdGroup);
+    tr.appendChild(tdField);
+    tr.appendChild(tdA);
+    tr.appendChild(tdB);
+    tr.appendChild(tdAct);
+
+    tbody.appendChild(tr);
+  });
+
+  // Delegation: Sieger setzen
+  tbody.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = Number(e.currentTarget.dataset.id);
+      const winnerId = Number(e.currentTarget.dataset.team);
+      if (!Number.isFinite(id) || !Number.isFinite(winnerId)) {
+        alert('Ungültige Match-/Team-ID.');
+        return;
+      }
+      try { await setWinner(id, winnerId); await refreshMatches(); }
+      catch (err) { alert('Fehler beim Setzen des Siegers: ' + err.message); }
+    });
+  });
+}
 
     /* ===== Refresh ===== */
     async function refreshTeams(){ try { TEAMS = await loadTeams(); renderTeams(); } catch (err){ showMsg('#teamsMsg', 'Teams laden fehlgeschlagen: ' + err.message, true); } }
@@ -412,6 +499,7 @@
     /* ===== UI ===== */
     function wireUI(){
       const elLoadTeams = document.getElementById('btnLoadTeams');
+	  const elDeleteAllTeams = document.getElementById('btnDeleteAllTeams');
       const elAddTeam   = document.getElementById('btnAddTeam');
       const elLoadMatch = document.getElementById('btnLoadMatches');
       const elReset     = document.getElementById('btnReset');
@@ -422,6 +510,21 @@
       const elImport    = document.getElementById('btnImportTeams');
 
       elLoadTeams && elLoadTeams.addEventListener('click', refreshTeams);
+	  
+	  
+	  elDeleteAllTeams && elDeleteAllTeams.addEventListener('click', async () => {
+			  if (!confirm('Wirklich ALLE Teams löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+			  try {
+				await deleteAllTeams();
+				showMsg('#teamsMsg', 'Alle Teams wurden gelöscht.');
+				await refreshTeams();
+				// Optional: auch Matches zurücksetzen, damit keine „verwaisten“ Spiele bleiben:
+				// await resetMatches(); await refreshMatches();
+			  } catch (err) {
+				showMsg('#teamsMsg', 'Fehler beim Löschen aller Teams: ' + err.message, true);
+			  }
+			});
+
 
       elAddTeam && elAddTeam.addEventListener('click', async () => {
         const name = (document.getElementById('teamName').value || '').trim();

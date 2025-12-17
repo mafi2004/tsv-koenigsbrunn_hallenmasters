@@ -17,12 +17,82 @@
     .pill.grpA{ color:var(--grpA-fg); border-color:var(--grpA-br); background:var(--grpA-bg) }
     .pill.grpB{ color:var(--grpB-fg); border-color:var(--grpB-br); background:var(--grpB-bg) }
     .pill.grpC{ color:var(--grpC-fg); border-color:var(--grpC-br); background:var(--grpC-bg) }
+	
+/* Sieger-Markierung direkt beim Teamnamen */
+.winIcon {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 1rem;          /* Icon-Größe */
+  vertical-align: middle;
+  /* sanfter Glow für bessere Lesbarkeit auf dunklem Hintergrund */
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.6));
+}
+
+/* Gewinner-Team: optional etwas hervorheben */
+.teamCell.winner {
+  font-weight: 700;
+   color: #fde68a;           /* warmes Gelb; passt zu dunklem Theme */
+
   </style>
   <script>
     var ORIGIN=window.location.origin; var API_BASE=ORIGIN + '/api';
     function groupClass(g){ var x=String(g||'').toUpperCase(); return x==='A'?'grpA':x==='B'?'grpB':x==='C'?'grpC':''; }
     async function loadMatches(){ var res = await fetch(API_BASE + '/matches'); if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); }
-    function render(matches){ var tbody=document.querySelector('#matches tbody'); tbody.innerHTML=''; matches.forEach(function(m){ var tr=document.createElement('tr'); tr.className=groupClass(m.groupName); var td=function(txt){ var d=document.createElement('td'); d.textContent=txt!=null?txt:''; return d; }; var badgeCell=document.createElement('td'); var badge=document.createElement('span'); badge.className='pill '+groupClass(m.groupName); badge.textContent=m.groupName||''; badgeCell.appendChild(badge); var winnerName=(m.winner==null)?'':(Number(m.winner)===Number(m.teamA_id))?(m.teamA||m.teamA_id):(Number(m.winner)===Number(m.teamB_id))?(m.teamB||m.teamB_id):String(m.winner); tr.appendChild(td(m.id)); tr.appendChild(badgeCell); tr.appendChild(td(m.field)); tr.appendChild(td(m.teamA||m.teamA_id)); tr.appendChild(td(m.teamB||m.teamB_id)); tr.appendChild(td(winnerName)); tbody.appendChild(tr); }); }
+    
+function render(matches){
+  const tbody = document.querySelector('#matches tbody');
+  tbody.innerHTML = '';
+
+  matches.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.className = groupClass(m.groupName);
+
+    const td = (txt) => { const d=document.createElement('td'); d.textContent = txt ?? ''; return d; };
+
+    // Gruppe-Badge
+    const badgeCell = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'pill ' + groupClass(m.groupName);
+    badge.textContent = m.groupName ?? '';
+    badgeCell.appendChild(badge);
+
+    // Team-Zellen
+    const teamAId   = m?.teamA_id ?? null;
+    const teamBId   = m?.teamB_id ?? null;
+    const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
+    const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
+    const winnerVal = m?.winner ?? null;
+
+    const tdA = document.createElement('td'); tdA.className = 'teamCell'; tdA.textContent = teamAName;
+    const tdB = document.createElement('td'); tdB.className = 'teamCell'; tdB.textContent = teamBName;
+
+    if (winnerVal != null) {
+      const w = Number(winnerVal);
+      if (!Number.isNaN(w)) {
+        if (teamAId != null && w === Number(teamAId)) {
+          tdA.classList.add('winner');
+          const icon = document.createElement('span');
+          icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
+          tdA.appendChild(icon);
+        } else if (teamBId != null && w === Number(teamBId)) {
+          tdB.classList.add('winner');
+          const icon = document.createElement('span');
+          icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
+          tdB.appendChild(icon);
+        }
+      }
+    }
+
+    tr.appendChild(td(m.id));
+    tr.appendChild(badgeCell);
+    tr.appendChild(td(m.field));
+    tr.appendChild(tdA);
+       tr.appendChild(tdB);
+
+    tbody.appendChild(tr);
+  });
+}
+
     async function reload(){ try{ var rows=await loadMatches(); render(rows); }catch(e){ console.error('Viewer reload failed:', e); } }
     document.addEventListener('DOMContentLoaded', function(){ reload(); });
   </script>
@@ -34,7 +104,12 @@
 <body>
   <header><h1>Viewer – Funino Champions League</h1></header>
   <main>
-    <table id="matches"><thead><tr><th>ID</th><th>Gruppe</th><th>Feld</th><th>Team A</th><th>Team B</th><th>Sieger</th></tr></thead><tbody></tbody></table>
+    <table id="matches"><thead><tr>
+<th>ID</th>
+<th<th>Gruppe</th>
+<th>Feld</th>
+<th>Team A</th>
+</tr></thead><tbody></tbody></table>
   </main>
 </body>
 </html>

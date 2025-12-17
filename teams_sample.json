@@ -4,36 +4,20 @@
     "groupName": "A"
   },
   {
-    "name": "FC Augsburg U11",
-    "groupName": "B"
-  },
-  {
-    "name": "SpVgg Unterhaching U11",
-    "groupName": "C"
-  },
-  {
-    "name": "SV Mering",
+    "name": "TSV Königsbrunn",
     "groupName": "A"
   },
   {
-    "name": "TSV Pfersee",
-    "groupName": "B"
-  },
-  {
-    "name": "FC Haunstetten",
-    "groupName": "C"
-  },
-  {
-    "name": "TSG Stadtbergen",
+    "name": "TSV Königsbrunn",
     "groupName": "A"
   },
   {
-    "name": "SV Hammerschmiede",
-    "groupName": "B"
+    "name": "TSV Königsbrunn",
+    "groupName": "A"
   },
   {
-    "name": "DJK Hochzoll",
-    "groupName": "C"
+    "name": "TSV Königsbrunn",
+    "groupName": "A"
   },
   {
     "name": "TSV Königsbrunn",
@@ -44,28 +28,44 @@
     "groupName": "B"
   },
   {
-    "name": "SpVgg Unterhaching U11",
-    "groupName": "C"
-  },
-  {
-    "name": "SV Mering",
-    "groupName": "A"
-  },
-  {
-    "name": "TSV Pfersee",
+    "name": "FC Augsburg U11",
     "groupName": "B"
   },
   {
-    "name": "FC Haunstetten",
+    "name": "FC Augsburg U11",
+    "groupName": "B"
+  },
+  {
+    "name": "FC Augsburg U11",
+    "groupName": "B"
+  },
+  {
+    "name": "FC Augsburg U11",
+    "groupName": "B"
+  },
+  {
+    "name": "FC Augsburg U11",
+    "groupName": "B"
+  },
+  {
+    "name": "DJK Hochzoll",
     "groupName": "C"
   },
   {
-    "name": "TSG Stadtbergen",
-    "groupName": "A"
+    "name": "DJK Hochzoll",
+    "groupName": "C"
   },
   {
-    "name": "SV Hammerschmiede",
-    "groupName": "B"
+    "name": "DJK Hochzoll",
+    "groupName": "C"
+  },
+  {
+    "name": "DJK Hochzoll",
+    "groupName": "C"
+  },
+  {
+    "name": "DJK Hochzoll",
+    "groupName": "C"
   },
   {
     "name": "DJK Hochzoll",

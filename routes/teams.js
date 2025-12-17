@@ -30,4 +30,17 @@ router.delete('/:id', (req, res) => {
   });
 });
 
+router.delete('/', (req, res) => {
+  db.run('DELETE FROM teams', [], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+
+    // Optional: reset AUTOINCREMENT (nur bei SQLite sinnvoll)
+    db.run('DELETE FROM sqlite_sequence WHERE name = "teams"', [], () => {
+      // Antwort
+      res.json({ ok: true, deletedAll: true });
+    });
+  });
+});
+
+
 module.exports = router;
