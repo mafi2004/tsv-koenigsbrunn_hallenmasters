@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Viewer – Funino Champions League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{font-family:system-ui;margin:0;background:#f9fafb;color:#0f172a}
+    header{padding:16px 20px;background:#fff;border-bottom:1px solid #ddd}
+    h1{margin:0;font-size:1.4rem}
+    section{margin:20px;padding:16px;background:#fff;border:1px solid #ddd;border-radius:8px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    th{background:#0f172a;color:#fff}
+    tr.groupA { background:#fee2e2; }   /* hellrot */
+    tr.groupB { background:#dbeafe; }   /* hellblau */
+    tr.groupC { background:#dcfce7; }   /* hellgrün */
+    .winnerIcon { font-size:1.2rem; margin-left:6px; color:#16a34a; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spielplan – Funino Champions League</h1>
+  </header>
+
+  <section>
+    <h2>Spiele</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Gruppe</th><th>Feld</th><th>Team A</th><th>Team B</th></tr>
+      </thead>
+      <tbody id="matchesBody"></tbody>
+    </table>
+  </section>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    // zentrale Konfiguration
+    const SERVER_IP = "192.168.1.224";
+    const API       = "http://" + SERVER_IP + ":3001/api";
+    const SOCKETURL = "http://" + SERVER_IP + ":3001";
+
+    async function loadMatches(){
+      const res = await fetch(API+"/matches");
+      const matches = await res.json();
+      const body = document.getElementById("matchesBody");
+      body.innerHTML = "";
+      for(const m of matches){
+        const rowClass = m.groupName==="A" ? "groupA" :
+                         m.groupName==="B" ? "groupB" : "groupC";
+        body.innerHTML += `<tr class="${rowClass}">
+          <td>${m.id}</td><td>${m.groupName}</td><td>${m.field}</td>
+          <td>${escapeHtml(m.teamA)}${m.winner===m.teamA ? '<span class="winnerIcon">🏆</span>' : ''}</td>
+          <td>${escapeHtml(m.teamB)}${m.winner===m.teamB ? '<span class="winnerIcon">🏆</span>' : ''}</td>
+        </tr>`;
+      }
+    }
+
+    loadMatches();
+    const socket = io(SOCKETURL);
+    socket.on("resultUpdate", ()=>{ loadMatches(); });
+
+    function escapeHtml(str){
+      if(!str) return '';
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+    }
+  </script>
+</body>
+</html>
