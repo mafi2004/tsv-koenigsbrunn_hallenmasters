@@ -2,182 +2,166 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <title>Admin – Funino Champions League</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – Funino Champions League</title>
   <style>
-    body{font-family:system-ui;margin:0;background:#f9fafb;color:#0f172a}
-    header{padding:16px 20px;background:#fff;border-bottom:1px solid #ddd;
-           display:flex;align-items:center;justify-content:space-between}
-    h1{margin:0;font-size:1.4rem}
-    #qrcode{margin-left:20px}
-    section{margin:20px;padding:16px;background:#fff;border:1px solid #ddd;border-radius:8px}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{border:1px solid #ddd;padding:8px;text-align:left}
-    th{background:#0f172a;color:#fff}
-    button{padding:6px 10px;margin:2px;cursor:pointer}
-    .winnerBtn{background:#0f172a;color:#fff;border:none;border-radius:4px}
-    .winner{background:#16a34a;color:#fff;font-weight:bold}
-    tr.groupA { background:#fee2e2; }
-    tr.groupB { background:#dbeafe; }
-    tr.groupC { background:#dcfce7; }
-    .winnerIcon { font-size:1.2rem; margin-left:6px; color:#16a34a; }
+    :root { --bg:#0f172a; --fg:#e5e7eb; --muted:#9ca3af; --accent:#22c55e; --danger:#ef4444; --card:#111827; --border:#1f2937;
+      --grpA-bg:#0b1b3a; --grpA-fg:#bfdbfe; --grpA-br:#1d4ed8;
+      --grpB-bg:#2b0c0c; --grpB-fg:#fecaca; --grpB-br:#7f1d1d;
+      --grpC-bg:#052e1b; --grpC-fg:#86efac; --grpC-br:#166534; }
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    header{display:flex;justify-content:space-between;align-items:center;padding:1rem;border-bottom:1px solid var(--border);background:var(--card)}
+    main{padding:1rem;max-width:1100px;margin:0 auto}
+    section{margin-bottom:2rem;background:var(--card);border:1px solid var(--border);border-radius:8px}
+    section>header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+    .row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+    .btn{cursor:pointer;border:1px solid var(--border);background:#0b1020;color:var(--fg);padding:.5rem .75rem;border-radius:6px;font-weight:600}
+    .btn.grpA{border-color:var(--grpA-br);background:var(--grpA-bg);color:var(--grpA-fg)}
+    .btn.grpB{border-color:var(--grpB-br);background:var(--grpB-bg);color:var(--grpB-fg)}
+    .btn.grpC{border-color:var(--grpC-br);background:var(--grpC-bg);color:var(--grpC-fg)}
+    .input,select{background:#0b1020;color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:.45rem .6rem}
+    .tableWrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid var(--border);padding:.5rem;text-align:left}
+    th{color:#cbd5e1}
+    .pill{display:inline-block;padding:.15rem .5rem;border-radius:999px;border:1px solid var(--border);font-size:.8rem;color:var(--muted)}
+    .pill.grpA{color:var(--grpA-fg);border-color:var(--grpA-br);background:var(--grpA-bg)}
+    .pill.grpB{color:var(--grpB-fg);border-color:var(--grpB-br);background:var(--grpB-bg)}
+    .pill.grpC{color:var(--grpC-fg);border-color:var(--grpC-br);background:var(--grpC-bg)}
+    tr.grpA td{background:rgba(29,78,216,.08)} tr.grpB td{background:rgba(220,38,38,.08)} tr.grpC td{background:rgba(22,163,74,.08)}
+    #qrContainer,#qrContainer *{pointer-events:none}
+    #qrContainer{position:fixed;right:1rem;bottom:1rem;z-index:2;background:rgba(17,24,39,.9);border:1px solid var(--border);border-radius:8px;padding:.5rem}
+    #qrImage{width:160px;height:160px;display:block;border-radius:4px}
+    #viewerUrl{font-size:.75rem;color:var(--muted);margin-top:.25rem;word-break:break-all}
   </style>
 </head>
 <body>
   <header>
-    <h1>Adminbereich – Funino Champions League</h1>
-    <div id="qrcode"></div>
+    <h1>Admin – Funino Champions League</h1>
+    <div class="viewerLink">Viewer: <a id="viewerLink" href="#" target="_blank" rel="noopener">wird ermittelt…</a></div>
   </header>
 
-  <section>
-    <h2>Teams</h2>
-    <input id="teamName" placeholder="Teamname" />
-    <select id="teamGroup">
-      <option value="A">Gruppe A</option>
-      <option value="B">Gruppe B</option>
-      <option value="C">Gruppe C</option>
-    </select>
-    <button onclick="addTeam()">Team hinzufügen</button>
-    <table>
-      <thead><tr><th>ID</th><th>Name</th><th>Gruppe</th><th>Aktion</th></tr></thead>
-      <tbody id="teamsBody"></tbody>
-    </table>
-  </section>
+  <main>
+    <section id="teamsSection">
+      <header>
+        <h2>Teams</h2>
+        <div class="row">
+          <button id="btnLoadTeams" type="button" class="btn">Teams laden</button>
+        </div>
+      </header>
+      <div class="row" style="padding:1rem">
+        <div class="tableWrap" style="flex:1 1 100%">
+          <table id="teamsTable"><thead><tr><th>ID</th><th>Name</th><th>Gruppe</th><th>Aktion</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="row" style="flex:1 1 100%">
+          <input id="teamName" class="input" placeholder="Teamname" />
+          <select id="teamGroup" class="input"><option value="A">Gruppe A</option><option value="B">Gruppe B</option><option value="C">Gruppe C</option></select>
+          <button id="btnAddTeam" type="button" class="btn">Hinzufügen</button>
+          <span id="teamsMsg" class="pill" style="display:none"></span>
+        </div>
+        <div class="row" style="flex:1 1 100%">
+          <input id="teamsFile" type="file" accept=".csv,.json" class="input" />
+          <button id="btnImportTeams" type="button" class="btn">Teams aus Datei importieren</button>
+          <span id="importMsg" class="pill" style="display:none"></span>
+        </div>
+      </div>
+    </section>
 
-  <section>
-    <h2>Spiele</h2>
-    <button onclick="startGroup('A')">Gruppe A starten</button>
-    <button onclick="startGroup('B')">Gruppe B starten</button>
-    <button onclick="startGroup('C')">Gruppe C starten</button>
-    <button onclick="resetMatches()">Spielplan zurücksetzen</button>
-    <button onclick="nextRound()">Nächste Runde generieren</button>
-    <table>
-      <thead><tr><th>ID</th><th>Gruppe</th><th>Feld</th><th>Team A</th><th>Team B</th><th>Sieger</th></tr></thead>
-      <tbody id="matchesBody"></tbody>
-    </table>
-  </section>
+    <section id="matchesSection">
+      <header>
+        <h2>Spiele</h2>
+        <div class="row">
+          <button id="btnLoadMatches" type="button" class="btn">Spiele laden</button>
+          <button id="btnStartA" type="button" class="btn grpA">Gruppe A starten</button>
+          <button id="btnStartB" type="button" class="btn grpB">Gruppe B starten</button>
+          <button id="btnStartC" type="button" class="btn grpC">Gruppe C starten</button>
+          <button id="btnReset"  type="button" class="btn">Spielplan zurücksetzen</button>
+        </div>
+      </header>
+      <div class="tableWrap" style="padding:1rem">
+        <table id="matchesTable"><thead><tr><th>ID</th><th>Gruppe</th><th>Feld</th><th>Team A</th><th>Team B</th><th>Sieger</th><th>Aktion</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="row" style="padding:0 1rem 1rem">
+        <button id="btnNextRound" type="button" class="btn">Nächste Runde (oberste 3)</button>
+        <span id="nextMsg" class="pill" style="display:none"></span>
+      </div>
+    </section>
+  </main>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <aside id="qrContainer"><h3>Viewer-QR</h3><img id="qrImage" alt="QR-Code" /><div id="viewerUrl"></div></aside>
 
+  <script src="/socket.io/socket.io.js" defer></script>
   <script>
-    const SERVER_IP = "192.168.1.224";
-    const API       = "http://" + SERVER_IP + ":3001/api";
-    const SOCKETURL = "http://" + SERVER_IP + ":3001";
-    const VIEWERURL = "http://" + SERVER_IP + ":3001/viewer.html";
+    // Basis
+    var ORIGIN = window.location.origin; var API_BASE = ORIGIN + '/api';
+    function groupClass(g){ var x=String(g||'').trim().toUpperCase(); if(x==='A')return 'grpA'; if(x==='B')return 'grpB'; if(x==='C')return 'grpC'; return ''; }
+    async function safeFetch(path, init){ var url = API_BASE + path; try{ var res = await fetch(url, init); if(!res.ok){ var text=''; try{ text = await res.text(); }catch(e){} throw new Error('HTTP '+res.status+' '+res.statusText+(text?': '+text:'')); } return await res.json(); } catch(err){ console.error('Fetch failed:', url, err); throw err; } }
 
-    new QRCode(document.getElementById("qrcode"), {
-      text: VIEWERURL, width: 100, height: 100
-    });
+    // API
+    var loadTeams    = function(){ return safeFetch('/teams', { method:'GET' }); };
+    var addTeam      = function(name, groupName){ return safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name:name, groupName:groupName }) }); };
+    var deleteTeam   = function(id){ return safeFetch('/teams/'+encodeURIComponent(id), { method:'DELETE' }); };
+    var loadMatches  = function(){ return safeFetch('/matches', { method:'GET' }); };
+    var startGroup   = function(group){ return safeFetch('/matches/start/'+encodeURIComponent(group), { method:'POST' }); };
+    var resetMatches = function(){ return safeFetch('/matches/reset', { method:'DELETE' }); };
+    var setWinner    = function(matchId, winnerTeamId){ return safeFetch('/results/winner', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ matchId:matchId, winner:winnerTeamId }) }); };
+    var nextRoundReq = function(groupName, results){ return safeFetch('/funino/nextRound', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ groupName:groupName, results:results }) }); };
 
-    let winners = {};
-    let currentResults = [];
-    let lastMatches = [];
+    // State
+    var TEAMS = []; var MATCHES = [];
 
-    async function loadTeams(){
-      const res = await fetch(API+"/teams");
-      const teams = await res.json();
-      const body = document.getElementById("teamsBody");
-      body.innerHTML = "";
-      for(const t of teams){
-        body.innerHTML += `<tr>
-          <td>${t.id}</td><td>${escapeHtml(t.name)}</td><td>${t.groupName||''}</td>
-          <td><button onclick="deleteTeam(${t.id})">Löschen</button></td>
-        </tr>`;
-      }
-    }
+    // Render Teams
+    function renderTeams(){ var tbody = document.querySelector('#teamsTable tbody'); if(!tbody) return; tbody.innerHTML='';
+      TEAMS.forEach(function(t){ var tr=document.createElement('tr'); tr.classList.add(groupClass(t.groupName));
+        var tdId=document.createElement('td'); tdId.textContent = t.id==null?'':t.id;
+        var tdName=document.createElement('td'); tdName.textContent = t.name==null?'':t.name;
+        var tdGroup=document.createElement('td'); var badge=document.createElement('span'); badge.className='pill '+groupClass(t.groupName); badge.textContent=t.groupName==null?'':t.groupName; tdGroup.appendChild(badge);
+        var tdAction=document.createElement('td'); var btnDel=document.createElement('button'); btnDel.className='btn'; btnDel.type='button'; btnDel.dataset.action='del'; btnDel.dataset.id=String(t.id); btnDel.textContent='Löschen'; tdAction.appendChild(btnDel);
+        tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdGroup); tr.appendChild(tdAction); tbody.appendChild(tr); });
+      tbody.querySelectorAll('button[data-action="del"]').forEach(function(btn){ btn.addEventListener('click', async function(e){ var id=e.currentTarget.dataset.id; try{ await deleteTeam(id); await refreshTeams(); }catch(err){ showMsg('#teamsMsg','Fehler beim Löschen: '+err.message,true); } }); }); }
 
-    async function addTeam(){
-      const name = document.getElementById("teamName").value.trim();
-      const groupName = document.getElementById("teamGroup").value;
-      if(!name) return;
-      await fetch(API+"/teams", {
-        method:"POST", headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({name, groupName})
+    // Render Matches
+    function renderMatches(){ var tbody = document.querySelector('#matchesTable tbody'); if(!tbody) return; tbody.innerHTML=''; if(!Array.isArray(MATCHES)){ showMsg('#nextMsg','Spieldaten ungültig.',true); return; }
+      MATCHES.forEach(function(m){ var tr=document.createElement('tr'); tr.classList.add(groupClass(m.groupName));
+        var id = m && m.id!=null ? m.id : ''; var groupName = m && m.groupName!=null ? m.groupName : ''; var field = m && m.field!=null ? m.field : '';
+        var teamAId = m && m.teamA_id!=null ? m.teamA_id : null; var teamBId = m && m.teamB_id!=null ? m.teamB_id : null;
+        var teamAName = m && m.teamA!=null ? m.teamA : (teamAId!=null?String(teamAId):''); var teamBName = m && m.teamB!=null ? m.teamB : (teamBId!=null?String(teamBId):'');
+        var winnerVal = m && m.winner!=null ? m.winner : null; var winnerName=''; if(winnerVal!=null){ var w=Number(winnerVal); if(!Number.isNaN(w)){ if(teamAId!=null && w===Number(teamAId)) winnerName=teamAName; else if(teamBId!=null && w===Number(teamBId)) winnerName=teamBName; else winnerName=String(winnerVal); } else { winnerName=String(winnerVal); } }
+        var tdId=document.createElement('td'); tdId.textContent=id; var tdGroup=document.createElement('td'); var badge=document.createElement('span'); badge.className='pill '+groupClass(groupName); badge.textContent=groupName; tdGroup.appendChild(badge);
+        var tdField=document.createElement('td'); tdField.textContent=field; var tdA=document.createElement('td'); tdA.textContent=teamAName; var tdB=document.createElement('td'); tdB.textContent=teamBName; var tdWin=document.createElement('td'); tdWin.textContent=winnerName;
+        var tdAct=document.createElement('td'); tdAct.className='row'; var grpCls=groupClass(groupName);
+        var btnWinA=document.createElement('button'); btnWinA.className='btn '+grpCls; btnWinA.type='button'; btnWinA.dataset.action='winA'; btnWinA.dataset.id=String(id); if(teamAId!=null) btnWinA.dataset.team=String(teamAId); btnWinA.textContent='Sieger: Team A';
+        var btnWinB=document.createElement('button'); btnWinB.className='btn '+grpCls; btnWinB.type='button'; btnWinB.dataset.action='winB'; btnWinB.dataset.id=String(id); if(teamBId!=null) btnWinB.dataset.team=String(teamBId); btnWinB.textContent='Sieger: Team B';
+        tdAct.appendChild(btnWinA); tdAct.appendChild(btnWinB);
+        tr.appendChild(tdId); tr.appendChild(tdGroup); tr.appendChild(tdField); tr.appendChild(tdA); tr.appendChild(tdB); tr.appendChild(tdWin); tr.appendChild(tdAct); tbody.appendChild(tr);
       });
-      document.getElementById("teamName").value="";
-      loadTeams();
-    }
+      tbody.querySelectorAll('button[data-action]').forEach(function(btn){ btn.addEventListener('click', async function(e){ var id=Number(e.currentTarget.dataset.id); var winnerId=Number(e.currentTarget.dataset.team); if(!Number.isFinite(id)||!Number.isFinite(winnerId)){ alert('Ungültige IDs'); return; } try{ await setWinner(id, winnerId); await refreshMatches(); }catch(err){ alert('Fehler beim Setzen des Siegers: '+err.message); } }); }); }
 
-    async function deleteTeam(id){
-      await fetch(API+"/teams/"+id, {method:"DELETE"});
-      loadTeams();
-    }
+    async function refreshTeams(){ try{ TEAMS = await loadTeams(); renderTeams(); }catch(err){ showMsg('#teamsMsg','Teams laden fehlgeschlagen: '+err.message,true); } }
+    async function refreshMatches(){ try{ MATCHES = await loadMatches(); renderMatches(); }catch(err){ showMsg('#nextMsg','Spiele laden fehlgeschlagen: '+err.message,true); } }
 
-    async function loadMatches(){
-      const res = await fetch(API+"/matches");
-      const matches = await res.json();
-      lastMatches = matches;
-      const body = document.getElementById("matchesBody");
-      body.innerHTML = "";
-      for(const m of matches){
-        const winner = winners[m.id] || m.winner || "";
-        const rowClass = m.groupName==="A" ? "groupA" :
-                         m.groupName==="B" ? "groupB" : "groupC";
-        body.innerHTML += `<tr class="${rowClass}">
-          <td>${m.id}</td><td>${m.groupName}</td><td>${m.field}</td>
-          <td>${escapeHtml(m.teamA)}${winner===m.teamA ? '<span class="winnerIcon">🏆</span>' : ''}</td>
-          <td>${escapeHtml(m.teamB)}${winner===m.teamB ? '<span class="winnerIcon">🏆</span>' : ''}</td>
-          <td>
-            <button class="winnerBtn ${winner===m.teamA?'winner':''}" onclick="selectWinner(${m.id}, '${escapeJs(m.teamA)}')">${escapeHtml(m.teamA)}</button>
-            <button class="winnerBtn ${winner===m.teamB?'winner':''}" onclick="selectWinner(${m.id}, '${escapeJs(m.teamB)}')">${escapeHtml(m.teamB)}</button>
-          </td>
-        </tr>`;
-      }
-    }
+    function computeNextRoundPayloadFromTop3(){ if(!Array.isArray(MATCHES)) throw new Error('Keine Spieldaten geladen.'); var top3=MATCHES.slice(0,3); if(top3.length!==3) throw new Error('Mindestens 3 Spiele erforderlich.'); var groupName=String(top3[0]&&top3[0].groupName||'').trim(); if(!groupName) throw new Error('Gruppe der obersten Spiele nicht ermittelbar.'); var allSameGroup=top3.every(function(m){ return String(m&&m.groupName||'').trim()===groupName; }); if(!allSameGroup) throw new Error('Die obersten 3 Spiele gehören nicht zur gleichen Gruppe.'); var results=top3.map(function(m){ var teamAId=Number(m&&m.teamA_id); var teamBId=Number(m&&m.teamB_id); var wRaw=m&&m.winner; if(wRaw==null) throw new Error('Für Spiel '+(m&&m.id||'?')+' ist kein Sieger gesetzt.'); var winnerId=Number(wRaw); if(!Number.isFinite(winnerId)) throw new Error('Ungültiger Siegerwert bei Spiel '+(m&&m.id||'?')); var loserId=(Number.isFinite(teamAId)&&winnerId===teamAId)?teamBId:(Number.isFinite(teamBId)&&winnerId===teamBId)?teamAId:NaN; if(!Number.isFinite(loserId)) throw new Error('Sieger gehört nicht zu Team A/B bei Spiel '+(m&&m.id||'?')); return { winnerId:winnerId, loserId:loserId }; }); return { groupName:groupName, results:results }; }
 
-    async function selectWinner(matchId, winnerName){
-      await fetch(API+"/results/"+matchId, {
-        method:"POST", headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({winnerName})
-      });
-      winners[matchId] = winnerName;
-      const match = lastMatches.find(m => m.id === matchId);
-      if(match){
-        currentResults.push({
-          winnerId: winnerName===match.teamA ? match.teamA_id : match.teamB_id,
-          loserId:  winnerName===match.teamA ? match.teamB_id : match.teamA_id
-        });
-      }
-      loadMatches();
-    }
+    function showMsg(selector, text, isError){ var el=document.querySelector(selector); if(!el) return; el.textContent=text; el.style.display='inline-block'; el.style.borderColor=isError?'var(--danger)':'var(--accent)'; el.style.color=isError?'#fecaca':'#86efac'; clearTimeout(el._t); el._t=setTimeout(function(){ el.style.display='none'; }, 4000); }
 
-    async function startGroup(groupName){
-      await fetch(API+"/matches/start/"+groupName, {method:"POST"});
-      loadMatches();
-    }
+    function initQR(){ var viewerUrl=ORIGIN + '/viewer.html'; var a=document.getElementById('viewerLink'); if(a){ a.href=viewerUrl; a.textContent=viewerUrl; } var viewerUrlEl=document.getElementById('viewerUrl'); if(viewerUrlEl) viewerUrlEl.textContent=viewerUrl; var qrImg=document.getElementById('qrImage'); if(!qrImg) return; var googleUrl='https://chart.googleapis.com/chart?chs=160x160&cht=qr&chl='+encodeURIComponent(viewerUrl)+'&choe=UTF-8'; var backupUrl='https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(viewerUrl); var tryLoad=function(url,fallback){ return new Promise(function(resolve){ qrImg.onload=function(){ resolve(true); }; qrImg.onerror=function(){ if(fallback){ qrImg.onload=function(){ resolve(true); }; qrImg.onerror=function(){ resolve(false); }; qrImg.src=fallback; } else { resolve(false); } }; qrImg.src=url; }); }; tryLoad(googleUrl, backupUrl).then(function(ok){ if(!ok){ console.warn('QR konnte nicht geladen werden.'); qrImg.style.display='none'; if(viewerUrlEl){ var c=document.createElement('button'); c.className='btn'; c.type='button'; c.textContent='Viewer-Link kopieren'; c.onclick=async function(){ try{ await navigator.clipboard.writeText(viewerUrl); alert('Link kopiert'); }catch(e){ alert('Kopieren nicht möglich'); } }; viewerUrlEl.appendChild(document.createTextNode(' ')); viewerUrlEl.appendChild(c); } } }); }
 
-    async function nextRound(){
-      await fetch(API+"/funino/nextRound", {
-        method:"POST", headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ groupName:"A", results: currentResults })
-      });
-      currentResults = [];
-      loadMatches();
-    }
+    function wireUI(){ var elLoadTeams=document.getElementById('btnLoadTeams'); var elAddTeam=document.getElementById('btnAddTeam'); var elLoadMatch=document.getElementById('btnLoadMatches'); var elReset=document.getElementById('btnReset'); var elStartA=document.getElementById('btnStartA'); var elStartB=document.getElementById('btnStartB'); var elStartC=document.getElementById('btnStartC'); var elNext=document.getElementById('btnNextRound'); var elImport=document.getElementById('btnImportTeams');
+      if(elLoadTeams) elLoadTeams.addEventListener('click', refreshTeams);
+      if(elAddTeam) elAddTeam.addEventListener('click', async function(){ var name=(document.getElementById('teamName').value||'').trim(); var groupName=document.getElementById('teamGroup').value; if(!name){ showMsg('#teamsMsg','Bitte Teamname eingeben.',true); return; } try{ await addTeam(name, groupName); showMsg('#teamsMsg','Team hinzugefügt.'); document.getElementById('teamName').value=''; await refreshTeams(); }catch(err){ showMsg('#teamsMsg','Fehler: '+err.message,true); } });
+      if(elLoadMatch) elLoadMatch.addEventListener('click', refreshMatches);
+      if(elReset) elReset.addEventListener('click', async function(){ if(!confirm('Spielplan wirklich zurücksetzen?')) return; try{ await resetMatches(); await refreshMatches(); }catch(err){ alert('Fehler beim Reset: '+err.message); } });
+      if(elStartA) elStartA.addEventListener('click', async function(){ try{ await startGroup('A'); await refreshMatches(); }catch(err){ alert('Fehler: '+err.message); } });
+      if(elStartB) elStartB.addEventListener('click', async function(){ try{ await startGroup('B'); await refreshMatches(); }catch(err){ alert('Fehler: '+err.message); } });
+      if(elStartC) elStartC.addEventListener('click', async function(){ try{ await startGroup('C'); await refreshMatches(); }catch(err){ alert('Fehler: '+err.message); } });
+      if(elNext) elNext.addEventListener('click', async function(){ try{ var payload=computeNextRoundPayloadFromTop3(); await nextRoundReq(payload.groupName, payload.results); showMsg('#nextMsg','Nächste Runde für Gruppe '+payload.groupName+' generiert.'); await refreshMatches(); }catch(err){ showMsg('#nextMsg','Fehler: '+err.message,true); } });
+      if(elImport) elImport.addEventListener('click', async function(){ var inp=document.getElementById('teamsFile'); if(!inp||!inp.files||!inp.files[0]){ showMsg('#importMsg','Bitte CSV/JSON Datei auswählen.',true); return; } try{ var res=await importTeamsFromFile(inp.files[0]); showMsg('#importMsg','Import: '+res.ok+'/'+res.total+' erfolgreich, '+res.fail+' fehlgeschlagen.'); await refreshTeams(); }catch(err){ showMsg('#importMsg','Import-Fehler: '+err.message,true); } }); }
 
-    async function resetMatches(){
-      await fetch(API+"/matches/reset", {method:"DELETE"});
-      winners = {};
-      currentResults = [];
-      loadMatches();
-    }
+    function importTeamsFromFile(file){ return file.text().then(function(text){ var ext=(file.name.split('.').pop()||'').toLowerCase(); var entries=[]; if(ext==='csv'){ var lines=text.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(function(l){ return l.length>0; }); entries=lines.map(function(line,i){ var parts=line.split(','); var name=(parts[0]||'').trim(); var groupName=((parts[1]||'').trim().toUpperCase())||null; if(!name) throw new Error('CSV Zeile '+(i+1)+': kein Name'); return { name:name, groupName:groupName }; }); } else if(ext==='json'){ var obj=JSON.parse(text); if(Array.isArray(obj)) entries=obj; else if(Array.isArray(obj.teams)) entries=obj.teams; else throw new Error('JSON muss Array von {name, groupName} sein'); } else { throw new Error('Nur CSV oder JSON'); } var ok=0, fail=0; return (async function(){ for(var i=0;i<entries.length;i++){ var e=entries[i]; var name=(e.name||'').trim(); var grp=e.groupName?String(e.groupName).trim().toUpperCase():null; if(!name){ fail++; continue; } try{ await addTeam(name, grp); ok++; }catch(err){ fail++; } } return { ok:ok, fail:fail, total:entries.length }; })(); }); }
 
-    loadTeams();
-    loadMatches();
+    function initSocket(){ var s = window.io ? window.io() : null; if(!s) return; s.on('connect', function(){ console.log('Admin socket verbunden'); }); s.on('resultUpdate', function(payload){ if(!payload) return; refreshMatches(); }); s.on('results:updated', function(){ refreshMatches(); }); s.on('group:started', function(){ refreshMatches(); }); s.on('round:advanced', function(){ refreshMatches(); }); s.on('matches:reset', function(){ refreshMatches(); }); }
 
-    const socket = io(SOCKETURL);
-    socket.on("resultUpdate", ()=>{ loadMatches(); });
-
-    function escapeHtml(str){
-      if(!str) return '';
-      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-    }
-    function escapeJs(str){
-      if(!str) return '';
-      return String(str).replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-    }
+    document.addEventListener('DOMContentLoaded', function(){ initQR(); wireUI(); initSocket(); refreshTeams(); refreshMatches(); });
   </script>
 </body>
 </html>
