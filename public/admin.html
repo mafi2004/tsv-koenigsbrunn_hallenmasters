@@ -5,26 +5,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin – Funino Champions League</title>
+
   <style>
+    /* ===== Dunkles Grund-Theme (aus deinen Teilen übernommen) ===== */
     :root {
       --bg: #0f172a; --fg: #e5e7eb; --muted: #9ca3af; --accent: #22c55e; --danger: #ef4444;
       --card: #111827; --border: #1f2937;
+
       /* Gruppenfarben */
       --grpA-bg: #0b1b3a; --grpA-fg: #bfdbfe; --grpA-br: #1d4ed8;
       --grpB-bg: #2b0c0c; --grpB-fg: #fecaca; --grpB-br: #7f1d1d;
       --grpC-bg: #052e1b; --grpC-fg: #86efac; --grpC-br: #166534;
     }
+
     html, body { height:100%; }
     body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial; }
 
-    /* Header mit QR/IP-Feld */
+    /* ===== Header mit QR/IP-Feld ===== */
     header { position: sticky; top: 0; z-index: 8; background: var(--card); border-bottom: 1px solid var(--border); }
     header .bar { display:flex; align-items:center; justify-content:space-between; padding: .75rem 1rem; gap: 1rem; }
     header h1 { margin:0; font-size:1.25rem; }
-    .viewerLink { color: var(--muted); }
+    .viewerLink { color: var(--muted); text-decoration: none; }
     #qrImageHeader { width:128px; height:128px; border-radius:4px; border:1px solid var(--border); pointer-events:none; }
 
-    /* Layout & Elemente */
+    /* ===== Layout & Elemente ===== */
     main { padding:1rem; max-width:1100px; margin:0 auto; }
     section { margin-bottom:2rem; background:var(--card); border:1px solid var(--border); border-radius:8px; }
     section > header { position: static; z-index: auto; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); }
@@ -40,6 +44,7 @@
     .btn.grpA { border-color:var(--grpA-br); background:var(--grpA-bg); color:var(--grpA-fg); }
     .btn.grpB { border-color:var(--grpB-br); background:var(--grpB-bg); color:var(--grpB-fg); }
     .btn.grpC { border-color:var(--grpC-br); background:var(--grpC-bg); color:var(--grpC-fg); }
+
     .input, select { background:#0b1020; color:var(--fg); border:1px solid var(--border); border-radius:6px; padding:.45rem .6rem; min-height:2rem; }
 
     table { width:100%; border-collapse:collapse; }
@@ -55,26 +60,33 @@
     tr.grpA td { background:rgba(29,78,216,.08); }
     tr.grpB td { background:rgba(220,38,38,.08); }
     tr.grpC td { background:rgba(22,163,74,.08); }
-	
-/* Sieger-Markierung direkt beim Teamnamen */
-.winIcon {
-  display: inline-block;
-  margin-left: 0.4rem;
-  font-size: 1rem;          /* Icon-Größe */
-  vertical-align: middle;
-  /* sanfter Glow für bessere Lesbarkeit auf dunklem Hintergrund */
-  filter: drop-shadow(0 0 2px rgba(0,0,0,0.6));
-}
 
-/* Gewinner-Team: optional etwas hervorheben */
-.teamCell.winner {
-  font-weight: 700;
-   color: #fde68a;           /* warmes Gelb; passt zu dunklem Theme */
+    /* Sieger-Markierung */
+    .winIcon { display:inline-block; margin-left:.4rem; font-size:1rem; vertical-align:middle; filter: drop-shadow(0 0 2px rgba(0,0,0,0.6)); }
+    .teamCell.winner { font-weight:700; color:#fde68a; }
 
+    /* ===== Teams-Grid: Tabellen je Gruppe nebeneinander (responsive) ===== */
+    .teams-grid{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(320px, 1fr));
+      gap: 16px;
+      align-items: start;
+      padding: 1rem;
+    }
+    @media (max-width: 1100px){
+      .teams-grid{ grid-template-columns: repeat(2, minmax(320px, 1fr)); }
+    }
+    @media (max-width: 720px){
+      .teams-grid{ grid-template-columns: 1fr; }
+    }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius:8px; padding: 12px; }
+    .table-wrap { overflow:auto; }
+    .table-wrap thead th { background:#0b1020; }
   </style>
 </head>
 <body>
-  <!-- HEADER: IP/Basis-Feld (nur für QR/Viewer-Link) + QR rechts -->
+  <!-- ===== HEADER: IP/Basis-Feld + QR rechts ===== -->
   <header>
     <div class="bar">
       <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
@@ -85,9 +97,7 @@
           <input id="qrBase" class="input" style="min-width:260px;" placeholder="http://192.168.0.25:3001" />
           <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
 
-          <span class="viewerLink">
-            Viewer: #wird ermittelt…</a>
-          </span>
+          <a id="viewerLink" class…</a>
         </div>
       </div>
 
@@ -98,24 +108,23 @@
   </header>
 
   <main>
-    <!-- TEAMS -->
+    <!-- ===== TEAMS ===== -->
     <section id="teamsSection">
       <header>
         <h2>Teams</h2>
         <div class="row">
           <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
-		  <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
+          <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
         </div>
       </header>
 
-      <div class="row" style="padding:1rem">
-        <div class="tableWrap" style="flex:1 1 100%">
-          <table id="teamsTable">
-            <thead><tr><th>ID</th><th>Name</th><th>Gruppe</th><th>Aktion</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+      <!-- NEU: je Gruppe eine eigene Tabelle, nebeneinander -->
+      <div class="teams-grid" id="teamsGrid">
+        <!-- Wird per JS aufgebaut -->
+      </div>
 
+      <!-- Team hinzufügen / Import -->
+      <div class="row" style="padding:1rem">
         <div class="row" style="flex:1 1 100%">
           <input id="teamName" class="input" placeholder="Teamname" />
           <select id="teamGroup" class="input">
@@ -135,7 +144,7 @@
       </div>
     </section>
 
-    <!-- MATCHES -->
+    <!-- ===== MATCHES ===== -->
     <section id="matchesSection">
       <header>
         <h2>Spiele</h2>
@@ -150,31 +159,32 @@
 
       <div class="tableWrap" style="padding:1rem">
         <table id="matchesTable">
-          <thead><tr>
-<th>ID</th>
-<th>Gruppe</th>
-<th>Feld</th>
-<th>Team A</th>
-<th>Team B</th>
-</tr></thead>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Gruppe</th>
+              <th>Feld</th>
+              <th>Team A</th>
+              <th>Team B</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
           <tbody></tbody>
         </table>
       </div>
 
       <div class="row" style="padding:0 1rem 1rem">
-        <button id="btnNextRound" type="button" class="btn btn-warning">Nächste Runde (oberste 3)</button>
+        <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
         <span id="nextMsg" class="pill" style="display:none"></span>
       </div>
     </section>
   </main>
 
-  <!-- Socket.io Client -->
+  <!-- ===== Socket.IO ===== -->
   /socket.io/socket.io.js</script>
 
+  <!-- ===== QR/Viewer-Link (Header) ===== -->
   <script>
-    /* ==========================
-       QR/Viewer-Link (nur Header)
-       ========================== */
     function loadQRBase() {
       const v = localStorage.getItem('admin.qrBase') || '';
       const inp = document.getElementById('qrBase');
@@ -228,10 +238,11 @@
       });
       updateHeaderQR();
     }
+  </script>
 
-    /* ==========================
-       API-Basis (unverändert: Origin)
-       ========================== */
+  <!-- ===== API / State / Helpers ===== -->
+  <script>
+    /* ========================== API-Basis ========================== */
     const API_BASE = window.location.origin + '/api';
 
     async function safeFetch(path, init) {
@@ -250,25 +261,29 @@
     }
 
     /* ===== API Wrapper ===== */
-    const loadTeams    = () => safeFetch('/teams', { method:'GET' });
-	const deleteAllTeams = () => safeFetch('/teams', { method: 'DELETE' });
-    const addTeam      = (name, groupName) => safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name:name, groupName:groupName }) });
-    const deleteTeam   = (id) => safeFetch('/teams/' + encodeURIComponent(id), { method:'DELETE' });
+    const loadTeams      = () => safeFetch('/teams', { method:'GET' });
+    const deleteAllTeams = () => safeFetch('/teams', { method:'DELETE' });
+    const addTeam        = (name, groupName) => safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name:name, groupName:groupName }) });
+    const deleteTeam     = (id) => safeFetch('/teams/' + encodeURIComponent(id), { method:'DELETE' });
 
-    const loadMatches  = () => safeFetch('/matches', { method:'GET' });
-    const startGroup   = (group) => safeFetch('/matches/start/' + encodeURIComponent(group), { method:'POST' });
-    const resetMatches = () => safeFetch('/matches/reset', { method:'DELETE' });
+    const loadMatches    = () => safeFetch('/matches', { method:'GET' });
+    const startGroup     = (group) => safeFetch('/matches/start/' + encodeURIComponent(group), { method:'POST' });
+    const resetMatches   = () => safeFetch('/matches/reset', { method:'DELETE' });
 
-    const setWinner    = (matchId, winnerTeamId) => safeFetch('/results/winner', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ matchId:matchId, winner:winnerTeamId }) });
+    const setWinner      = (matchId, winnerTeamId) => safeFetch('/results/winner', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ matchId:matchId, winner:winnerTeamId }) });
 
-    const nextRoundReq = (groupName, results) => safeFetch('/funino/nextRound', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ groupName:groupName, results:results }) });
+    const nextRoundReq   = (groupName, results) => safeFetch('/funino/nextRound', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ groupName:groupName, results:results }) });
 
     /* ===== State ===== */
     let TEAMS = [];
     let MATCHES = [];
 
     /* ===== Helpers & Messages ===== */
-    function groupClass(g){ const x=String(g||'').trim().toUpperCase(); if(x==='A')return 'grpA'; if(x==='B')return 'grpB'; if(x==='C')return 'grpC'; return ''; }
+    function groupClass(g){
+      const x=String(g||'').trim().toUpperCase();
+      if(x==='A')return 'grpA'; if(x==='B')return 'grpB'; if(x==='C')return 'grpC';
+      return '';
+    }
     function showMsg(selector, text, isError){
       const el = document.querySelector(selector); if(!el) return;
       el.textContent = text; el.style.display='inline-block';
@@ -276,146 +291,211 @@
       el.style.color = isError ? '#fecaca' : '#86efac';
       clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 4000);
     }
+  </script>
 
-    /* ===== Rendering: Teams ===== */
-    function renderTeams(){
-      const tbody = document.querySelector('#teamsTable tbody'); if(!tbody) return; tbody.innerHTML='';
-      TEAMS.forEach(t => {
-        const tr = document.createElement('tr'); tr.classList.add(groupClass(t.groupName));
-        const tdId=document.createElement('td'); tdId.textContent = t.id==null?'':t.id;
-        const tdName=document.createElement('td'); tdName.textContent = t.name==null?'':t.name;
-        const tdGroup=document.createElement('td'); const badge=document.createElement('span'); badge.className='pill '+groupClass(t.groupName); badge.textContent=t.groupName||''; tdGroup.appendChild(badge);
-        const tdAction=document.createElement('td'); const btnDel=document.createElement('button'); btnDel.className='btn btn-danger'; btnDel.type='button'; btnDel.dataset.action='del'; btnDel.dataset.id=String(t.id); btnDel.textContent='Löschen'; tdAction.appendChild(btnDel);
-        tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdGroup); tr.appendChild(tdAction);
-        tbody.appendChild(tr);
+  <!-- ===== Rendering: Teams (je Gruppe eigene Tabelle im Grid) ===== -->
+  <script>
+    function buildTeamsGrid(groups){
+      const grid = document.getElementById('teamsGrid');
+      grid.innerHTML = '';
+      groups.forEach(g => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const badge = document.createElement('span');
+        badge.className = 'pill ' + groupClass(g);
+        badge.textContent = 'Gruppe ' + g;
+        badge.style.marginBottom = '.5rem';
+        card.appendChild(badge);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'table-wrap';
+
+        const table = document.createElement('table');
+        table.id = `teams-table-${g}`;
+
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+          <tr>
+            <th style="width:80px;">ID</th>
+            <th>Name</th>
+            <th style="width:120px;">Gruppe</th>
+            <th style="width:160px;">Aktion</th>
+          </tr>
+        `;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        tbody.id = `teams-tbody-${g}`;
+        table.appendChild(tbody);
+
+        wrap.appendChild(table);
+        card.appendChild(wrap);
+        grid.appendChild(card);
       });
-      tbody.querySelectorAll('button[data-action="del"]').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const id = e.currentTarget.dataset.id;
-          try { await deleteTeam(id); await refreshTeams(); }
-          catch (err) { showMsg('#teamsMsg', 'Fehler beim Löschen: ' + err.message, true); }
+
+      // Delegation für Aktionen in Team-Tabellen (Löschen)
+      document.querySelectorAll('[id^="teams-table-"]').forEach(tbl => {
+        tbl.addEventListener('click', async (e) => {
+          const btn = e.target.closest('button');
+          if(!btn) return;
+          const action = btn.dataset.action;
+          const id = btn.dataset.id;
+          if(action === 'delete'){
+            try { await deleteTeam(id); await refreshTeams(); }
+            catch (err) { showMsg('#teamsMsg', 'Fehler beim Löschen: ' + err.message, true); }
+          }
         });
       });
     }
 
-    /* ===== Rendering: Matches ===== */
-    
-function renderMatches() {
-  const tbody = document.querySelector('#matchesTable tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
+    function renderTeams(){
+      // Gruppen aus TEAMS bestimmen (z. B. A/B/C/…)
+      const groupsSet = new Set(TEAMS.map(t => String(t.groupName || '').trim().toUpperCase()).filter(Boolean));
+      const groups = groupsSet.size ? Array.from(groupsSet).sort() : ['A','B','C'];
 
-  if (!Array.isArray(MATCHES)) {
-    showMsg('#nextMsg', 'Spieldaten ungültig (kein Array).', true);
-    return;
-  }
+      // Grid/Tables erzeugen
+      buildTeamsGrid(groups);
 
-  MATCHES.forEach(m => {
-    const tr = document.createElement('tr');
-    tr.classList.add(groupClass(m.groupName));
+      // Inhalte füllen
+      groups.forEach(g => {
+        const tbody = document.getElementById(`teams-tbody-${g}`);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+      });
 
-    const id        = m?.id ?? '';
-    const groupName = m?.groupName ?? '';
-    const field     = m?.field ?? '';
-    const teamAId   = m?.teamA_id ?? null;
-    const teamBId   = m?.teamB_id ?? null;
-    const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
-    const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
-    const winnerVal = m?.winner ?? null;
+      TEAMS.forEach(t => {
+        const g = String(t.groupName || '').trim().toUpperCase();
+        const tbody = document.getElementById(`teams-tbody-${g}`);
+        if (!tbody) return;
 
-    // Zellen: ID, Gruppe (Badge), Feld
-    const tdId    = document.createElement('td'); tdId.textContent = id;
+        const tr = document.createElement('tr');
+        tr.classList.add(groupClass(t.groupName));
 
-    const tdGroup = document.createElement('td');
-    const badge   = document.createElement('span');
-    badge.className = 'pill ' + groupClass(groupName);
-    badge.textContent = groupName;
-    tdGroup.appendChild(badge);
+        const tdId = document.createElement('td'); tdId.textContent = t.id==null?'':t.id;
+        const tdName = document.createElement('td'); tdName.textContent = t.name==null?'':t.name;
+        const tdGroup = document.createElement('td');
+        const badge = document.createElement('span'); badge.className='pill '+groupClass(t.groupName); badge.textContent=t.groupName||''; tdGroup.appendChild(badge);
 
-    const tdField = document.createElement('td'); tdField.textContent = field;
+        const tdAction = document.createElement('td');
+        const btnDel = document.createElement('button');
+        btnDel.className='btn btn-danger'; btnDel.type='button'; btnDel.dataset.action='delete';
+        btnDel.dataset.id=String(t.id); btnDel.textContent='Löschen';
+        tdAction.appendChild(btnDel);
 
-    // Team A
-    const tdA = document.createElement('td');
-    tdA.className = 'teamCell';
-    tdA.textContent = teamAName;
-    // Team B
-    const tdB = document.createElement('td');
-    tdB.className = 'teamCell';
-    tdB.textContent = teamBName;
-
-    // Gewinner-Icon direkt neben dem Teamnamen
-    if (winnerVal != null) {
-      const w = Number(winnerVal);
-      if (!Number.isNaN(w)) {
-        if (teamAId != null && w === Number(teamAId)) {
-          tdA.classList.add('winner');
-          const icon = document.createElement('span');
-          icon.className = 'winIcon';
-          icon.textContent = '🏆';
-          icon.title = 'Sieger';
-          tdA.appendChild(icon);
-        } else if (teamBId != null && w === Number(teamBId)) {
-          tdB.classList.add('winner');
-          const icon = document.createElement('span');
-          icon.className = 'winIcon';
-          icon.textContent = '🏆';
-          icon.title = 'Sieger';
-          tdB.appendChild(icon);
-        }
-      }
+        tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdGroup); tr.appendChild(tdAction);
+        tbody.appendChild(tr);
+      });
     }
+  </script>
 
-    // Aktionen (Sieger setzen bleibt wie gehabt)
-    const tdAct = document.createElement('td'); tdAct.className = 'row';
-    const grpCls = groupClass(groupName);
+  <!-- ===== Rendering: Matches (wie von dir geliefert) ===== -->
+  <script>
+    function renderMatches() {
+      const tbody = document.querySelector('#matchesTable tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
 
-    const btnWinA = document.createElement('button');
-    btnWinA.className = 'btn ' + grpCls;
-    btnWinA.type = 'button';
-    btnWinA.dataset.action = 'winA';
-    btnWinA.dataset.id = String(id);
-    if (teamAId != null) btnWinA.dataset.team = String(teamAId);
-    btnWinA.textContent = 'Sieger: Team A';
-
-    const btnWinB = document.createElement('button');
-    btnWinB.className = 'btn ' + grpCls;
-    btnWinB.type = 'button';
-    btnWinB.dataset.action = 'winB';
-    btnWinB.dataset.id = String(id);
-    if (teamBId != null) btnWinB.dataset.team = String(teamBId);
-    btnWinB.textContent = 'Sieger: Team B';
-
-    tdAct.appendChild(btnWinA);
-    tdAct.appendChild(btnWinB);
-
-    tr.appendChild(tdId);
-    tr.appendChild(tdGroup);
-    tr.appendChild(tdField);
-    tr.appendChild(tdA);
-    tr.appendChild(tdB);
-    tr.appendChild(tdAct);
-
-    tbody.appendChild(tr);
-  });
-
-  // Delegation: Sieger setzen
-  tbody.querySelectorAll('button[data-action]').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = Number(e.currentTarget.dataset.id);
-      const winnerId = Number(e.currentTarget.dataset.team);
-      if (!Number.isFinite(id) || !Number.isFinite(winnerId)) {
-        alert('Ungültige Match-/Team-ID.');
+      if (!Array.isArray(MATCHES)) {
+        showMsg('#nextMsg', 'Spieldaten ungültig (kein Array).', true);
         return;
       }
-      try { await setWinner(id, winnerId); await refreshMatches(); }
-      catch (err) { alert('Fehler beim Setzen des Siegers: ' + err.message); }
-    });
-  });
-}
 
+      MATCHES.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.classList.add(groupClass(m.groupName));
+
+        const id        = m?.id ?? '';
+        const groupName = m?.groupName ?? '';
+        const field     = m?.field ?? '';
+        const teamAId   = m?.teamA_id ?? null;
+        const teamBId   = m?.teamB_id ?? null;
+        const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
+        const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
+        const winnerVal = m?.winner ?? null;
+
+        const tdId    = document.createElement('td'); tdId.textContent = id;
+
+        const tdGroup = document.createElement('td');
+        const badge   = document.createElement('span');
+        badge.className = 'pill ' + groupClass(groupName);
+        badge.textContent = groupName;
+        tdGroup.appendChild(badge);
+
+        const tdField = document.createElement('td'); tdField.textContent = field;
+
+        const tdA = document.createElement('td'); tdA.className = 'teamCell'; tdA.textContent = teamAName;
+        const tdB = document.createElement('td'); tdB.className = 'teamCell'; tdB.textContent = teamBName;
+
+        // Gewinner-Icon
+        if (winnerVal != null) {
+          const w = Number(winnerVal);
+          if (!Number.isNaN(w)) {
+            if (teamAId != null && w === Number(teamAId)) {
+              tdA.classList.add('winner');
+              const icon = document.createElement('span'); icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
+              tdA.appendChild(icon);
+            } else if (teamBId != null && w === Number(teamBId)) {
+              tdB.classList.add('winner');
+              const icon = document.createElement('span'); icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
+              tdB.appendChild(icon);
+            }
+          }
+        }
+
+        const tdAct = document.createElement('td'); tdAct.className = 'row';
+        const grpCls = groupClass(groupName);
+
+        const btnWinA = document.createElement('button');
+        btnWinA.className = 'btn ' + grpCls; btnWinA.type = 'button'; btnWinA.dataset.action = 'winA';
+        btnWinA.dataset.id = String(id); if (teamAId != null) btnWinA.dataset.team = String(teamAId);
+        btnWinA.textContent = 'Sieger: Team A';
+
+        const btnWinB = document.createElement('button');
+        btnWinB.className = 'btn ' + grpCls; btnWinB.type = 'button'; btnWinB.dataset.action = 'winB';
+        btnWinB.dataset.id = String(id); if (teamBId != null) btnWinB.dataset.team = String(teamBId);
+        btnWinB.textContent = 'Sieger: Team B';
+
+        tdAct.appendChild(btnWinA);
+        tdAct.appendChild(btnWinB);
+
+        tr.appendChild(tdId);
+        tr.appendChild(tdGroup);
+        tr.appendChild(tdField);
+        tr.appendChild(tdA);
+        tr.appendChild(tdB);
+        tr.appendChild(tdAct);
+
+        tbody.appendChild(tr);
+      });
+
+      // Delegation: Sieger setzen
+      tbody.querySelectorAll('button[data-action]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = Number(e.currentTarget.dataset.id);
+          const winnerId = Number(e.currentTarget.dataset.team);
+          if (!Number.isFinite(id) || !Number.isFinite(winnerId)) {
+            alert('Ungültige Match-/Team-ID.');
+            return;
+          }
+          try { await setWinner(id, winnerId); await refreshMatches(); }
+          catch (err) { alert('Fehler beim Setzen des Siegers: ' + err.message); }
+        });
+      });
+    }
+  </script>
+
+  <!-- ===== Next Round / Import / Socket / UI ===== -->
+  <script>
     /* ===== Refresh ===== */
-    async function refreshTeams(){ try { TEAMS = await loadTeams(); renderTeams(); } catch (err){ showMsg('#teamsMsg', 'Teams laden fehlgeschlagen: ' + err.message, true); } }
-    async function refreshMatches(){ try { MATCHES = await loadMatches(); renderMatches(); } catch (err){ showMsg('#nextMsg', 'Spiele laden fehlgeschlagen: ' + err.message, true); } }
+    async function refreshTeams(){
+      try { TEAMS = await loadTeams(); renderTeams(); }
+      catch (err){ showMsg('#teamsMsg', 'Teams laden fehlgeschlagen: ' + err.message, true); }
+    }
+    async function refreshMatches(){
+      try { MATCHES = await loadMatches(); renderMatches(); }
+      catch (err){ showMsg('#nextMsg', 'Spiele laden fehlgeschlagen: ' + err.message, true); }
+    }
 
     /* ===== Next Round aus Top-3 ===== */
     function computeNextRoundPayloadFromTop3(){
@@ -434,8 +514,8 @@ function renderMatches() {
         const winnerId = Number(wRaw);
         if (!Number.isFinite(winnerId)) throw new Error('Ungültiger Siegerwert bei Spiel ' + (m?.id || '?'));
         const loserId = (Number.isFinite(teamAId) && winnerId === teamAId) ? teamBId
-                        : (Number.isFinite(teamBId) && winnerId === teamBId) ? teamAId
-                        : NaN;
+                      : (Number.isFinite(teamBId) && winnerId === teamBId) ? teamAId
+                      : NaN;
         if (!Number.isFinite(loserId)) throw new Error('Sieger gehört nicht zu Team A/B bei Spiel ' + (m?.id || '?'));
         return { winnerId, loserId };
       });
@@ -499,7 +579,7 @@ function renderMatches() {
     /* ===== UI ===== */
     function wireUI(){
       const elLoadTeams = document.getElementById('btnLoadTeams');
-	  const elDeleteAllTeams = document.getElementById('btnDeleteAllTeams');
+      const elDeleteAllTeams = document.getElementById('btnDeleteAllTeams');
       const elAddTeam   = document.getElementById('btnAddTeam');
       const elLoadMatch = document.getElementById('btnLoadMatches');
       const elReset     = document.getElementById('btnReset');
@@ -510,28 +590,32 @@ function renderMatches() {
       const elImport    = document.getElementById('btnImportTeams');
 
       elLoadTeams && elLoadTeams.addEventListener('click', refreshTeams);
-	  
-	  
-	  elDeleteAllTeams && elDeleteAllTeams.addEventListener('click', async () => {
-			  if (!confirm('Wirklich ALLE Teams löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
-			  try {
-				await deleteAllTeams();
-				showMsg('#teamsMsg', 'Alle Teams wurden gelöscht.');
-				await refreshTeams();
-				// Optional: auch Matches zurücksetzen, damit keine „verwaisten“ Spiele bleiben:
-				// await resetMatches(); await refreshMatches();
-			  } catch (err) {
-				showMsg('#teamsMsg', 'Fehler beim Löschen aller Teams: ' + err.message, true);
-			  }
-			});
 
+      elDeleteAllTeams && elDeleteAllTeams.addEventListener('click', async () => {
+        if (!confirm('Wirklich ALLE Teams löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+        try {
+          await deleteAllTeams();
+          showMsg('#teamsMsg', 'Alle Teams wurden gelöscht.');
+          await refreshTeams();
+          // Optional: Matches zurücksetzen
+          // await resetMatches(); await refreshMatches();
+        } catch (err) {
+          showMsg('#teamsMsg', 'Fehler beim Löschen aller Teams: ' + err.message, true);
+        }
+      });
 
       elAddTeam && elAddTeam.addEventListener('click', async () => {
         const name = (document.getElementById('teamName').value || '').trim();
         const groupName = document.getElementById('teamGroup').value;
         if (!name) { showMsg('#teamsMsg','Bitte Teamname eingeben.', true); return; }
-        try { await addTeam(name, groupName); showMsg('#teamsMsg','Team hinzugefügt.'); document.getElementById('teamName').value=''; await refreshTeams(); }
-        catch (err) { showMsg('#teamsMsg', 'Fehler: ' + err.message, true); }
+        try {
+          await addTeam(name, groupName);
+          showMsg('#teamsMsg','Team hinzugefügt.');
+          document.getElementById('teamName').value='';
+          await refreshTeams();
+        } catch (err) {
+          showMsg('#teamsMsg', 'Fehler: ' + err.message, true);
+        }
       });
 
       elLoadMatch && elLoadMatch.addEventListener('click', refreshMatches);
@@ -567,5 +651,6 @@ function renderMatches() {
       refreshTeams();   // erste Daten
       refreshMatches();
     });
-  </script  </script>
+  </script>
 </body>
+</html>
