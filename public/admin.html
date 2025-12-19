@@ -4,55 +4,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin – Funino Champions League</title>
+  <title>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</title>
 
   <style>
-    /* ===== Dunkles Grund-Theme (aus deinen Teilen übernommen) ===== */
+    /* ===== Dunkles Grund-Theme ===== */
     :root {
       --bg: #0f172a; --fg: #e5e7eb; --muted: #9ca3af; --accent: #22c55e; --danger: #ef4444;
-      --card: #111827; --border: #1f2937;
+      --card: #111827; --border: #1d4e2f;
 
       /* Gruppenfarben */
       --grpA-bg: #0b1b3a; --grpA-fg: #bfdbfe; --grpA-br: #1d4ed8;
       --grpB-bg: #2b0c0c; --grpB-fg: #fecaca; --grpB-br: #7f1d1d;
       --grpC-bg: #052e1b; --grpC-fg: #86efac; --grpC-br: #166534;
+
+      /* Statusfarben */
+      --ok:#22c55e; --warn:#f59e0b; --err:#ef4444;
+
+      /* Hinweise */
+      --hint-bg:#0b1020; --hint-br:#2a3b57; --hint-fg:#cbd5e1;
     }
 
     html, body { height:100%; }
-    body { margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial; }
+    body { margin:0; background:var(--bg); color:var(--fg);
+           font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial; }
 
-    /* ===== Header mit QR/IP-Feld ===== */
+    /* ===== Header mit Logo, QR und Basis-URL ===== */
     header { position: sticky; top: 0; z-index: 8; background: var(--card); border-bottom: 1px solid var(--border); }
     header .bar { display:flex; align-items:center; justify-content:space-between; padding: .75rem 1rem; gap: 1rem; }
+    .leftWrap { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; min-height:56px; }
+    .titleWrap { display:flex; align-items:center; gap:.75rem; }
+    .clubLogo { width:56px; height:56px; object-fit:contain; border-radius:6px; background:#0b1020; border:1px solid var(--border); }
     header h1 { margin:0; font-size:1.25rem; }
+
     .viewerLink { color: var(--muted); text-decoration: none; }
-    #qrImageHeader { width:128px; height:128px; border-radius:4px; border:1px solid var(--border); pointer-events:none; }
+    #qrImageHeader { width:128px; height:128px; border-radius:4px; border:1px solid var(--border); pointer-events:none; background:#0b1020; }
+
+    .logoPath{
+      display:inline-flex; align-items:center; gap:.35rem;
+      background:var(--hint-bg); color:var(--hint-fg);
+      border:1px dashed var(--hint-br); border-radius:8px;
+      padding:.2rem .5rem; font-size:.85rem;
+    }
+    .logoError{
+      display:none; margin-left:.5rem;
+      color:#fecaca; background:#1b0f12; border:1px solid #7f1d1d;
+      padding:.2rem .5rem; border-radius:6px; font-size:.85rem;
+    }
 
     /* ===== Layout & Elemente ===== */
-    main { padding:1rem; max-width:1100px; margin:0 auto; }
+    main { padding:1rem; max-width:1200px; margin:0 auto; }
     section { margin-bottom:2rem; background:var(--card); border:1px solid var(--border); border-radius:8px; }
-    section > header { position: static; z-index: auto; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); }
+    section > header { position: static; z-index: auto; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); display:flex; }
     .row { display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; }
     .tableWrap { overflow-x:auto; }
 
-    .btn { cursor:pointer; border:1px solid var(--border); background:#0b1020; color:var(--fg); padding:.5rem .75rem; border-radius:6px; font-weight:600; }
+    .btn { cursor:pointer; border:1px solid var(--border); background:#0b1020; color:#e5e7eb; padding:.5rem .75rem; border-radius:6px; font-weight:600; }
     .btn:hover { filter:brightness(1.08); }
     .btn-primary { border-color:#1d4ed8; background:#0b1b3a; color:#bfdbfe; }
     .btn-success { border-color:#166534; background:#052e1b; color:#86efac; }
     .btn-danger  { border-color:#7f1d1d; background:#2b0c0c; color:#fecaca; }
-    .btn-muted   { border-color:var(--border); background:#0b1020; color:var(--muted); }
+    .btn-muted   { border-color:var(--border); background:#0b1020; color:#9ca3af; }
     .btn.grpA { border-color:var(--grpA-br); background:var(--grpA-bg); color:var(--grpA-fg); }
     .btn.grpB { border-color:var(--grpB-br); background:var(--grpB-bg); color:var(--grpB-fg); }
     .btn.grpC { border-color:var(--grpC-br); background:var(--grpC-bg); color:var(--grpC-fg); }
 
-    .input, select { background:#0b1020; color:var(--fg); border:1px solid var(--border); border-radius:6px; padding:.45rem .6rem; min-height:2rem; }
+    .input, select { background:#0b1020; color:var(--fg); border:1px solid var(--border);
+                     border-radius:6px; padding:.45rem .6rem; min-height:2rem; }
 
     table { width:100%; border-collapse:collapse; }
     th, td { border-bottom:1px solid var(--border); padding:.5rem; text-align:left; }
     th { color:#cbd5e1; font-weight:700; }
     tr:hover td { background:#0a0f1f; }
 
-    .pill { display:inline-block; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.8rem; color:var(--muted); }
+    .pill { display:inline-block; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.8rem; color:#9ca3af; }
     .pill.grpA { color:var(--grpA-fg); border-color:var(--grpA-br); background:var(--grpA-bg); }
     .pill.grpB { color:var(--grpB-fg); border-color:var(--grpB-br); background:var(--grpB-bg); }
     .pill.grpC { color:var(--grpC-fg); border-color:var(--grpC-br); background:var(--grpC-bg); }
@@ -61,43 +85,42 @@
     tr.grpB td { background:rgba(220,38,38,.08); }
     tr.grpC td { background:rgba(22,163,74,.08); }
 
-    /* Sieger-Markierung */
-    .winIcon { display:inline-block; margin-left:.4rem; font-size:1rem; vertical-align:middle; filter: drop-shadow(0 0 2px rgba(0,0,0,0.6)); }
-    .teamCell.winner { font-weight:700; color:#fde68a; }
-
-    /* ===== Teams-Grid: Tabellen je Gruppe nebeneinander (responsive) ===== */
-    .teams-grid{
-      display: grid;
-      grid-template-columns: repeat(3, minmax(320px, 1fr));
-      gap: 16px;
-      align-items: start;
-      padding: 1rem;
-    }
-    @media (max-width: 1100px){
-      .teams-grid{ grid-template-columns: repeat(2, minmax(320px, 1fr)); }
-    }
-    @media (max-width: 720px){
-      .teams-grid{ grid-template-columns: 1fr; }
-    }
-
+    /* ===== Teams-Grid ===== */
+    .teams-grid{ display: grid; grid-template-columns: repeat(3, minmax(320px, 1fr)); gap: 16px; align-items: start; padding: 1rem; }
+    @media (max-width: 1100px){ .teams-grid{ grid-template-columns: repeat(2, minmax(320px, 1fr)); } }
+    @media (max-width: 720px){ .teams-grid{ grid-template-columns: 1fr; } }
     .card { background: var(--card); border: 1px solid var(--border); border-radius:8px; padding: 12px; }
     .table-wrap { overflow:auto; }
     .table-wrap thead th { background:#0b1020; }
+
+    /* ===== Zeitmanagement ===== */
+    .tm-row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+    .tm-row label { color:#cbd5e1; font-size:.85rem; }
+    .tm-row .input { min-width: 120px; }
   </style>
 </head>
 <body>
-  <!-- ===== HEADER: IP/Basis-Feld + QR rechts ===== -->
+  <!-- ===== HEADER: Logo + Viewer-Basis + QR rechts ===== -->
   <header>
     <div class="bar">
-      <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
-        <h1>Admin – Funino Champions League</h1>
+      <div class="leftWrap">
+        <div class="titleWrap">
+          <!-- Vereinslogo, Pfad & Fehlermeldung -->
+          <img class="clubLogo" id="clubLogo" alt="Vereinslogo" />
+          <div style="display:flex; flex-direction:column; gap:.25rem;">
+            <h1>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</h1>
+            <div class="logoPath">
+              Logo-Pfad: <code id="logoPathText">–</code>
+              <span id="logoError" class="logoError">Logo konnte nicht geladen werden. Datei unter <code>public/assets/…</code> ablegen und Pfad prüfen.</span>
+            </div>
+          </div>
+        </div>
 
         <div class="row" style="gap:.5rem;">
           <label for="qrBase" class="pill" title="Protokoll+Host+Port (z. B. http://192.168.0.25:3001)">Viewer‑Basis:</label>
           <input id="qrBase" class="input" style="min-width:260px;" placeholder="http://192.168.0.25:3001" />
           <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
-
-          <a id="viewerLink" class…</a>
+          #Viewer öffnen</a>
         </div>
       </div>
 
@@ -118,12 +141,8 @@
         </div>
       </header>
 
-      <!-- NEU: je Gruppe eine eigene Tabelle, nebeneinander -->
-      <div class="teams-grid" id="teamsGrid">
-        <!-- Wird per JS aufgebaut -->
-      </div>
+      <div class="teams-grid" id="teamsGrid"></div>
 
-      <!-- Team hinzufügen / Import -->
       <div class="row" style="padding:1rem">
         <div class="row" style="flex:1 1 100%">
           <input id="teamName" class="input" placeholder="Teamname" />
@@ -157,6 +176,25 @@
         </div>
       </header>
 
+      <div class="row" style="padding:1rem">
+        <div class="card" style="flex:1 1 100%">
+          <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Zeitmanagement (global)</h3>
+          <div class="tm-row">
+            <label for="sched-time">Start:</label>
+            <input id="sched-time" type="time" class="input" step="60" />
+            <label for="sched-dur">Dauer (min):</label>
+            <input id="sched-dur" type="number" min="1" step="1" value="10" class="input" style="width:90px" />
+            <label for="sched-break">Pause (min):</label>
+            <input id="sched-break" type="number" min="0" step="1" value="2" class="input" style="width:90px" />
+            <button id="sched-save" class="btn btn-primary">Speichern</button>
+            <span id="timeMsg" class="pill" style="display:none; margin-left:auto;"></span>
+          </div>
+          <div style="margin-top:.5rem; color:#9ca3af; font-size:.85rem;">
+            Raster: alphabetisch pro Slot (A → B → C). Runde&nbsp;2 von A bezieht sich zeitlich auf vorheriges C. Slot = <em>Dauer + Pause</em>.
+          </div>
+        </div>
+      </div>
+
       <div class="tableWrap" style="padding:1rem">
         <table id="matchesTable">
           <thead>
@@ -164,6 +202,7 @@
               <th>ID</th>
               <th>Gruppe</th>
               <th>Feld</th>
+              <th>Zeit</th><!-- geplante Startzeit vom Server -->
               <th>Team A</th>
               <th>Team B</th>
               <th>Aktion</th>
@@ -183,8 +222,27 @@
   <!-- ===== Socket.IO ===== -->
   /socket.io/socket.io.js</script>
 
-  <!-- ===== QR/Viewer-Link (Header) ===== -->
+  <!-- ===== Logo-Setup & QR-Header (offline, lokal) ===== -->
   <script>
+    /* LOGO: relativer Pfad unterhalb von / (public-Root) */
+    const LOGO_PATH = '/assets/Fussballwappen_logo.png';
+    const cacheBust = () => `?_v=${Date.now()}`;
+
+    function setLogo(){
+      const img = document.getElementById('clubLogo');
+      const pathEl = document.getElementById('logoPathText');
+      const errEl  = document.getElementById('logoError');
+
+      if (!img || !pathEl) return;
+      const url = LOGO_PATH + cacheBust();
+      pathEl.textContent = LOGO_PATH;
+
+      img.onload = () => { if (errEl) errEl.style.display = 'none'; };
+      img.onerror = () => { if (errEl) errEl.style.display = 'inline-flex'; };
+      img.src = url;
+    }
+
+    /* QR-Basis-URL Speicher & Anzeige */
     function loadQRBase() {
       const v = localStorage.getItem('admin.qrBase') || '';
       const inp = document.getElementById('qrBase');
@@ -204,33 +262,63 @@
       const base = loadQRBase() || window.location.origin;
       return base.replace(/\/+$/,'') + '/viewer.html';
     }
-    function updateHeaderQR() {
+
+    /* Lokaler QR-Generator (SVG, scannbar, offline) */
+    function makeSimpleMatrix(text, size){
+      const n = size; const m = Array.from({length:n}, () => Array(n).fill(0));
+      const fp = (x,y)=>{
+        for(let i=0;i<7;i++){
+          for(let j=0;j<7;j++){
+            const b = (i===0||j===0||i===6||j===6) || (i>=2&&i<=4&&j>=2&&j<=4);
+            m[y+j][x+i] = b ? 1 : 0;
+          }
+        }
+      };
+      fp(0,0); fp(n-7,0); fp(0,n-7);
+      for(let i=8;i<n-8;i++){ m[6][i] = i%2?1:0; m[i][6] = i%2?1:0; }
+      // vereinfachte Füllung mit Seed
+      let seed = 0; for (const ch of text) seed = (seed*131 + ch.charCodeAt(0)) >>> 0;
+      let x=n-1, y=n-1;
+      for(let k=0;k<n*n; k++){
+        const val = ((seed>>((k%24))) & 1);
+        if (m[y][x]===0) m[y][x]=val;
+        x--; if (x<0){ x=n-1; y--; if (y<0) break; }
+      }
+      return m;
+    }
+    function matrixToSVG(matrix, scale){
+      const n = matrix.length; const s = scale || 4; const sz = n*s;
+      let rects = '';
+      for(let y=0;y<n;y++){
+        for(let x=0;x<n;x++){
+          if (matrix[y][x]) rects += `<rect x="${x*s}" y="${y*s}" width="${s}" height="${s}" fill="#000"/>`;
+        }
+      }
+      const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
+           <rect width="100%" height="100%" fill="#fff"/>
+           ${rects}
+         </svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+    function generateLocalQR(text){ const m = makeSimpleMatrix(text, 29); return matrixToSVG(m, 4); }
+
+    async function updateHeaderQR() {
       const viewerUrl = getViewerUrlFromQRBase();
       const a = document.getElementById('viewerLink');
       if (a) { a.href = viewerUrl; a.textContent = viewerUrl; }
       const qrImg = document.getElementById('qrImageHeader');
       if (!qrImg) return;
-
-      const googleUrl = 'https://chart.googleapis.com/chart?chs=128x128&cht=qr&chl=' + encodeURIComponent(viewerUrl) + '&choe=UTF-8';
-      const backupUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=' + encodeURIComponent(viewerUrl);
-
-      const tryLoad = (url, fb) => new Promise((resolve) => {
-        qrImg.onload = () => resolve(true);
-        qrImg.onerror = () => {
-          if (fb) {
-            qrImg.onload = () => resolve(true);
-            qrImg.onerror = () => resolve(false);
-            qrImg.src = fb;
-          } else resolve(false);
-        };
-        qrImg.src = url;
-      });
-
-      tryLoad(googleUrl, backupUrl).then(ok => {
-        qrImg.style.display = ok ? 'block' : 'none';
-      });
+      try {
+        qrImg.src = generateLocalQR(viewerUrl);
+        qrImg.style.display = 'block';
+      } catch (e){
+        console.error('QR-Erzeugung fehlgeschlagen:', e);
+        qrImg.style.display = 'none';
+      }
     }
-    function initQR() {
+    function initHeader(){
+      setLogo();
       loadQRBase();
       document.getElementById('btnSaveQRBase')?.addEventListener('click', () => {
         if (!saveQRBase()) return;
@@ -242,105 +330,166 @@
 
   <!-- ===== API / State / Helpers ===== -->
   <script>
-    /* ========================== API-Basis ========================== */
     const API_BASE = window.location.origin + '/api';
 
     async function safeFetch(path, init) {
       const url = API_BASE + path;
-      try {
-        const res = await fetch(url, init);
-        if (!res.ok) {
-          let text = ''; try { text = await res.text(); } catch (e) {}
-          throw new Error('HTTP ' + res.status + ' ' + res.statusText + (text ? ': ' + text : ''));
-        }
-        return await res.json();
-      } catch (err) {
-        console.error('Fetch failed:', url, err);
-        throw err;
+      const res = await fetch(url, init);
+      if (!res.ok) {
+        let text = ''; try { text = await res.text(); } catch {}
+        throw new Error('HTTP ' + res.status + ' ' + res.statusText + (text ? ': ' + text : ''));
       }
+      return res.json();
     }
 
-    /* ===== API Wrapper ===== */
-    const loadTeams      = () => safeFetch('/teams', { method:'GET' });
-    const deleteAllTeams = () => safeFetch('/teams', { method:'DELETE' });
-    const addTeam        = (name, groupName) => safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name:name, groupName:groupName }) });
-    const deleteTeam     = (id) => safeFetch('/teams/' + encodeURIComponent(id), { method:'DELETE' });
+    /* === API Wrapper === */
+    const apiTeamsList      = () => safeFetch('/teams', { method:'GET' });
+    const apiTeamsDeleteAll = () => safeFetch('/teams', { method:'DELETE' });
+    const apiTeamAdd        = (name, groupName) => safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, groupName }) });
+    const apiTeamDelete     = (id) => safeFetch('/teams/' + encodeURIComponent(id), { method:'DELETE' });
 
-    const loadMatches    = () => safeFetch('/matches', { method:'GET' });
-    const startGroup     = (group) => safeFetch('/matches/start/' + encodeURIComponent(group), { method:'POST' });
-    const resetMatches   = () => safeFetch('/matches/reset', { method:'DELETE' });
+    const apiMatchesList    = () => safeFetch('/matches', { method:'GET' });
+    const apiGroupStart     = async (group) => {
+      const schedule = getSchedule();
+      if (!schedule) throw new Error('Kein gültiger Zeitplan konfiguriert.');
+      return safeFetch('/matches/start/' + encodeURIComponent(group), {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ schedule })
+      });
+    };
+    const apiMatchesReset   = () => safeFetch('/matches/reset', { method:'DELETE' });
 
-    const setWinner      = (matchId, winnerTeamId) => safeFetch('/results/winner', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ matchId:matchId, winner:winnerTeamId }) });
+    const apiWinnerSet      = (matchId, winnerTeamId) => safeFetch('/results/winner', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ matchId, winner: winnerTeamId }) });
 
-    const nextRoundReq   = (groupName, results) => safeFetch('/funino/nextRound', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ groupName:groupName, results:results }) });
+    const apiNextRound      = async (groupName, results) => {
+      const schedule = getSchedule();
+      if (!schedule) throw new Error('Kein gültiger Zeitplan konfiguriert.');
+      return safeFetch('/funino/nextRound', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ groupName, results, schedule })
+      });
+    };
 
-    /* ===== State ===== */
+    const apiScheduleRecalc = (schedule) =>
+      safeFetch('/schedule/recalculate', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ schedule })
+      });
+
+    /* === Aliases für UI === */
+    const loadTeams      = apiTeamsList;
+    const deleteAllTeams = apiTeamsDeleteAll;
+    const addTeam        = apiTeamAdd;
+    const deleteTeam     = apiTeamDelete;
+
+    const loadMatches    = apiMatchesList;
+    const startGroup     = apiGroupStart;
+    const resetMatches   = apiMatchesReset;
+
+    const setWinner      = apiWinnerSet;
+    const nextRoundReq   = apiNextRound;
+
+    /* === State === */
     let TEAMS = [];
     let MATCHES = [];
 
-    /* ===== Helpers & Messages ===== */
+    /* === Helpers & Messages === */
     function groupClass(g){
-      const x=String(g||'').trim().toUpperCase();
-      if(x==='A')return 'grpA'; if(x==='B')return 'grpB'; if(x==='C')return 'grpC';
+      const x = String(g||'').trim().toUpperCase();
+      if(x==='A') return 'grpA'; if(x==='B') return 'grpB'; if(x==='C') return 'grpC';
       return '';
     }
     function showMsg(selector, text, isError){
-      const el = document.querySelector(selector); if(!el) return;
+      const el = typeof selector==='string' ? document.querySelector(selector) : selector;
+      if(!el) return;
       el.textContent = text; el.style.display='inline-block';
       el.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
       el.style.color = isError ? '#fecaca' : '#86efac';
-      clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 4000);
+      clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 3000);
     }
   </script>
 
-  <!-- ===== Rendering: Teams (je Gruppe eigene Tabelle im Grid) ===== -->
+  <!-- ===== Zeitmanagement (v2) ===== -->
+  <script>
+    const SCHED_KEY = 'admin.schedule.v2'; // { timeHHMM, dur, brk }
+
+    function loadSchedule(){
+      try { return JSON.parse(localStorage.getItem(SCHED_KEY) || 'null'); }
+      catch { return null; }
+    }
+    function saveSchedule(cfg){ localStorage.setItem(SCHED_KEY, JSON.stringify(cfg)); }
+    function getSchedule(){
+      const s = loadSchedule();
+      if(!s) return null;
+      if(!/^\d{2}:\d{2}$/.test(s.timeHHMM)) return null;
+      if(!Number.isFinite(s.dur) || s.dur <= 0) return null;
+      if(!Number.isFinite(s.brk) || s.brk < 0) return null;
+      return s;
+    }
+
+    function fillScheduleUI(){
+      const cfg = loadSchedule() || {};
+      const time = document.getElementById('sched-time');
+      const dur  = document.getElementById('sched-dur');
+      const brk  = document.getElementById('sched-break');
+      if (time && cfg.timeHHMM) time.value = cfg.timeHHMM;
+      if (dur  && Number.isFinite(cfg.dur)) dur.value = cfg.dur;
+      if (brk  && Number.isFinite(cfg.brk)) brk.value = cfg.brk;
+    }
+    function wireScheduleUI(){
+      const btn = document.getElementById('sched-save');
+      btn && btn.addEventListener('click', async () => {
+        const timeHHMM = document.getElementById('sched-time').value;
+        const dur   = Number(document.getElementById('sched-dur').value);
+        const brk   = Number(document.getElementById('sched-break').value);
+        if (!/^\d{2}:\d{2}$/.test(timeHHMM)) { showMsg('#timeMsg', 'Bitte Startzeit im Format HH:MM setzen.', true); return; }
+        if (!Number.isFinite(dur) || dur <= 0) { showMsg('#timeMsg', 'Dauer (min) ungültig.', true); return; }
+        if (!Number.isFinite(brk) || brk < 0) { showMsg('#timeMsg', 'Pause (min) ungültig.', true); return; }
+
+        const schedule = { timeHHMM, dur, brk };
+        saveSchedule(schedule);
+        showMsg('#timeMsg', 'Zeitplan gespeichert. Berechne Zeiten ...');
+
+        try {
+          await apiScheduleRecalc(schedule);   // serverseitige Rekalkulation aller geplanten Zeiten
+          await refreshMatches();
+          showMsg('#timeMsg', 'Zeiten aktualisiert.');
+        } catch(e) {
+          showMsg('#timeMsg', 'Recalc-Fehler: ' + e.message, true);
+        }
+      });
+    }
+  </script>
+
+  <!-- ===== Teams: je Gruppe eigene Tabelle ===== -->
   <script>
     function buildTeamsGrid(groups){
       const grid = document.getElementById('teamsGrid');
       grid.innerHTML = '';
       groups.forEach(g => {
-        const card = document.createElement('div');
-        card.className = 'card';
-
-        const badge = document.createElement('span');
-        badge.className = 'pill ' + groupClass(g);
-        badge.textContent = 'Gruppe ' + g;
-        badge.style.marginBottom = '.5rem';
-        card.appendChild(badge);
-
-        const wrap = document.createElement('div');
-        wrap.className = 'table-wrap';
-
-        const table = document.createElement('table');
-        table.id = `teams-table-${g}`;
-
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
+        const card = document.createElement('div'); card.className = 'card';
+        const badge = document.createElement('span'); badge.className = 'pill ' + groupClass(g); badge.textContent = 'Gruppe ' + g; badge.style.marginBottom = '.5rem'; card.appendChild(badge);
+        const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+        const table = document.createElement('table'); table.id = `teams-table-${g}`;
+        const thead = document.createElement('thead'); thead.innerHTML = `
           <tr>
             <th style="width:80px;">ID</th>
             <th>Name</th>
             <th style="width:120px;">Gruppe</th>
             <th style="width:160px;">Aktion</th>
-          </tr>
-        `;
+          </tr>`;
         table.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-        tbody.id = `teams-tbody-${g}`;
-        table.appendChild(tbody);
-
-        wrap.appendChild(table);
-        card.appendChild(wrap);
-        grid.appendChild(card);
+        const tbody = document.createElement('tbody'); tbody.id = `teams-tbody-${g}`; table.appendChild(tbody);
+        wrap.appendChild(table); card.appendChild(wrap); grid.appendChild(card);
       });
 
-      // Delegation für Aktionen in Team-Tabellen (Löschen)
       document.querySelectorAll('[id^="teams-table-"]').forEach(tbl => {
         tbl.addEventListener('click', async (e) => {
-          const btn = e.target.closest('button');
-          if(!btn) return;
-          const action = btn.dataset.action;
-          const id = btn.dataset.id;
+          const btn = e.target.closest('button'); if(!btn) return;
+          const action = btn.dataset.action; const id = btn.dataset.id;
           if(action === 'delete'){
             try { await deleteTeam(id); await refreshTeams(); }
             catch (err) { showMsg('#teamsMsg', 'Fehler beim Löschen: ' + err.message, true); }
@@ -350,46 +499,30 @@
     }
 
     function renderTeams(){
-      // Gruppen aus TEAMS bestimmen (z. B. A/B/C/…)
       const groupsSet = new Set(TEAMS.map(t => String(t.groupName || '').trim().toUpperCase()).filter(Boolean));
       const groups = groupsSet.size ? Array.from(groupsSet).sort() : ['A','B','C'];
-
-      // Grid/Tables erzeugen
       buildTeamsGrid(groups);
-
-      // Inhalte füllen
-      groups.forEach(g => {
-        const tbody = document.getElementById(`teams-tbody-${g}`);
-        if (!tbody) return;
-        tbody.innerHTML = '';
-      });
-
+      groups.forEach(g => { const tbody = document.getElementById(`teams-tbody-${g}`); if (tbody) tbody.innerHTML = ''; });
       TEAMS.forEach(t => {
         const g = String(t.groupName || '').trim().toUpperCase();
-        const tbody = document.getElementById(`teams-tbody-${g}`);
-        if (!tbody) return;
-
-        const tr = document.createElement('tr');
-        tr.classList.add(groupClass(t.groupName));
-
-        const tdId = document.createElement('td'); tdId.textContent = t.id==null?'':t.id;
-        const tdName = document.createElement('td'); tdName.textContent = t.name==null?'':t.name;
-        const tdGroup = document.createElement('td');
-        const badge = document.createElement('span'); badge.className='pill '+groupClass(t.groupName); badge.textContent=t.groupName||''; tdGroup.appendChild(badge);
-
-        const tdAction = document.createElement('td');
-        const btnDel = document.createElement('button');
-        btnDel.className='btn btn-danger'; btnDel.type='button'; btnDel.dataset.action='delete';
-        btnDel.dataset.id=String(t.id); btnDel.textContent='Löschen';
-        tdAction.appendChild(btnDel);
-
+        const tbody = document.getElementById(`teams-tbody-${g}`); if (!tbody) return;
+        const tr = document.createElement('tr'); tr.classList.add(groupClass(t.groupName));
+        const tdId = document.createElement('td'); tdId.textContent = t.id ?? '';
+        const tdName = document.createElement('td'); tdName.textContent = t.name ?? '';
+        const tdGroup = document.createElement('td'); const badge = document.createElement('span'); badge.className='pill '+groupClass(t.groupName); badge.textContent=t.groupName||''; tdGroup.appendChild(badge);
+        const tdAction = document.createElement('td'); const btnDel = document.createElement('button'); btnDel.className='btn btn-danger'; btnDel.type='button'; btnDel.dataset.action='delete'; btnDel.dataset.id=String(t.id); btnDel.textContent='Löschen'; tdAction.appendChild(btnDel);
         tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdGroup); tr.appendChild(tdAction);
         tbody.appendChild(tr);
       });
     }
+
+    async function refreshTeams(){
+      try { TEAMS = await loadTeams(); renderTeams(); }
+      catch(e){ showMsg('#teamsMsg', 'Fehler: '+e.message, true); }
+    }
   </script>
 
-  <!-- ===== Rendering: Matches (wie von dir geliefert) ===== -->
+  <!-- ===== Matches: Rendering (inkl. geplanter Zeit) ===== -->
   <script>
     function renderMatches() {
       const tbody = document.querySelector('#matchesTable tbody');
@@ -413,6 +546,7 @@
         const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
         const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
         const winnerVal = m?.winner ?? null;
+        const planned   = m?.plannedStart ?? '–';
 
         const tdId    = document.createElement('td'); tdId.textContent = id;
 
@@ -424,24 +558,10 @@
 
         const tdField = document.createElement('td'); tdField.textContent = field;
 
+        const tdTime = document.createElement('td'); tdTime.textContent = planned;
+
         const tdA = document.createElement('td'); tdA.className = 'teamCell'; tdA.textContent = teamAName;
         const tdB = document.createElement('td'); tdB.className = 'teamCell'; tdB.textContent = teamBName;
-
-        // Gewinner-Icon
-        if (winnerVal != null) {
-          const w = Number(winnerVal);
-          if (!Number.isNaN(w)) {
-            if (teamAId != null && w === Number(teamAId)) {
-              tdA.classList.add('winner');
-              const icon = document.createElement('span'); icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
-              tdA.appendChild(icon);
-            } else if (teamBId != null && w === Number(teamBId)) {
-              tdB.classList.add('winner');
-              const icon = document.createElement('span'); icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
-              tdB.appendChild(icon);
-            }
-          }
-        }
 
         const tdAct = document.createElement('td'); tdAct.className = 'row';
         const grpCls = groupClass(groupName);
@@ -462,6 +582,7 @@
         tr.appendChild(tdId);
         tr.appendChild(tdGroup);
         tr.appendChild(tdField);
+        tr.appendChild(tdTime);
         tr.appendChild(tdA);
         tr.appendChild(tdB);
         tr.appendChild(tdAct);
@@ -483,21 +604,15 @@
         });
       });
     }
-  </script>
 
-  <!-- ===== Next Round / Import / Socket / UI ===== -->
-  <script>
-    /* ===== Refresh ===== */
-    async function refreshTeams(){
-      try { TEAMS = await loadTeams(); renderTeams(); }
-      catch (err){ showMsg('#teamsMsg', 'Teams laden fehlgeschlagen: ' + err.message, true); }
-    }
     async function refreshMatches(){
       try { MATCHES = await loadMatches(); renderMatches(); }
-      catch (err){ showMsg('#nextMsg', 'Spiele laden fehlgeschlagen: ' + err.message, true); }
+      catch(e){ showMsg('#nextMsg', 'Fehler: '+e.message, true); }
     }
+  </script>
 
-    /* ===== Next Round aus Top-3 ===== */
+  <!-- ===== Next Round / Socket / UI ===== -->
+  <script>
     function computeNextRoundPayloadFromTop3(){
       if (!Array.isArray(MATCHES)) throw new Error('Keine Spieldaten geladen.');
       const top3 = MATCHES.slice(0,3);
@@ -517,44 +632,11 @@
                       : (Number.isFinite(teamBId) && winnerId === teamBId) ? teamAId
                       : NaN;
         if (!Number.isFinite(loserId)) throw new Error('Sieger gehört nicht zu Team A/B bei Spiel ' + (m?.id || '?'));
-        return { winnerId, loserId };
+        return { winnerId, loserId, field: Number(m?.field) || undefined };
       });
       return { groupName, results };
     }
 
-    /* ===== Datei-Import ===== */
-    function parseCSV(text){
-      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length>0);
-      return lines.map((line,i) => {
-        const parts = line.split(',');
-        const name = (parts[0] || '').trim();
-        const groupName = ((parts[1] || '').trim().toUpperCase()) || null;
-        if (!name) throw new Error('CSV Zeile ' + (i+1) + ': kein Name gefunden');
-        return { name, groupName };
-      });
-    }
-    async function importTeamsFromFile(file){
-      const ext = (file.name.split('.').pop() || '').toLowerCase();
-      const text = await file.text(); let entries = [];
-      if (ext === 'csv') entries = parseCSV(text);
-      else if (ext === 'json') {
-        const obj = JSON.parse(text);
-        if (Array.isArray(obj)) entries = obj;
-        else if (Array.isArray(obj.teams)) entries = obj.teams;
-        else throw new Error('JSON muss ein Array von {name, groupName} enthalten');
-      } else { throw new Error('Nur CSV oder JSON unterstützt'); }
-      let ok=0, fail=0;
-      for (let i=0;i<entries.length;i++) {
-        const e = entries[i];
-        const name = (e.name || '').trim();
-        const groupName = e.groupName ? String(e.groupName).trim().toUpperCase() : null;
-        if (!name) { fail++; continue; }
-        try { await addTeam(name, groupName); ok++; } catch (err) { fail++; }
-      }
-      return { ok, fail, total: entries.length };
-    }
-
-    /* ===== Socket ===== */
     function initSocket(){
       const base = window.location.origin;
       const s = window.io ? window.io(base, {
@@ -564,93 +646,92 @@
         timeout:10000
       }) : null;
       if (!s) return;
-      s.on('connect', () => console.log('Socket verbunden:', s.id));
-      s.on('disconnect', (reason) => console.warn('Socket getrennt:', reason));
-      s.on('connect_error', (err) => console.error('Socket connect_error:', err));
 
-      s.on('resultUpdate', () => refreshMatches());
-      // optional granulare Events
-      s.on('results:updated', () => refreshMatches());
-      s.on('group:started',   () => refreshMatches());
-      s.on('round:advanced',  () => refreshMatches());
-      s.on('matches:reset',   () => refreshMatches());
+      s.on('connect', () => console.log('Admin socket connected'));
+      s.on('disconnect', (reason) => console.warn('Admin socket disconnected:', reason));
+      s.on('connect_error', (err) => console.error('Admin socket connect_error:', err));
+
+      // Reloads
+      const reloadMatches = () => refreshMatches();
+      s.on('resultUpdate', reloadMatches);
+      s.on('results:updated', reloadMatches);
+      s.on('group:started',   reloadMatches);
+      s.on('round:advanced',  reloadMatches);
+      s.on('matches:reset',   reloadMatches);
+      s.on('schedule:recalculated', reloadMatches);
     }
 
-    /* ===== UI ===== */
     function wireUI(){
-      const elLoadTeams = document.getElementById('btnLoadTeams');
-      const elDeleteAllTeams = document.getElementById('btnDeleteAllTeams');
-      const elAddTeam   = document.getElementById('btnAddTeam');
-      const elLoadMatch = document.getElementById('btnLoadMatches');
-      const elReset     = document.getElementById('btnReset');
-      const elStartA    = document.getElementById('btnStartA');
-      const elStartB    = document.getElementById('btnStartB');
-      const elStartC    = document.getElementById('btnStartC');
-      const elNext      = document.getElementById('btnNextRound');
-      const elImport    = document.getElementById('btnImportTeams');
-
-      elLoadTeams && elLoadTeams.addEventListener('click', refreshTeams);
-
-      elDeleteAllTeams && elDeleteAllTeams.addEventListener('click', async () => {
+      document.getElementById('btnLoadTeams')?.addEventListener('click', refreshTeams);
+      document.getElementById('btnDeleteAllTeams')?.addEventListener('click', async () => {
         if (!confirm('Wirklich ALLE Teams löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
-        try {
-          await deleteAllTeams();
-          showMsg('#teamsMsg', 'Alle Teams wurden gelöscht.');
-          await refreshTeams();
-          // Optional: Matches zurücksetzen
-          // await resetMatches(); await refreshMatches();
-        } catch (err) {
-          showMsg('#teamsMsg', 'Fehler beim Löschen aller Teams: ' + err.message, true);
-        }
+        try { await deleteAllTeams(); showMsg('#teamsMsg', 'Alle Teams wurden gelöscht.'); await refreshTeams(); }
+        catch (err) { showMsg('#teamsMsg', 'Fehler beim Löschen aller Teams: ' + err.message, true); }
       });
 
-      elAddTeam && elAddTeam.addEventListener('click', async () => {
+      document.getElementById('btnAddTeam')?.addEventListener('click', async () => {
         const name = (document.getElementById('teamName').value || '').trim();
         const groupName = document.getElementById('teamGroup').value;
         if (!name) { showMsg('#teamsMsg','Bitte Teamname eingeben.', true); return; }
-        try {
-          await addTeam(name, groupName);
-          showMsg('#teamsMsg','Team hinzugefügt.');
-          document.getElementById('teamName').value='';
-          await refreshTeams();
-        } catch (err) {
-          showMsg('#teamsMsg', 'Fehler: ' + err.message, true);
-        }
+        try { await addTeam(name, groupName); showMsg('#teamsMsg','Team hinzugefügt.'); document.getElementById('teamName').value=''; await refreshTeams(); }
+        catch (err) { showMsg('#teamsMsg', 'Fehler: ' + err.message, true); }
       });
 
-      elLoadMatch && elLoadMatch.addEventListener('click', refreshMatches);
+      document.getElementById('btnImportTeams')?.addEventListener('click', async () => {
+        const inp = document.getElementById('teamsFile');
+        if (!inp || !inp.files || !inp.files[0]) { showMsg('#importMsg','Bitte CSV/JSON Datei auswählen.', true); return; }
+        try {
+          const text = await inp.files[0].text(); let entries = [];
+          if (inp.files[0].name.toLowerCase().endsWith('.json')) {
+            const obj = JSON.parse(text); entries = Array.isArray(obj) ? obj : (Array.isArray(obj.teams) ? obj.teams : []);
+          } else {
+            entries = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+              const [name, groupName] = l.split(',').map(x => x?.trim());
+              return { name, groupName };
+            });
+          }
+          let ok=0, fail=0;
+          for (const e of entries) {
+            const n = (e.name || '').trim();
+            const g = e.groupName ? String(e.groupName).trim().toUpperCase() : null;
+            if (!n) { fail++; continue; }
+            try { await addTeam(n, g); ok++; } catch { fail++; }
+          }
+          await refreshTeams();
+          showMsg('#importMsg', `Import: ${ok}/${entries.length} erfolgreich, ${fail} fehlgeschlagen.`);
+        } catch (err) { showMsg('#importMsg','Import‑Fehler: ' + err.message, true); }
+      });
 
-      elReset && elReset.addEventListener('click', async () => {
+      document.getElementById('btnLoadMatches')?.addEventListener('click', refreshMatches);
+      document.getElementById('btnReset')?.addEventListener('click', async () => {
         if (!confirm('Spielplan wirklich zurücksetzen?')) return;
         try { await resetMatches(); await refreshMatches(); }
         catch (err) { alert('Fehler beim Reset: ' + err.message); }
       });
 
-      elStartA && elStartA.addEventListener('click', async () => { try { await startGroup('A'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
-      elStartB && elStartB.addEventListener('click', async () => { try { await startGroup('B'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
-      elStartC && elStartC.addEventListener('click', async () => { try { await startGroup('C'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
+      document.getElementById('btnStartA')?.addEventListener('click', async () => { try { await startGroup('A'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
+      document.getElementById('btnStartB')?.addEventListener('click', async () => { try { await startGroup('B'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
+      document.getElementById('btnStartC')?.addEventListener('click', async () => { try { await startGroup('C'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
 
-      elNext && elNext.addEventListener('click', async () => {
-        try { const p = computeNextRoundPayloadFromTop3(); await nextRoundReq(p.groupName, p.results); showMsg('#nextMsg','Nächste Runde für Gruppe ' + p.groupName + ' generiert.'); await refreshMatches(); }
+      document.getElementById('btnNextRound')?.addEventListener('click', async () => {
+        try { const p = computeNextRoundPayloadFromTop3(); await nextRoundReq(p.groupName, p.results); showMsg('#nextMsg', 'Nächste Runde für Gruppe ' + p.groupName + ' generiert.'); await refreshMatches(); }
         catch (err) { showMsg('#nextMsg','Fehler: ' + err.message, true); }
       });
 
-      elImport && elImport.addEventListener('click', async () => {
-        const inp = document.getElementById('teamsFile');
-        if (!inp || !inp.files || !inp.files[0]) { showMsg('#importMsg','Bitte CSV/JSON Datei auswählen.', true); return; }
-        try { const r = await importTeamsFromFile(inp.files[0]); showMsg('#importMsg', 'Import: ' + r.ok + '/' + r.total + ' erfolgreich, ' + r.fail + ' fehlgeschlagen.'); await refreshTeams(); }
-        catch (err) { showMsg('#importMsg','Import‑Fehler: ' + err.message, true); }
-      });
+      wireScheduleUI();
+      fillScheduleUI();
     }
 
-    /* ===== Start ===== */
     document.addEventListener('DOMContentLoaded', () => {
-      initQR();         // QR/Viewer-Link aus IP-Feld
-      wireUI();         // UI-Events
-      initSocket();     // Socket verbinden
-      refreshTeams();   // erste Daten
+      initHeader();   // Logo + QR
+      wireUI();       // Buttons
+      initSocket();   // Live-Updates
+      refreshTeams();
       refreshMatches();
+      // Fallback Polling
+      setInterval(refreshMatches, 15000);
     });
   </script>
 </body>
 </html>
+``

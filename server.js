@@ -1,3 +1,4 @@
+
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -8,26 +9,29 @@ const app = express();
 const server = http.createServer(app);
 
 // Socket.io einrichten
-const io = require('socket.io')(server, { cors: { origin: "*" } });
+const io = require('socket.io')(server, { cors: { origin: '*' } });
+// io im app-Objekt verfügbar machen, z.B. für scheduleRouter Broadcasts
+app.set('io', io);
 
 app.use(cors());
 app.use(bodyParser.json());
 
 // Statische Dateien aus dem Ordner "public" bereitstellen
-// -> dort liegen admin.html und viewer.html
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routen importieren
-const teamsRouter   = require('./routes/teams');
-const matchesRouter = require('./routes/matches')(io);
-const resultsRouter = require('./routes/results')(io);   // io wird übergeben
-const funinoRouter  = require('./routes/funino')(io);    // Feldrotation
+const teamsRouter    = require('./routes/teams');
+const matchesRouter  = require('./routes/matches')(io);
+const resultsRouter  = require('./routes/results')(io);
+const funinoRouter   = require('./routes/funino')(io);
+const scheduleRouter = require('./routes/schedule'); // neu
 
 // Routen registrieren
-app.use('/api/teams',   teamsRouter);
-app.use('/api/matches', matchesRouter);
-app.use('/api/results', resultsRouter);
-app.use('/api/funino',  funinoRouter);
+app.use('/api/teams',    teamsRouter);
+app.use('/api/matches',  matchesRouter);
+app.use('/api/results',  resultsRouter);
+app.use('/api/funino',   funinoRouter);
+app.use('/api/schedule', scheduleRouter);
 
 // Server starten
 const PORT = 3001;

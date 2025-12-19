@@ -1,116 +1,377 @@
+
 <!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Viewer – Funino Champions League</title>
+  <title>3. Königsbrunner Mini-Fußball Hallenmasters</title>
+
   <style>
-    :root{ --bg:#0f172a; --fg:#e5e7eb; --border:#1f2937; --grpA-bg:#0b1b3a; --grpA-fg:#bfdbfe; --grpA-br:#1d4ed8; --grpB-bg:#2b0c0c; --grpB-fg:#fecaca; --grpB-br:#7f1d1d; --grpC-bg:#052e1b; --grpC-fg:#86efac; --grpC-br:#166534; }
-    body{ margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial }
-    header{ padding:1rem; border-bottom:1px solid var(--border) }
-    main{ padding:1rem; max-width:1100px; margin:0 auto }
-    table{ width:100%; border-collapse:collapse }
-    th,td{ border-bottom:1px solid var(--border); padding:.5rem; text-align:left }
-    th{ color:#cbd5e1 }
-    tr.grpA td{ background:rgba(29,78,216,.08) } tr.grpB td{ background:rgba(220,38,38,.08) } tr.grpC td{ background:rgba(22,163,74,.08) }
-    .pill{ display:inline-block; border:1px solid var(--border); border-radius:999px; padding:.15rem .5rem; font-size:.85rem }
+    :root{
+      --bg:#0f172a; --fg:#e5e7eb; --muted:#9ca3af; --border:#1f2937;
+
+      /* Gruppenfarben */
+      --grpA-bg:#0b1b3a; --grpA-fg:#bfdbfe; --grpA-br:#1d4ed8;
+      --grpB-bg:#2b0c0c; --grpB-fg:#fecaca; --grpB-br:#7f1d1d;
+      --grpC-bg:#052e1b; --grpC-fg:#86efac; --grpC-br:#166534;
+
+      --tile-border:#253041;
+
+      /* Status */
+      --ok:#22c55e;     /* grün */
+      --warn:#f59e0b;   /* gelb */
+      --err:#ef4444;    /* rot */
+    }
+    *{ box-sizing:border-box }
+    body{
+      margin:0; background:var(--bg); color:var(--fg);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial
+    }
+
+    /* ===== Header mit Logo & Status ===== */
+    header{
+      padding:1rem; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+    }
+    .titleWrap{
+      display:flex; align-items:center; gap:0.75rem;
+      min-height:48px;
+    }
+    .clubLogo{
+      width:48px; height:48px; object-fit:contain;
+      border-radius:6px; background:#0b1020; border:1px solid var(--border);
+    }
+    header h1{ margin:0; font-size:1.25rem }
+    .status{
+      display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
+      color:#cbd5e1; font-size:.9rem;
+    }
+    .status-pill{
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.25rem .6rem; border-radius:999px; border:1px solid var(--border);
+      background:#0b1020; font-weight:600;
+    }
+    .dot{
+      width:.6rem; height:.6rem; border-radius:999px;
+      box-shadow:0 0 6px rgba(0,0,0,.35);
+    }
+    .dot.ok{   background:var(--ok) }
+    .dot.warn{ background:var(--warn) }
+    .dot.err{  background:var(--err) }
+    .stamp{ color:var(--muted) }
+
+    /* ===== Main ===== */
+    main{ padding:1rem; max-width:1400px; margin:0 auto }
+    .empty{ margin:2rem 0; text-align:center; color:var(--muted) }
+
+    /* ===== Block ===== */
+    .block{
+      margin:1rem 0 1.25rem; border:1px solid var(--border);
+      border-radius:10px; overflow:clip; background:#0f1a2a
+    }
+    .block-header{
+      display:flex; align-items:center; gap:.75rem; justify-content:space-between;
+      padding:.75rem 1rem; border-bottom:1px solid var(--border); background:#0b1020
+    }
+    .left{ display:flex; align-items:center; gap:.75rem; flex-wrap:wrap }
+    .right{ color:var(--muted); font-size:.95rem }
+    .pill{
+      display:inline-flex; align-items:center; gap:.5rem;
+      border:1px solid var(--border); border-radius:999px;
+      padding:.2rem .6rem; font-size:.9rem; color:#cbd5e1; background:#0b1020
+    }
     .pill.grpA{ color:var(--grpA-fg); border-color:var(--grpA-br); background:var(--grpA-bg) }
     .pill.grpB{ color:var(--grpB-fg); border-color:var(--grpB-br); background:var(--grpB-bg) }
     .pill.grpC{ color:var(--grpC-fg); border-color:var(--grpC-br); background:var(--grpC-bg) }
-	
-/* Sieger-Markierung direkt beim Teamnamen */
-.winIcon {
-  display: inline-block;
-  margin-left: 0.4rem;
-  font-size: 1rem;          /* Icon-Größe */
-  vertical-align: middle;
-  /* sanfter Glow für bessere Lesbarkeit auf dunklem Hintergrund */
-  filter: drop-shadow(0 0 2px rgba(0,0,0,0.6));
-}
 
-/* Gewinner-Team: optional etwas hervorheben */
-.teamCell.winner {
-  font-weight: 700;
-   color: #fde68a;           /* warmes Gelb; passt zu dunklem Theme */
+    .time-badge{
+      display:inline-flex; align-items:center; gap:.4rem;
+      border:1px dashed var(--tile-border); color:#cbd5e1; background:#091226;
+      padding:.2rem .55rem; border-radius:8px; font-variant-numeric:tabular-nums
+    }
 
+    /* ===== Tiles (3 Spalten) ===== */
+    .tiles{
+      display:grid; grid-template-columns:repeat(3, minmax(260px,1fr));
+      gap:12px; padding:12px
+    }
+    @media (max-width:1100px){ .tiles{ grid-template-columns:repeat(2, minmax(260px,1fr)) } }
+    @media (max-width:720px){  .tiles{ grid-template-columns:1fr } }
+
+    .tile{
+      border:1px solid var(--tile-border); border-radius:10px;
+      padding:.9rem; display:flex; flex-direction:column; gap:.6rem; min-height:120px
+    }
+    /* Kachel-Hintergrund = Gruppenfarbe */
+    .tile.grpA{ background:var(--grpA-bg); color:var(--grpA-fg) }
+    .tile.grpB{ background:var(--grpB-bg); color:var(--grpB-fg) }
+    .tile.grpC{ background:var(--grpC-bg); color:var(--grpC-fg) }
+
+    .tile-head{
+      display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+      font-size:.95rem; opacity:.95
+    }
+    .field-badge{
+      border:1px solid var(--tile-border);
+      padding:.2rem .55rem; border-radius:8px;
+      background:rgba(0,0,0,.15); color:inherit
+    }
+    .vs{
+      font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap
+    }
+    .team{ display:inline-flex; align-items:center; gap:.35rem }
+    .mid{ opacity:.85 }
   </style>
+</head>
+<body>
+  <header>
+    <div class="titleWrap">
+      <!-- Vereinslogo: passe den Pfad an (z. B. /assets/logo.png) -->
+      /assets/Fussballwappen_logo.png
+      <h1>3. Königsbrunner Mini-Fußball Hallenmasters 21./22.02.2026</h1>
+    </div>
+
+    <!-- Statusanzeige -->
+    <div class="status">
+      <span class="status-pill" id="socketStatus">
+        <span class="dot err" id="socketDot"></span>
+        <span id="socketText">Getrennt</span>
+      </span>
+      <span class="stamp">Letztes Update: <span id="lastUpdate">–</span></span>
+    </div>
+  </header>
+
+  <main>
+    <div id="blocks"></div>
+    <div id="empty" class="empty" style="display:none;">Noch keine Spiele geplant.</div>
+  </main>
+
   <script>
-    var ORIGIN=window.location.origin; var API_BASE=ORIGIN + '/api';
-    function groupClass(g){ var x=String(g||'').toUpperCase(); return x==='A'?'grpA':x==='B'?'grpB':x==='C'?'grpC':''; }
-    async function loadMatches(){ var res = await fetch(API_BASE + '/matches'); if(!res.ok) throw new Error('HTTP '+res.status); return res.json(); }
-    
-function render(matches){
-  const tbody = document.querySelector('#matches tbody');
-  tbody.innerHTML = '';
+    const ORIGIN = window.location.origin;
+    const API_BASE = ORIGIN + '/api';
 
-  matches.forEach(m => {
-    const tr = document.createElement('tr');
-    tr.className = groupClass(m.groupName);
+    function groupClass(g){
+      const x = String(g||'').trim().toUpperCase();
+      return x==='A' ? 'grpA' : x==='B' ? 'grpB' : x==='C' ? 'grpC' : '';
+    }
+    function fmtStamp(date){
+      try{
+        return new Date(date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      }catch{ return '–'; }
+    }
+    function setLastUpdate(now=new Date()){
+      const el = document.getElementById('lastUpdate');
+      if(el) el.textContent = fmtStamp(now);
+    }
 
-    const td = (txt) => { const d=document.createElement('td'); d.textContent = txt ?? ''; return d; };
+    async function loadMatches(){
+      const res = await fetch(API_BASE + '/matches');
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      return res.json();
+    }
 
-    // Gruppe-Badge
-    const badgeCell = document.createElement('td');
-    const badge = document.createElement('span');
-    badge.className = 'pill ' + groupClass(m.groupName);
-    badge.textContent = m.groupName ?? '';
-    badgeCell.appendChild(badge);
+    // --- Blöcke: key = groupName + plannedStart (Fallback: 3er-Chunks pro Gruppe)
+    function makeBlocks(matches){
+      const list = Array.isArray(matches) ? [...matches] : [];
+      if (!list.length) return [];
 
-    // Team-Zellen
-    const teamAId   = m?.teamA_id ?? null;
-    const teamBId   = m?.teamB_id ?? null;
-    const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
-    const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
-    const winnerVal = m?.winner ?? null;
+      const toMin = (hhmm) => {
+        if (!/^\d{2}:\d{2}$/.test(hhmm||'')) return Number.POSITIVE_INFINITY;
+        const [h,m] = hhmm.split(':').map(Number);
+        return h*60 + m;
+      };
+      list.sort((a,b)=>{
+        const ma = toMin(a?.plannedStart), mb = toMin(b?.plannedStart);
+        if (ma !== mb) return ma - mb;
+        const ga = String(a?.groupName||''), gb = String(b?.groupName||'');
+        if (ga !== gb) return ga.localeCompare(gb);
+        const fa = Number(a?.field||0), fb = Number(b?.field||0);
+        if (fa !== fb) return fa - fb;
+        return Number(a?.id||0) - Number(b?.id||0);
+      });
 
-    const tdA = document.createElement('td'); tdA.className = 'teamCell'; tdA.textContent = teamAName;
-    const tdB = document.createElement('td'); tdB.className = 'teamCell'; tdB.textContent = teamBName;
-
-    if (winnerVal != null) {
-      const w = Number(winnerVal);
-      if (!Number.isNaN(w)) {
-        if (teamAId != null && w === Number(teamAId)) {
-          tdA.classList.add('winner');
-          const icon = document.createElement('span');
-          icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
-          tdA.appendChild(icon);
-        } else if (teamBId != null && w === Number(teamBId)) {
-          tdB.classList.add('winner');
-          const icon = document.createElement('span');
-          icon.className = 'winIcon'; icon.textContent = '🏆'; icon.title = 'Sieger';
-          tdB.appendChild(icon);
+      const hasAnyPlanned = list.some(m => !!m?.plannedStart);
+      if (hasAnyPlanned) {
+        const map = new Map();
+        for (const m of list){
+          const g = String(m?.groupName||'').trim().toUpperCase();
+          const p = m?.plannedStart || '–';
+          const key = g + '|' + p;
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(m);
         }
+        const blocks = [];
+        for (const [key, arr] of map.entries()){
+          const [g,p] = key.split('|');
+          blocks.push({ groupName:g, plannedStart:(p==='–'?null:p), matches:arr });
+        }
+        return blocks;
+      } else {
+        const byG = new Map();
+        for (const m of list){
+          const g = String(m?.groupName||'').trim().toUpperCase();
+          if (!byG.has(g)) byG.set(g, []);
+          byG.get(g).push(m);
+        }
+        const blocks = [];
+        for (const [g, arr] of byG.entries()){
+          arr.sort((a,b)=>{
+            const fa = Number(a?.field||0), fb = Number(b?.field||0);
+            if (fa !== fb) return fa - fb;
+            return Number(a?.id||0) - Number(b?.id||0);
+          });
+          for (let i=0;i<arr.length;i+=3){
+            blocks.push({ groupName:g, plannedStart:null, matches:arr.slice(i, i+3) });
+          }
+        }
+        blocks.sort((a,b)=>{
+          if (a.groupName !== b.groupName) return a.groupName.localeCompare(b.groupName);
+          const aid = Math.min(...a.matches.map(x=>Number(x.id||0)));
+          const bid = Math.min(...b.matches.map(x=>Number(x.id||0)));
+          return aid - bid;
+        });
+        return blocks;
       }
     }
 
-    tr.appendChild(td(m.id));
-    tr.appendChild(badgeCell);
-    tr.appendChild(td(m.field));
-    tr.appendChild(tdA);
-       tr.appendChild(tdB);
+    function render(matches){
+      const container = document.getElementById('blocks');
+      const empty = document.getElementById('empty');
+      container.innerHTML = '';
 
-    tbody.appendChild(tr);
-  });
-}
+      const blocks = makeBlocks(matches);
+      if (!blocks.length){
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
 
-    async function reload(){ try{ var rows=await loadMatches(); render(rows); }catch(e){ console.error('Viewer reload failed:', e); } }
-    document.addEventListener('DOMContentLoaded', function(){ reload(); });
+      blocks.forEach(block => {
+        const sec = document.createElement('section');
+        sec.className = 'block';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'block-header';
+
+        const left = document.createElement('div');
+        left.className = 'left';
+
+        const pill = document.createElement('span');
+        pill.className = 'pill ' + groupClass(block.groupName);
+        pill.textContent = 'Gruppe ' + block.groupName;
+
+        const time = document.createElement('span');
+        time.className = 'time-badge';
+        time.textContent = block.plannedStart ? ('Start: ' + block.plannedStart) : 'Start: –';
+
+        left.appendChild(pill);
+        left.appendChild(time);
+
+        const right = document.createElement('div');
+        right.className = 'right';
+        right.textContent = '3 parallele Spiele';
+
+        header.appendChild(left);
+        header.appendChild(right);
+        sec.appendChild(header);
+
+        // Tiles
+        const tiles = document.createElement('div');
+        tiles.className = 'tiles';
+
+        (block.matches || []).forEach(m => {
+          const tile = document.createElement('div');
+          tile.className = 'tile ' + groupClass(block.groupName);
+
+          const head = document.createElement('div');
+          head.className = 'tile-head';
+          const leftH = document.createElement('div');
+          leftH.textContent = 'Spiel #' + (m?.id ?? '');
+          const rightH = document.createElement('div');
+          const field = document.createElement('span');
+          field.className = 'field-badge';
+          field.textContent = 'Feld ' + (m?.field ?? '');
+          rightH.appendChild(field);
+          head.appendChild(leftH);
+          head.appendChild(rightH);
+
+          const teamAName = m?.teamA ?? (m?.teamA_id != null ? String(m.teamA_id) : '');
+          const teamBName = m?.teamB ?? (m?.teamB_id != null ? String(m.teamB_id) : '');
+
+          const vs = document.createElement('div');
+          vs.className = 'vs';
+
+          const tA = document.createElement('span');
+          tA.className = 'team';
+          tA.textContent = teamAName;
+
+          const mid = document.createElement('span');
+          mid.className = 'mid';
+          mid.textContent = 'vs';
+
+          const tB = document.createElement('span');
+          tB.className = 'team';
+          tB.textContent = teamBName;
+
+          tile.appendChild(head);
+          vs.appendChild(tA);
+          vs.appendChild(mid);
+          vs.appendChild(tB);
+          tile.appendChild(vs);
+
+          tiles.appendChild(tile);
+        });
+
+        sec.appendChild(tiles);
+        container.appendChild(sec);
+      });
+
+      // Status: Zeitstempel aktualisieren
+      setLastUpdate(new Date());
+    }
+
+    async function reload(){
+      try{
+        const rows = await loadMatches();
+        render(rows);
+      }catch(e){
+        console.error('Viewer reload failed:', e);
+      }
+    }
+
+    // Statusanzeige aktualisieren
+    function setSocketStatus(kind){
+      const dot  = document.getElementById('socketDot');
+      const text = document.getElementById('socketText');
+      if(!dot || !text) return;
+      dot.classList.remove('ok','warn','err');
+      if(kind==='ok'){ dot.classList.add('ok');   text.textContent='Verbunden'; }
+      else if(kind==='warn'){ dot.classList.add('warn'); text.textContent='Neu verbinden…'; }
+      else { dot.classList.add('err'); text.textContent='Getrennt'; }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { reload(); });
   </script>
-  <script src="/socket.io/socket.io.js" defer></script>
+
+  /socket.io/socket.io.js</script>
   <script>
-    document.addEventListener('DOMContentLoaded', function(){ var s=window.io?window.io():null; if(!s) return; s.on('connect', function(){ console.log('Viewer socket connected'); }); s.on('resultUpdate', function(){ reload(); }); s.on('results:updated', function(){ reload(); }); s.on('group:started', function(){ reload(); }); s.on('round:advanced', function(){ reload(); }); s.on('matches:reset', function(){ reload(); }); setInterval(function(){ reload(); }, 10000); });
-  </script>
-</head>
-<body>
-  <header><h1>Viewer – Funino Champions League</h1></header>
-  <main>
-    <table id="matches"><thead><tr>
-<th>ID</th>
-<th>Gruppe</th>
-<th>Feld</th>
-<th>Team A</th>
-<th>Team B</th>
-</tr></thead><tbody></tbody></table>
-  </main>
-</body>
-</html>
+    document.addEventListener('DOMContentLoaded', function(){
+      // Robuste Socket-Initialisierung
+      const s = window.io ? window.io(window.location.origin, {
+        path:'/socket.io',
+        transports:['websocket','polling'],
+        reconnectionAttempts:10,
+        timeout:10000
+      }) : null;
+
+      if(!s) return;
+      s.on('connect', () => { console.log('Viewer socket connected'); setSocketStatus('ok'); });
+      s.on('disconnect', (reason) => { console.warn('Viewer socket disconnected:', reason); setSocketStatus('err'); });
+      s.on('connect_error', (err) => { console.error('Viewer socket connect_error:', err); setSocketStatus('warn'); });
+      s.on('reconnect_attempt', () => setSocketStatus('warn'));
+      s.on('reconnect', () => setSocketStatus('ok'));
+
+      // 🔁 Sofort-Reload bei allen relevanten Events:
+      const triggerReload = () => reload();
+
