@@ -558,8 +558,9 @@
         const teamBId   = m?.teamB_id ?? null;
         const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
         const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
-        const planned   = m?.plannedStart ?? '–';
-        const winnerVal = (m?.winner ?? null);
+        const planned   = m?.plannedStart ?? '–';        
+		const winnerVal = m && typeof m.winner !== 'undefined' ? m.winner : null;
+		const hasWinner = winnerVal !== null && winnerVal !== undefined;
 
         // Zellen
         const tdId    = document.createElement('td'); tdId.textContent = id;
@@ -574,44 +575,43 @@
         const tdField = document.createElement('td'); tdField.textContent = field;
         const tdTime  = document.createElement('td'); tdTime.textContent = planned;
 				
-	// Gewinner ermitteln
-	const w = (m?.winner ?? null);
-	const isWinA = Number.isFinite(Number(w)) && Number(w) === Number(teamAId);
-	const isWinB = Number.isFinite(Number(w)) && Number(w) === Number(teamBId);
+		// Gewinner ermitteln		
+		const isWinA = hasWinner && Number(winnerVal) === Number(teamAId);
+		const isWinB = hasWinner && Number(winnerVal) === Number(teamBId);
 
-	// Team A (nur Team A in dieser Spalte)
-	const tdA = document.createElement('td');
-	const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
-	if (isWinA) {
-	  const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
-	  const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = teamAName;
-	  wrapA.append(icoA, txtA);
-	} else {
-	  const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = teamAName;
-	  wrapA.append(txtA);
-	}
-	tdA.replaceChildren(wrapA);
+		// Team A (nur Team A in dieser Spalte)
+		const tdA = document.createElement('td');
+		const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
+		if (isWinA) {
+		  const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
+		  const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = teamAName;
+		  wrapA.append(icoA, txtA);
+		} else {
+		  const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = teamAName;
+		  wrapA.append(txtA);
+		}
+		tdA.replaceChildren(wrapA);
 
-	// Team B (nur Team B in dieser Spalte)
-	const tdB = document.createElement('td');
-	const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
-	if (isWinB) {
-	  const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
-	  const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = teamBName;
-	  wrapB.append(icoB, txtB);
-	} else {
-	  const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = teamBName;
-	  wrapB.append(txtB);
-	}
-	tdB.replaceChildren(wrapB);
+		// Team B (nur Team B in dieser Spalte)
+		const tdB = document.createElement('td');
+		const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
+		if (isWinB) {
+		  const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
+		  const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = teamBName;
+		  wrapB.append(icoB, txtB);
+		} else {
+		  const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = teamBName;
+		  wrapB.append(txtB);
+		}
+		tdB.replaceChildren(wrapB);
 
-	// Sieger-Spalte
-	const tdWinner = document.createElement('td');
-	if (Number.isFinite(Number(w))) {
-	  tdWinner.textContent = (Number(w) === Number(teamAId)) ? teamAName : teamBName;
-	} else {
-	  tdWinner.textContent = '–';
-	}
+		// Sieger-Spalte		
+		const tdWinner = document.createElement('td');
+		if (hasWinner) {
+		  tdWinner.textContent = Number(winnerVal) === Number(teamAId) ? teamAName : teamBName;
+		} else {
+		  tdWinner.textContent = '';         // oder '\u00A0' für neutralen Leerraum
+		}
 
         // Aktionen
         const tdAct = document.createElement('td'); tdAct.className = 'row';

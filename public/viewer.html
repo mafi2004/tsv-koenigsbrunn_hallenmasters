@@ -4,374 +4,545 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>3. Königsbrunner Mini-Fußball Hallenmasters</title>
+  <title>Viewer – 3. Königsbrunner Mini‑Fußball Hallenmasters</title>
 
   <style>
     :root{
-      --bg:#0f172a; --fg:#e5e7eb; --muted:#9ca3af; --border:#1f2937;
+      --bg:#0f172a; --card:#111827; --fg:#e5e7eb; --muted:#9ca3af;
+      --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --border:#1f2937;
+      --tileA:#0b1b3a; --tileB:#2b0c0c; --tileC:#052e1b;
+      --tileAbr:#1d4ed8; --tileBbr:#7f1d1d; --tileCbr:#166534;
+    }
+    html,body{height:100%;}
+    body{margin:0; background:var(--bg); color:var(--fg);
+         font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial;}
+    header{position:sticky; top:0; z-index:10; background:var(--card);
+           border-bottom:1px solid var(--border);}
+    .bar{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem;}
+    .leftWrap{display:flex; align-items:center; gap:.75rem;}
+    .clubLogo{width:48px; height:48px; object-fit:contain; border-radius:6px;
+              background:#0b1020; border:1px solid var(--border);}
+    h1{margin:0; font-size:1.15rem;}
+    .meta{display:flex; gap:.75rem; align-items:center; color:var(--muted); font-size:.9rem;}
+    .pill{display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .5rem;
+          border-radius:999px; border:1px solid var(--border); font-size:.85rem;}
+    .pill.ok{color:#d1fae5; border-color:#065f46; background:#064e3b;}
+    .pill.err{color:#fee2e2; border-color:#7f1d1d; background:#1b0f12;}
+    .pill.warn{color:#ffedd5; border-color:#7c2d12; background:#1c0f0a;}
 
-      /* Gruppenfarben */
-      --grpA-bg:#0b1b3a; --grpA-fg:#bfdbfe; --grpA-br:#1d4ed8;
-      --grpB-bg:#2b0c0c; --grpB-fg:#fecaca; --grpB-br:#7f1d1d;
-      --grpC-bg:#052e1b; --grpC-fg:#86efac; --grpC-br:#166534;
+    main{max-width:1200px; margin:0 auto; padding:1rem;}
+    section{background:var(--card); border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;}
+    section > header{display:flex; align-items:center; justify-content:space-between; padding:.75rem 1rem; border-bottom:1px solid var(--border);}
+    .hdrRight{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;}
+    .viewToggle{display:flex; gap:.35rem;}
+    .btn{cursor:pointer; border:1px solid var(--border); background:#0b1020; color:#e5e7eb; padding:.35rem .6rem; border-radius:6px; font-weight:600; font-size:.85rem;}
+    .btn-active{background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe;}
 
-      --tile-border:#253041;
+    /* Tabelle */
+    .tableWrap{padding:1rem; overflow:auto;}
+    table{width:100%; border-collapse:collapse;}
+    th,td{padding:.5rem; border-bottom:1px solid var(--border); text-align:left;}
+    th{color:#cbd5e1; font-weight:700; background:#0b1020;}
+    tr.grpA td{background:rgba(29,78,216,.07);}
+    tr.grpB td{background:rgba(220,38,38,.07);}
+    tr.grpC td{background:rgba(22,163,74,.07);}
+    .grpBadge{display:inline-block; padding:.1rem .4rem; border-radius:999px; font-size:.75rem; border:1px solid var(--border);}
+    .grpBadge.A{color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8;}
+    .grpBadge.B{color:#fecaca; background:#2b0c0c; border-color:#7f1d1d;}
+    .grpBadge.C{color:#86efac; background:#052e1b; border-color:#166534;}
+    .winIcon{font-size:1rem; margin-right:.3rem; vertical-align:middle;}
+    .winnerText{color:var(--ok); font-weight:600;}
+    .loserText{color:var(--muted);}
+    .note{color:#9ca3af; font-size:.85rem; padding:0 1rem 1rem;}
 
-      /* Status */
-      --ok:#22c55e;     /* grün */
-      --warn:#f59e0b;   /* gelb */
-      --err:#ef4444;    /* rot */
-    }
-    *{ box-sizing:border-box }
-    body{
-      margin:0; background:var(--bg); color:var(--fg);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial
-    }
+    /* Kachelansicht mit Zeit-Slots */
+    .tilesWrap{padding:1rem;}
+    .slotRow{display:flex; align-items:flex-start; gap:12px; margin-bottom:14px;}
+    .slotTime{min-width:90px; flex:0 0 90px; text-align:right; padding-top:.35rem;}
+    .slotTime .timeBadge{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.2rem .5rem; font-weight:700; color:#cbd5e1; background:#0b1020;}
 
-    /* ===== Header mit Logo & Status ===== */
-    header{
-      padding:1rem; border-bottom:1px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
-    }
-    .titleWrap{
-      display:flex; align-items:center; gap:0.75rem;
-      min-height:48px;
-    }
-    .clubLogo{
-      width:48px; height:48px; object-fit:contain;
-      border-radius:6px; background:#0b1020; border:1px solid var(--border);
-    }
-    header h1{ margin:0; font-size:1.25rem }
-    .status{
-      display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
-      color:#cbd5e1; font-size:.9rem;
-    }
-    .status-pill{
-      display:inline-flex; align-items:center; gap:.4rem;
-      padding:.25rem .6rem; border-radius:999px; border:1px solid var(--border);
-      background:#0b1020; font-weight:600;
-    }
-    .dot{
-      width:.6rem; height:.6rem; border-radius:999px;
-      box-shadow:0 0 6px rgba(0,0,0,.35);
-    }
-    .dot.ok{   background:var(--ok) }
-    .dot.warn{ background:var(--warn) }
-    .dot.err{  background:var(--err) }
-    .stamp{ color:var(--muted) }
+    /* CHANGED: globaler Feld-Header (einmal oben) */
+    .tilesHeadGlobal{display:grid; gap:12px; margin:8px 0 10px;}
+    .fieldHead{display:flex; justify-content:center;}
+    .fieldHeadBadge{display:inline-block; border:1px solid var(--border); border-radius:10px; padding:.25rem .6rem; font-weight:700; font-size:.95rem; color:#cbd5e1; background:#0b1020;}
 
-    /* ===== Main ===== */
-    main{ padding:1rem; max-width:1400px; margin:0 auto }
-    .empty{ margin:2rem 0; text-align:center; color:var(--muted) }
-
-    /* ===== Block ===== */
-    .block{
-      margin:1rem 0 1.25rem; border:1px solid var(--border);
-      border-radius:10px; overflow:clip; background:#0f1a2a
-    }
-    .block-header{
-      display:flex; align-items:center; gap:.75rem; justify-content:space-between;
-      padding:.75rem 1rem; border-bottom:1px solid var(--border); background:#0b1020
-    }
-    .left{ display:flex; align-items:center; gap:.75rem; flex-wrap:wrap }
-    .right{ color:var(--muted); font-size:.95rem }
-    .pill{
-      display:inline-flex; align-items:center; gap:.5rem;
-      border:1px solid var(--border); border-radius:999px;
-      padding:.2rem .6rem; font-size:.9rem; color:#cbd5e1; background:#0b1020
-    }
-    .pill.grpA{ color:var(--grpA-fg); border-color:var(--grpA-br); background:var(--grpA-bg) }
-    .pill.grpB{ color:var(--grpB-fg); border-color:var(--grpB-br); background:var(--grpB-bg) }
-    .pill.grpC{ color:var(--grpC-fg); border-color:var(--grpC-br); background:var(--grpC-bg) }
-
-    .time-badge{
-      display:inline-flex; align-items:center; gap:.4rem;
-      border:1px dashed var(--tile-border); color:#cbd5e1; background:#091226;
-      padding:.2rem .55rem; border-radius:8px; font-variant-numeric:tabular-nums
+    .tilesGrid{display:grid; gap:12px; flex:1;}
+    @media (max-width: 680px){
+      .slotTime{display:none;}
+      .tilesHeadGlobal{display:none;} /* auf sehr kleinen Screens Kopf ausblenden */
     }
 
-    /* ===== Tiles (3 Spalten) ===== */
-    .tiles{
-      display:grid; grid-template-columns:repeat(3, minmax(260px,1fr));
-      gap:12px; padding:12px
-    }
-    @media (max-width:1100px){ .tiles{ grid-template-columns:repeat(2, minmax(260px,1fr)) } }
-    @media (max-width:720px){  .tiles{ grid-template-columns:1fr } }
+    .tile{border:1px solid var(--border); border-radius:10px; padding:.6rem .8rem; display:flex; flex-direction:column; gap:.4rem;}
+    .tile.grpA{background:var(--tileA); border-color:var(--tileAbr);}
+    .tile.grpB{background:var(--tileB); border-color:var(--tileBbr);}
+    .tile.grpC{background:var(--tileC); border-color:var(--tileCbr);}
+    .tileTop{display:flex; justify-content:space-between; align-items:center;}
+    .tileTopLeft{display:flex; gap:.4rem; align-items:center; flex-wrap:wrap;}
+    .tileTag{display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .5rem; font-size:.85rem; color:#cbd5e1;}
+    .tileMain{display:flex; justify-content:space-between; gap:.75rem; align-items:center;}
+    .teamText{display:inline-flex; align-items:center; gap:.35rem;}
+    .emptyMsg{color:#9ca3af; padding:1rem;}
 
-    .tile{
-      border:1px solid var(--tile-border); border-radius:10px;
-      padding:.9rem; display:flex; flex-direction:column; gap:.6rem; min-height:120px
-    }
-    /* Kachel-Hintergrund = Gruppenfarbe */
-    .tile.grpA{ background:var(--grpA-bg); color:var(--grpA-fg) }
-    .tile.grpB{ background:var(--grpB-bg); color:var(--grpB-fg) }
-    .tile.grpC{ background:var(--grpC-bg); color:var(--grpC-fg) }
-
-    .tile-head{
-      display:flex; align-items:center; justify-content:space-between; gap:.5rem;
-      font-size:.95rem; opacity:.95
-    }
-    .field-badge{
-      border:1px solid var(--tile-border);
-      padding:.2rem .55rem; border-radius:8px;
-      background:rgba(0,0,0,.15); color:inherit
-    }
-    .vs{
-      font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap
-    }
-    .team{ display:inline-flex; align-items:center; gap:.35rem }
-    .mid{ opacity:.85 }
+    /* ID-Tag in der Kachel */
+    .idTag{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.1rem .45rem; font-size:.8rem; color:#cbd5e1; background:#0b1020; margin-left:.4rem;}
   </style>
 </head>
 <body>
   <header>
-    <div class="titleWrap">
-      <!-- Vereinslogo: passe den Pfad an (z. B. /assets/logo.png) -->
-      /assets/Fussballwappen_logo.png
-      <h1>3. Königsbrunner Mini-Fußball Hallenmasters 21./22.02.2026</h1>
-    </div>
-
-    <!-- Statusanzeige -->
-    <div class="status">
-      <span class="status-pill" id="socketStatus">
-        <span class="dot err" id="socketDot"></span>
-        <span id="socketText">Getrennt</span>
-      </span>
-      <span class="stamp">Letztes Update: <span id="lastUpdate">–</span></span>
+    <div class="bar">
+      <div class="leftWrap">
+        <img id="clubLogo" class="clubLogo" alt="Vereinslogo" />
+        <div>
+          <h1>3. Königsbrunner Mini‑Fußball Hallenmasters</h1>
+          <div class="meta">
+            <span>21./22.02.2026</span>
+            <span id="lastUpdate" class="pill warn" title="Zuletzt geladene Daten">Letztes Update: –</span>
+          </div>
+        </div>
+      </div>
+      <div class="meta">
+        <span id="connStatus" class="pill err">Status: getrennt</span>
+      </div>
     </div>
   </header>
 
   <main>
-    <div id="blocks"></div>
-    <div id="empty" class="empty" style="display:none;">Noch keine Spiele geplant.</div>
+    <section>
+      <header>
+        <h2 style="margin:0;">Spielübersicht</h2>
+        <div class="hdrRight">
+          <span class="note">Live‑Aktualisierung bei Ergebnissen, Gruppenstart, Rundenfortschritt und Reset.</span>
+          <div class="viewToggle">
+            <button id="btnViewTable" class="btn" type="button" title="Tabelle">Tabelle</button>
+            <button id="btnViewTiles" class="btn btn-active" type="button" title="Kacheln">Kacheln</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tabellenansicht (Default: versteckt) -->
+      <div id="tableView" class="tableWrap" style="display:none">
+        <table id="matchesTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Gruppe</th>
+              <th>Runde</th>
+              <th>Feld</th>
+              <th>Zeit</th>
+              <th>Team A</th>
+              <th>Team B</th>
+              <th>Sieger</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Kachelansicht (Default: sichtbar) -->
+      <div id="tilesView" class="tilesWrap">
+        <!-- CHANGED: globaler Kopf mit Feld-Labels nur einmal -->
+        <div id="tilesHeadGlobal" class="tilesHeadGlobal"></div>
+        <div id="tilesContainer"></div>
+        <div id="tilesEmpty" class="emptyMsg" style="display:none">Noch keine Spiele geplant.</div>
+      </div>
+    </section>
   </main>
 
+  <!-- Socket.IO Client korrekt laden -->
+  <script src="/socket.io/socket.io.js"></script>
+
   <script>
-    const ORIGIN = window.location.origin;
-    const API_BASE = ORIGIN + '/api';
+    // === Logo laden (optional)
+    (function setLogo(){
+      var LOGO_PATH = '/assets/Fussballwappen_logo.png';
+      var img = document.getElementById('clubLogo');
+      if (!img) return;
+      var url = LOGO_PATH + '?_v=' + Date.now();
+      img.onload  = function(){};
+      img.onerror = function(){ img.style.display='none'; };
+      img.src = url;
+    })();
 
+    // === Kleine Helfer
     function groupClass(g){
-      const x = String(g||'').trim().toUpperCase();
-      return x==='A' ? 'grpA' : x==='B' ? 'grpB' : x==='C' ? 'grpC' : '';
+      var x = String(g || '').trim().toUpperCase();
+      if (x==='A') return 'grpA'; if (x==='B') return 'grpB'; if (x==='C') return 'grpC';
+      return '';
     }
-    function fmtStamp(date){
-      try{
-        return new Date(date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-      }catch{ return '–'; }
-    }
-    function setLastUpdate(now=new Date()){
-      const el = document.getElementById('lastUpdate');
-      if(el) el.textContent = fmtStamp(now);
-    }
-
-    async function loadMatches(){
-      const res = await fetch(API_BASE + '/matches');
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      return res.json();
-    }
-
-    // --- Blöcke: key = groupName + plannedStart (Fallback: 3er-Chunks pro Gruppe)
-    function makeBlocks(matches){
-      const list = Array.isArray(matches) ? [...matches] : [];
-      if (!list.length) return [];
-
-      const toMin = (hhmm) => {
-        if (!/^\d{2}:\d{2}$/.test(hhmm||'')) return Number.POSITIVE_INFINITY;
-        const [h,m] = hhmm.split(':').map(Number);
-        return h*60 + m;
-      };
-      list.sort((a,b)=>{
-        const ma = toMin(a?.plannedStart), mb = toMin(b?.plannedStart);
-        if (ma !== mb) return ma - mb;
-        const ga = String(a?.groupName||''), gb = String(b?.groupName||'');
-        if (ga !== gb) return ga.localeCompare(gb);
-        const fa = Number(a?.field||0), fb = Number(b?.field||0);
-        if (fa !== fb) return fa - fb;
-        return Number(a?.id||0) - Number(b?.id||0);
-      });
-
-      const hasAnyPlanned = list.some(m => !!m?.plannedStart);
-      if (hasAnyPlanned) {
-        const map = new Map();
-        for (const m of list){
-          const g = String(m?.groupName||'').trim().toUpperCase();
-          const p = m?.plannedStart || '–';
-          const key = g + '|' + p;
-          if (!map.has(key)) map.set(key, []);
-          map.get(key).push(m);
-        }
-        const blocks = [];
-        for (const [key, arr] of map.entries()){
-          const [g,p] = key.split('|');
-          blocks.push({ groupName:g, plannedStart:(p==='–'?null:p), matches:arr });
-        }
-        return blocks;
+    function setStatus(ok){
+      var el = document.getElementById('connStatus');
+      if (!el) return;
+      if (ok){
+        el.textContent = 'Status: verbunden';
+        el.className = 'pill ok';
       } else {
-        const byG = new Map();
-        for (const m of list){
-          const g = String(m?.groupName||'').trim().toUpperCase();
-          if (!byG.has(g)) byG.set(g, []);
-          byG.get(g).push(m);
+        el.textContent = 'Status: getrennt';
+        el.className = 'pill err';
+      }
+    }
+    function setLastUpdate(){
+      var el = document.getElementById('lastUpdate');
+      if (!el) return;
+      var now = new Date();
+      var hh = String(now.getHours()).padStart(2,'0');
+      var mm = String(now.getMinutes()).padStart(2,'0');
+      var ss = String(now.getSeconds()).padStart(2,'0');
+      el.textContent = 'Letztes Update: ' + hh + ':' + mm + ':' + ss;
+      el.className = 'pill ok';
+    }
+
+    // === Daten laden
+    var API_BASE = window.location.origin + '/api';
+    function safeFetch(path, init){
+      return fetch(API_BASE + path, init).then(function(res){
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+        return res.json();
+      });
+    }
+    function loadMatches(){
+      return safeFetch('/matches', { method:'GET' });
+    }
+
+    // === Tabellen-Rendering
+    function renderTable(rows){
+      var tbody = document.querySelector('#matchesTable tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!Array.isArray(rows) || !rows.length){
+        var tr0 = document.createElement('tr');
+        var td0 = document.createElement('td');
+        td0.colSpan = 8;
+        td0.textContent = 'Noch keine Spiele geplant.';
+        td0.style.color = '#9ca3af';
+        tr0.appendChild(td0);
+        tbody.appendChild(tr0);
+        return;
+      }
+
+      for (var i=0; i<rows.length; i++){
+        var m = rows[i];
+        var tr = document.createElement('tr');
+        tr.classList.add(groupClass(m && m.groupName));
+
+        var id        = (m && m.id != null) ? m.id : '';
+        var groupName = (m && m.groupName) ? m.groupName : '';
+        var round     = (m && m.round != null) ? m.round : '';
+        var field     = (m && m.field != null) ? m.field : '';
+        var teamAId   = (m && m.teamA_id != null) ? m.teamA_id : null;
+        var teamBId   = (m && m.teamB_id != null) ? m.teamB_id : null;
+        var teamAName = (m && m.teamA) ? m.teamA : (teamAId != null ? String(teamAId) : '');
+        var teamBName = (m && m.teamB) ? m.teamB : (teamBId != null ? String(teamBId) : '');
+        var planned   = (m && m.plannedStart) ? m.plannedStart : '–';
+
+        // Winner robust bestimmen
+        var winnerVal = (m && typeof m.winner !== 'undefined') ? m.winner : null;
+        var hasWinner = (winnerVal !== null && winnerVal !== undefined);
+
+        // Grundzellen
+        var tdId    = document.createElement('td'); tdId.textContent = id;
+
+        var tdGroup = document.createElement('td');
+        var badge   = document.createElement('span');
+        var gTrim   = String(groupName || '').trim().toUpperCase();
+        badge.className = 'grpBadge ' + (gTrim || 'A');
+        badge.textContent = gTrim || 'A';
+        tdGroup.appendChild(badge);
+
+        var tdRound = document.createElement('td'); tdRound.textContent = round;
+        var tdField = document.createElement('td'); tdField.textContent = field;
+        var tdTime  = document.createElement('td'); tdTime.textContent = planned;
+
+        // Team A
+        var tdA   = document.createElement('td');
+        var wA    = document.createElement('span'); wA.className = 'loserText'; wA.textContent = teamAName;
+        if (hasWinner && Number(winnerVal) === Number(teamAId)){
+          var icoA = document.createElement('span'); icoA.className='winIcon'; icoA.textContent='🏆'; icoA.setAttribute('aria-label','Sieger');
+          wA.className = 'winnerText';
+          tdA.appendChild(icoA); tdA.appendChild(wA);
+        } else {
+          tdA.appendChild(wA);
         }
-        const blocks = [];
-        for (const [g, arr] of byG.entries()){
-          arr.sort((a,b)=>{
-            const fa = Number(a?.field||0), fb = Number(b?.field||0);
-            if (fa !== fb) return fa - fb;
-            return Number(a?.id||0) - Number(b?.id||0);
-          });
-          for (let i=0;i<arr.length;i+=3){
-            blocks.push({ groupName:g, plannedStart:null, matches:arr.slice(i, i+3) });
-          }
+
+        // Team B
+        var tdB   = document.createElement('td');
+        var wB    = document.createElement('span'); wB.className = 'loserText'; wB.textContent = teamBName;
+        if (hasWinner && Number(winnerVal) === Number(teamBId)){
+          var icoB = document.createElement('span'); icoB.className='winIcon'; icoB.textContent='🏆'; icoB.setAttribute('aria-label','Sieger');
+          wB.className = 'winnerText';
+          tdB.appendChild(icoB); tdB.appendChild(wB);
+        } else {
+          tdB.appendChild(wB);
         }
-        blocks.sort((a,b)=>{
-          if (a.groupName !== b.groupName) return a.groupName.localeCompare(b.groupName);
-          const aid = Math.min(...a.matches.map(x=>Number(x.id||0)));
-          const bid = Math.min(...b.matches.map(x=>Number(x.id||0)));
-          return aid - bid;
-        });
-        return blocks;
+
+        // Sieger (leer bis gesetzt)
+        var tdWinner = document.createElement('td');
+        if (hasWinner) {
+          tdWinner.textContent = (Number(winnerVal) === Number(teamAId)) ? teamAName : teamBName;
+        } else {
+          tdWinner.textContent = '';
+        }
+
+        tr.appendChild(tdId);
+        tr.appendChild(tdGroup);
+        tr.appendChild(tdRound);
+        tr.appendChild(tdField);
+        tr.appendChild(tdTime);
+        tr.appendChild(tdA);
+        tr.appendChild(tdB);
+        tr.appendChild(tdWinner);
+
+        tbody.appendChild(tr);
       }
     }
 
-    function render(matches){
-      const container = document.getElementById('blocks');
-      const empty = document.getElementById('empty');
-      container.innerHTML = '';
+    // === Kachel-Rendering (Zeit-Slots, globaler Feld-Header einmal oben)
+    function renderTiles(rows){
+      var head = document.getElementById('tilesHeadGlobal');
+      var cont = document.getElementById('tilesContainer');
+      var empty = document.getElementById('tilesEmpty');
+      if (!head || !cont || !empty) return;
+      head.innerHTML = '';
+      cont.innerHTML = '';
 
-      const blocks = makeBlocks(matches);
-      if (!blocks.length){
+      if (!Array.isArray(rows) || !rows.length){
         empty.style.display = 'block';
         return;
       }
       empty.style.display = 'none';
 
-      blocks.forEach(block => {
-        const sec = document.createElement('section');
-        sec.className = 'block';
+      // CHANGED: Felder global ermitteln (Union über alle Matches)
+      var fieldsMap = {};
+      for (var i=0;i<rows.length;i++){
+        var fv = (rows[i] && rows[i].field != null) ? Number(rows[i].field) : NaN;
+        if (isFinite(fv) && fv > 0) fieldsMap[fv] = true;
+      }
+      var fields = Object.keys(fieldsMap).map(function(s){ return Number(s); }).sort(function(a,b){ return a-b; });
+      if (!fields.length){
+        fields = [1,2,3]; // Fallback, wenn keine Feldinfo vorhanden
+      }
 
-        // Header
-        const header = document.createElement('div');
-        header.className = 'block-header';
+      // Globalen Kopf einmal rendern
+      head.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
+      for (var h=0; h<fields.length; h++){
+        var fh = document.createElement('div'); fh.className = 'fieldHead';
+        var fb = document.createElement('span'); fb.className = 'fieldHeadBadge'; fb.textContent = 'Feld ' + fields[h];
+        fh.appendChild(fb);
+        head.appendChild(fh);
+      }
 
-        const left = document.createElement('div');
-        left.className = 'left';
+      // Gruppieren nach Zeit (plannedStart), fehlende -> '–' am Ende
+      var groups = {}; // { time: [matches] }
+      for (var j=0;j<rows.length;j++){
+        var m = rows[j];
+        var t = (m && m.plannedStart) ? m.plannedStart : '–';
+        if (!groups[t]) groups[t] = [];
+        groups[t].push(m);
+      }
 
-        const pill = document.createElement('span');
-        pill.className = 'pill ' + groupClass(block.groupName);
-        pill.textContent = 'Gruppe ' + block.groupName;
-
-        const time = document.createElement('span');
-        time.className = 'time-badge';
-        time.textContent = block.plannedStart ? ('Start: ' + block.plannedStart) : 'Start: –';
-
-        left.appendChild(pill);
-        left.appendChild(time);
-
-        const right = document.createElement('div');
-        right.className = 'right';
-        right.textContent = '3 parallele Spiele';
-
-        header.appendChild(left);
-        header.appendChild(right);
-        sec.appendChild(header);
-
-        // Tiles
-        const tiles = document.createElement('div');
-        tiles.className = 'tiles';
-
-        (block.matches || []).forEach(m => {
-          const tile = document.createElement('div');
-          tile.className = 'tile ' + groupClass(block.groupName);
-
-          const head = document.createElement('div');
-          head.className = 'tile-head';
-          const leftH = document.createElement('div');
-          leftH.textContent = 'Spiel #' + (m?.id ?? '');
-          const rightH = document.createElement('div');
-          const field = document.createElement('span');
-          field.className = 'field-badge';
-          field.textContent = 'Feld ' + (m?.field ?? '');
-          rightH.appendChild(field);
-          head.appendChild(leftH);
-          head.appendChild(rightH);
-
-          const teamAName = m?.teamA ?? (m?.teamA_id != null ? String(m.teamA_id) : '');
-          const teamBName = m?.teamB ?? (m?.teamB_id != null ? String(m.teamB_id) : '');
-
-          const vs = document.createElement('div');
-          vs.className = 'vs';
-
-          const tA = document.createElement('span');
-          tA.className = 'team';
-          tA.textContent = teamAName;
-
-          const mid = document.createElement('span');
-          mid.className = 'mid';
-          mid.textContent = 'vs';
-
-          const tB = document.createElement('span');
-          tB.className = 'team';
-          tB.textContent = teamBName;
-
-          tile.appendChild(head);
-          vs.appendChild(tA);
-          vs.appendChild(mid);
-          vs.appendChild(tB);
-          tile.appendChild(vs);
-
-          tiles.appendChild(tile);
-        });
-
-        sec.appendChild(tiles);
-        container.appendChild(sec);
+      // Zeiten sortieren (HH:MM, '–' zuletzt)
+      var times = Object.keys(groups).sort(function(a,b){
+        if (a === '–' && b === '–') return 0;
+        if (a === '–') return 1;
+        if (b === '–') return -1;
+        return a < b ? -1 : (a > b ? 1 : 0);
       });
 
-      // Status: Zeitstempel aktualisieren
-      setLastUpdate(new Date());
-    }
+      // Für jede Zeit Slot bauen (ohne Feld-Header; nutzt globalen)
+      for (var ti=0; ti<times.length; ti++){
+        var timeKey = times[ti];
+        var list = groups[timeKey];
 
-    async function reload(){
-      try{
-        const rows = await loadMatches();
-        render(rows);
-      }catch(e){
-        console.error('Viewer reload failed:', e);
+        var slot = document.createElement('div'); slot.className = 'slotRow';
+
+        // Zeit links
+        var timeCol = document.createElement('div'); timeCol.className = 'slotTime';
+        var timeBadge = document.createElement('span'); timeBadge.className = 'timeBadge';
+        timeBadge.textContent = timeKey;
+        timeCol.appendChild(timeBadge);
+
+        // Grid rechts mit globaler Spaltenzahl
+        var grid = document.createElement('div'); grid.className = 'tilesGrid';
+        grid.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
+
+        // Sortierung innerhalb des Slots: Gruppe A/B/C, dann Feld
+        list.sort(function(a,b){
+          var ga = String((a && a.groupName) ? a.groupName : '').toUpperCase();
+          var gb = String((b && b.groupName) ? b.groupName : '').toUpperCase();
+          if (ga !== gb) return (ga < gb) ? -1 : 1;
+          var fa = (a && a.field != null) ? a.field : 0;
+          var fb = (b && b.field != null) ? b.field : 0;
+          return fa - fb;
+        });
+
+        // Kacheln platzieren
+        for (var mi=0; mi<list.length; mi++){
+          var m2 = list[mi];
+
+          var g = String((m2 && m2.groupName) ? m2.groupName : '').toUpperCase();
+          var tile = document.createElement('div');
+          tile.className = 'tile ' + groupClass(g);
+
+          var id        = (m2 && m2.id != null) ? m2.id : '';
+          var round     = (m2 && m2.round != null) ? m2.round : '';
+          var field     = (m2 && m2.field != null) ? Number(m2.field) : null;
+          var teamAId   = (m2 && m2.teamA_id != null) ? m2.teamA_id : null;
+          var teamBId   = (m2 && m2.teamB_id != null) ? m2.teamB_id : null;
+          var teamAName = (m2 && m2.teamA) ? m2.teamA : (teamAId != null ? String(teamAId) : '');
+          var teamBName = (m2 && m2.teamB) ? m2.teamB : (teamBId != null ? String(teamBId) : '');
+
+          // Winner robust
+          var winnerVal = (m2 && typeof m2.winner !== 'undefined') ? m2.winner : null;
+          var hasWinner = (winnerVal !== null && winnerVal !== undefined);
+
+          // Top: links Gruppe/Runde, rechts ID
+          var top = document.createElement('div'); top.className = 'tileTop';
+          var topLeft = document.createElement('div'); topLeft.className = 'tileTopLeft';
+
+          var tag = document.createElement('span'); tag.className = 'tileTag';
+          tag.textContent = 'Gruppe ' + (g || 'A') + ' · Runde ' + (round || '-');
+          topLeft.appendChild(tag);
+
+          var topRight = document.createElement('div');
+          var idSpan = document.createElement('span'); idSpan.className = 'idTag'; idSpan.textContent = 'ID ' + id;
+          topRight.appendChild(idSpan);
+
+          top.appendChild(topLeft);
+          top.appendChild(topRight);
+
+          // Main: Team A / Team B
+          var main = document.createElement('div'); main.className = 'tileMain';
+
+          var left = document.createElement('div'); left.style.display='flex'; left.style.flexDirection='column'; left.style.gap='.25rem';
+
+          var aWrap = document.createElement('span'); aWrap.className = 'teamText';
+          var aTxt  = document.createElement('span'); aTxt.textContent = teamAName; aTxt.className = 'loserText';
+          if (hasWinner && Number(winnerVal) === Number(teamAId)){
+            var aIco = document.createElement('span'); aIco.className = 'winIcon'; aIco.textContent='🏆'; aIco.setAttribute('aria-label','Sieger');
+            aTxt.className = 'winnerText';
+            aWrap.appendChild(aIco); aWrap.appendChild(aTxt);
+          } else {
+            aWrap.appendChild(aTxt);
+          }
+
+          var bWrap = document.createElement('span'); bWrap.className = 'teamText';
+          var bTxt  = document.createElement('span'); bTxt.textContent = teamBName; bTxt.className = 'loserText';
+          if (hasWinner && Number(winnerVal) === Number(teamBId)){
+            var bIco = document.createElement('span'); bIco.className = 'winIcon'; bIco.textContent='🏆'; bIco.setAttribute('aria-label','Sieger');
+            bTxt.className = 'winnerText';
+            bWrap.appendChild(bIco); bWrap.appendChild(bTxt);
+          } else {
+            bWrap.appendChild(bTxt);
+          }
+
+          left.appendChild(aWrap);
+          left.appendChild(bWrap);
+
+          main.appendChild(left);
+
+          tile.appendChild(top);
+          tile.appendChild(main);
+
+          // In passende Spalte (globales Feld-Layout) setzen
+          var colIdx = (field != null) ? fields.indexOf(Number(field)) : -1;
+          if (colIdx >= 0){
+            tile.style.gridColumn = (colIdx + 1) + ' / span 1';
+          }
+          grid.appendChild(tile);
+        }
+
+        slot.appendChild(timeCol);
+        slot.appendChild(grid);
+        cont.appendChild(slot);
       }
     }
 
-    // Statusanzeige aktualisieren
-    function setSocketStatus(kind){
-      const dot  = document.getElementById('socketDot');
-      const text = document.getElementById('socketText');
-      if(!dot || !text) return;
-      dot.classList.remove('ok','warn','err');
-      if(kind==='ok'){ dot.classList.add('ok');   text.textContent='Verbunden'; }
-      else if(kind==='warn'){ dot.classList.add('warn'); text.textContent='Neu verbinden…'; }
-      else { dot.classList.add('err'); text.textContent='Getrennt'; }
+    // === Vollständige Aktualisierung (beide Ansichten)
+    function refresh(){
+      return loadMatches()
+        .then(function(rows){
+          renderTable(rows);
+          renderTiles(rows);
+          setLastUpdate();
+        })
+        .catch(function(e){
+          console.error('Laden fehlgeschlagen:', e);
+          var el = document.getElementById('lastUpdate');
+          if (el){ el.textContent = 'Letztes Update: Fehler'; el.className = 'pill err'; }
+          setStatus(false);
+        });
     }
 
-    document.addEventListener('DOMContentLoaded', () => { reload(); });
+    // === Toggle: Default = KACHELN
+    (function wireToggle(){
+      var btnTable = document.getElementById('btnViewTable');
+      var btnTiles = document.getElementById('btnViewTiles');
+      var tableView = document.getElementById('tableView');
+      var tilesView = document.getElementById('tilesView');
+
+      function activate(which){
+        if (which === 'table'){
+          tableView.style.display = 'block';
+          tilesView.style.display = 'none';
+          btnTable.classList.add('btn-active');
+          btnTiles.classList.remove('btn-active');
+        } else {
+          tableView.style.display = 'none';
+          tilesView.style.display = 'block';
+          btnTiles.classList.add('btn-active');
+          btnTable.classList.remove('btn-active');
+        }
+      }
+
+      // Default: Tiles
+      activate('tiles');
+
+      if (btnTable) btnTable.addEventListener('click', function(){ activate('table'); });
+      if (btnTiles) btnTiles.addEventListener('click', function(){ activate('tiles'); });
+    })();
   </script>
 
-  /socket.io/socket.io.js</script>
   <script>
-    document.addEventListener('DOMContentLoaded', function(){
-      // Robuste Socket-Initialisierung
-      const s = window.io ? window.io(window.location.origin, {
+    // === Socket.IO Initialisierung (ES5)
+    (function initSocket(){
+      if (typeof io !== 'function'){
+        console.error('Socket.IO Client nicht geladen – prüfe die Einbindung von /socket.io/socket.io.js im HTML.');
+        setStatus(false);
+        return;
+      }
+      var base = window.location.origin;
+      var s = io(base, {
         path:'/socket.io',
         transports:['websocket','polling'],
         reconnectionAttempts:10,
         timeout:10000
-      }) : null;
+      });
 
-      if(!s) return;
-      s.on('connect', () => { console.log('Viewer socket connected'); setSocketStatus('ok'); });
-      s.on('disconnect', (reason) => { console.warn('Viewer socket disconnected:', reason); setSocketStatus('err'); });
-      s.on('connect_error', (err) => { console.error('Viewer socket connect_error:', err); setSocketStatus('warn'); });
-      s.on('reconnect_attempt', () => setSocketStatus('warn'));
-      s.on('reconnect', () => setSocketStatus('ok'));
+      s.on('connect',       function(){ setStatus(true);  console.log('Viewer connected'); });
+      s.on('disconnect',    function(r){ setStatus(false); console.warn('Viewer disconnected', r); });
+      s.on('connect_error', function(e){ setStatus(false); console.error('Viewer connect_error', e); });
 
-      // 🔁 Sofort-Reload bei allen relevanten Events:
-      const triggerReload = () => reload();
+      // Debounce, um Event-Spitzen zu glätten
+      var t;
+      function triggerDebounced(){
+        clearTimeout(t);
+        t = setTimeout(function(){ refresh(); }, 250);
+      }
 
+      // Relevante Events aus deinem Backend:
+      s.on('resultUpdate',    triggerDebounced);
+      s.on('results:updated', triggerDebounced);
+      s.on('group:started',   triggerDebounced);
+      s.on('round:advanced',  triggerDebounced);
+      s.on('matches:reset',   triggerDebounced);
+      s.on('schedule:recalculated', triggerDebounced); // optional
+    })();
+
+    // === Erste Ladung + Fallback Polling
+    document.addEventListener('DOMContentLoaded', function(){
+      refresh();
+      setInterval(refresh, 30000);
+    });
+  </script>
+</body>
+</html>
