@@ -97,6 +97,12 @@
     .tm-row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
     .tm-row label { color:#cbd5e1; font-size:.85rem; }
     .tm-row .input { min-width: 120px; }
+
+    /* Sieger-Icon */
+    .winIcon { font-size: 1rem; margin-right: .35rem; vertical-align: middle; }
+    .winnerText { color: var(--accent); font-weight: 600; }
+    .loserText  { color: var(--muted); }
+    .teamCell   { display:flex; align-items:center; gap:.35rem; }
   </style>
 </head>
 <body>
@@ -120,7 +126,7 @@
           <label for="qrBase" class="pill" title="Protokoll+Host+Port (z. B. http://192.168.0.25:3001)">Viewer‑Basis:</label>
           <input id="qrBase" class="input" style="min-width:260px;" placeholder="http://192.168.0.25:3001" />
           <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
-          #Viewer öffnen</a>
+          <a id="viewerLink" class="viewerLink" target="_blank" rel="noopener">Viewer öffnen</a>
         </div>
       </div>
 
@@ -172,6 +178,8 @@
           <button id="btnStartA" type="button" class="btn grpA">Gruppe A starten</button>
           <button id="btnStartB" type="button" class="btn grpB">Gruppe B starten</button>
           <button id="btnStartC" type="button" class="btn grpC">Gruppe C starten</button>
+          <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
+          <span id="nextMsg" class="pill" style="display:none"></span>
           <button id="btnReset"  type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
         </div>
       </header>
@@ -201,26 +209,23 @@
             <tr>
               <th>ID</th>
               <th>Gruppe</th>
+              <th>Runde</th>
               <th>Feld</th>
-              <th>Zeit</th><!-- geplante Startzeit vom Server -->
+              <th>Zeit</th>
               <th>Team A</th>
               <th>Team B</th>
+              <th>Sieger</th>
               <th>Aktion</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
-
-      <div class="row" style="padding:0 1rem 1rem">
-        <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
-        <span id="nextMsg" class="pill" style="display:none"></span>
-      </div>
     </section>
   </main>
 
   <!-- ===== Socket.IO ===== -->
-  /socket.io/socket.io.js</script>
+  <script src="/socket.io/socket.io.js"></script>
 
   <!-- ===== Logo-Setup & QR-Header (offline, lokal) ===== -->
   <script>
@@ -263,7 +268,7 @@
       return base.replace(/\/+$/,'') + '/viewer.html';
     }
 
-    /* Lokaler QR-Generator (SVG, scannbar, offline) */
+    /* Lokaler QR-Generator (vereinfachtes Muster) */
     function makeSimpleMatrix(text, size){
       const n = size; const m = Array.from({length:n}, () => Array(n).fill(0));
       const fp = (x,y)=>{
@@ -276,7 +281,6 @@
       };
       fp(0,0); fp(n-7,0); fp(0,n-7);
       for(let i=8;i<n-8;i++){ m[6][i] = i%2?1:0; m[i][6] = i%2?1:0; }
-      // vereinfachte Füllung mit Seed
       let seed = 0; for (const ch of text) seed = (seed*131 + ch.charCodeAt(0)) >>> 0;
       let x=n-1, y=n-1;
       for(let k=0;k<n*n; k++){
@@ -464,7 +468,7 @@
     }
   </script>
 
-  <!-- ===== Teams: je Gruppe eigene Tabelle ===== -->
+  <!-- ===== Teams: je Gruppe eigene Tabelle (ohne „Gruppe“-Spalte) ===== -->
   <script>
     function buildTeamsGrid(groups){
       const grid = document.getElementById('teamsGrid');
@@ -478,7 +482,6 @@
           <tr>
             <th style="width:80px;">ID</th>
             <th>Name</th>
-            <th style="width:120px;">Gruppe</th>
             <th style="width:160px;">Aktion</th>
           </tr>`;
         table.appendChild(thead);
@@ -506,12 +509,21 @@
       TEAMS.forEach(t => {
         const g = String(t.groupName || '').trim().toUpperCase();
         const tbody = document.getElementById(`teams-tbody-${g}`); if (!tbody) return;
+
         const tr = document.createElement('tr'); tr.classList.add(groupClass(t.groupName));
         const tdId = document.createElement('td'); tdId.textContent = t.id ?? '';
         const tdName = document.createElement('td'); tdName.textContent = t.name ?? '';
-        const tdGroup = document.createElement('td'); const badge = document.createElement('span'); badge.className='pill '+groupClass(t.groupName); badge.textContent=t.groupName||''; tdGroup.appendChild(badge);
-        const tdAction = document.createElement('td'); const btnDel = document.createElement('button'); btnDel.className='btn btn-danger'; btnDel.type='button'; btnDel.dataset.action='delete'; btnDel.dataset.id=String(t.id); btnDel.textContent='Löschen'; tdAction.appendChild(btnDel);
-        tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdGroup); tr.appendChild(tdAction);
+        const tdAction = document.createElement('td');
+        const btnDel = document.createElement('button');
+        btnDel.className='btn btn-danger'; btnDel.type='button';
+        btnDel.dataset.action='delete'; btnDel.dataset.id=String(t.id);
+        btnDel.textContent='Löschen';
+        tdAction.appendChild(btnDel);
+
+        tr.appendChild(tdId);
+        tr.appendChild(tdName);
+        tr.appendChild(tdAction);
+
         tbody.appendChild(tr);
       });
     }
@@ -522,7 +534,7 @@
     }
   </script>
 
-  <!-- ===== Matches: Rendering (inkl. geplanter Zeit) ===== -->
+  <!-- ===== Matches: Rendering (altes Layout, Bugfix Team A/B) ===== -->
   <script>
     function renderMatches() {
       const tbody = document.querySelector('#matchesTable tbody');
@@ -540,14 +552,16 @@
 
         const id        = m?.id ?? '';
         const groupName = m?.groupName ?? '';
+        const round     = m?.round ?? '';
         const field     = m?.field ?? '';
         const teamAId   = m?.teamA_id ?? null;
         const teamBId   = m?.teamB_id ?? null;
         const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
         const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
-        const winnerVal = m?.winner ?? null;
         const planned   = m?.plannedStart ?? '–';
+        const winnerVal = (m?.winner ?? null);
 
+        // Zellen
         const tdId    = document.createElement('td'); tdId.textContent = id;
 
         const tdGroup = document.createElement('td');
@@ -556,13 +570,50 @@
         badge.textContent = groupName;
         tdGroup.appendChild(badge);
 
+        const tdRound = document.createElement('td'); tdRound.textContent = round;
         const tdField = document.createElement('td'); tdField.textContent = field;
+        const tdTime  = document.createElement('td'); tdTime.textContent = planned;
+				
+	// Gewinner ermitteln
+	const w = (m?.winner ?? null);
+	const isWinA = Number.isFinite(Number(w)) && Number(w) === Number(teamAId);
+	const isWinB = Number.isFinite(Number(w)) && Number(w) === Number(teamBId);
 
-        const tdTime = document.createElement('td'); tdTime.textContent = planned;
+	// Team A (nur Team A in dieser Spalte)
+	const tdA = document.createElement('td');
+	const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
+	if (isWinA) {
+	  const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
+	  const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = teamAName;
+	  wrapA.append(icoA, txtA);
+	} else {
+	  const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = teamAName;
+	  wrapA.append(txtA);
+	}
+	tdA.replaceChildren(wrapA);
 
-        const tdA = document.createElement('td'); tdA.className = 'teamCell'; tdA.textContent = teamAName;
-        const tdB = document.createElement('td'); tdB.className = 'teamCell'; tdB.textContent = teamBName;
+	// Team B (nur Team B in dieser Spalte)
+	const tdB = document.createElement('td');
+	const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
+	if (isWinB) {
+	  const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
+	  const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = teamBName;
+	  wrapB.append(icoB, txtB);
+	} else {
+	  const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = teamBName;
+	  wrapB.append(txtB);
+	}
+	tdB.replaceChildren(wrapB);
 
+	// Sieger-Spalte
+	const tdWinner = document.createElement('td');
+	if (Number.isFinite(Number(w))) {
+	  tdWinner.textContent = (Number(w) === Number(teamAId)) ? teamAName : teamBName;
+	} else {
+	  tdWinner.textContent = '–';
+	}
+
+        // Aktionen
         const tdAct = document.createElement('td'); tdAct.className = 'row';
         const grpCls = groupClass(groupName);
 
@@ -576,17 +627,10 @@
         btnWinB.dataset.id = String(id); if (teamBId != null) btnWinB.dataset.team = String(teamBId);
         btnWinB.textContent = 'Sieger: Team B';
 
-        tdAct.appendChild(btnWinA);
-        tdAct.appendChild(btnWinB);
+        tdAct.append(btnWinA, btnWinB);
 
-        tr.appendChild(tdId);
-        tr.appendChild(tdGroup);
-        tr.appendChild(tdField);
-        tr.appendChild(tdTime);
-        tr.appendChild(tdA);
-        tr.appendChild(tdB);
-        tr.appendChild(tdAct);
-
+        // Reihenfolge gemäß Tabellenkopf
+        tr.append(tdId, tdGroup, tdRound, tdField, tdTime, tdA, tdB, tdWinner, tdAct);
         tbody.appendChild(tr);
       });
 
@@ -662,13 +706,13 @@
     }
 
     function wireUI(){
+      // Teams
       document.getElementById('btnLoadTeams')?.addEventListener('click', refreshTeams);
       document.getElementById('btnDeleteAllTeams')?.addEventListener('click', async () => {
-        if (!confirm('Wirklich ALLE Teams löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+        if (!confirm('Wirklich ALLE Teams löschen?')) return;
         try { await deleteAllTeams(); showMsg('#teamsMsg', 'Alle Teams wurden gelöscht.'); await refreshTeams(); }
         catch (err) { showMsg('#teamsMsg', 'Fehler beim Löschen aller Teams: ' + err.message, true); }
       });
-
       document.getElementById('btnAddTeam')?.addEventListener('click', async () => {
         const name = (document.getElementById('teamName').value || '').trim();
         const groupName = document.getElementById('teamGroup').value;
@@ -676,7 +720,6 @@
         try { await addTeam(name, groupName); showMsg('#teamsMsg','Team hinzugefügt.'); document.getElementById('teamName').value=''; await refreshTeams(); }
         catch (err) { showMsg('#teamsMsg', 'Fehler: ' + err.message, true); }
       });
-
       document.getElementById('btnImportTeams')?.addEventListener('click', async () => {
         const inp = document.getElementById('teamsFile');
         if (!inp || !inp.files || !inp.files[0]) { showMsg('#importMsg','Bitte CSV/JSON Datei auswählen.', true); return; }
@@ -702,6 +745,7 @@
         } catch (err) { showMsg('#importMsg','Import‑Fehler: ' + err.message, true); }
       });
 
+      // Matches
       document.getElementById('btnLoadMatches')?.addEventListener('click', refreshMatches);
       document.getElementById('btnReset')?.addEventListener('click', async () => {
         if (!confirm('Spielplan wirklich zurücksetzen?')) return;
@@ -718,6 +762,7 @@
         catch (err) { showMsg('#nextMsg','Fehler: ' + err.message, true); }
       });
 
+      // Zeitplan
       wireScheduleUI();
       fillScheduleUI();
     }
@@ -728,10 +773,8 @@
       initSocket();   // Live-Updates
       refreshTeams();
       refreshMatches();
-      // Fallback Polling
-      setInterval(refreshMatches, 15000);
+      setInterval(refreshMatches, 15000); // Fallback Polling
     });
   </script>
 </body>
 </html>
-``
