@@ -12,12 +12,23 @@
       --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --border:#1f2937;
       --tileA:#0b1b3a; --tileB:#2b0c0c; --tileC:#052e1b;
       --tileAbr:#1d4ed8; --tileBbr:#7f1d1d; --tileCbr:#166534;
+	  
+	  /* Sticky-Offsets werden per JS gesetzt */
+      --sticky-offset: 64px;   /* Höhe des Haupt-Headers (Logo/Status) */
+      --sticky-sec: 42px;      /* Höhe des Abschnitt-Headers („Spielübersicht“) */
     }
     html,body{height:100%;}
     body{margin:0; background:var(--bg); color:var(--fg);
          font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial;}
-    header{position:sticky; top:0; z-index:10; background:var(--card);
-           border-bottom:1px solid var(--border);}
+    /* ===== STICKY: Hauptheader (Logo/Status) ===== */
+    body > header{
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--card);
+      border-bottom:1px solid var(--border);
+      box-shadow: 0 2px 0 rgba(0,0,0,.15);
+    }
     .bar{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem;}
     .leftWrap{display:flex; align-items:center; gap:.75rem;}
     .clubLogo{width:48px; height:48px; object-fit:contain; border-radius:6px;
@@ -32,7 +43,15 @@
 
     main{max-width:1200px; margin:0 auto; padding:1rem;}
     section{background:var(--card); border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;}
-    section > header{display:flex; align-items:center; justify-content:space-between; padding:.75rem 1rem; border-bottom:1px solid var(--border);}
+    section > header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.75rem 1rem; border-bottom:1px solid var(--border);
+      position: sticky;
+      top: var(--sticky-offset);
+      z-index: 900;
+      background: var(--card);
+      box-shadow: 0 2px 0 rgba(0,0,0,.15);
+    }
     .hdrRight{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;}
     .viewToggle{display:flex; gap:.35rem;}
     .btn{cursor:pointer; border:1px solid var(--border); background:#0b1020; color:#e5e7eb; padding:.35rem .6rem; border-radius:6px; font-weight:600; font-size:.85rem;}
