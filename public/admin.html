@@ -10,7 +10,7 @@
     /* ===== Dunkles Grund-Theme ===== */
     :root {
       --bg: #0f172a; --fg: #e5e7eb; --muted: #9ca3af; --accent: #22c55e; --danger: #ef4444;
-      --card: #111827; --border: #1d4e2f;
+      --card: #111827; --border: #1f2937;
 
       /* Gruppenfarben */
       --grpA-bg: #0b1b3a; --grpA-fg: #bfdbfe; --grpA-br: #1d4ed8;
@@ -37,7 +37,17 @@
     header h1 { margin:0; font-size:1.25rem; }
 
     .viewerLink { color: var(--muted); text-decoration: none; }
-    #qrImageHeader { width:128px; height:128px; border-radius:4px; border:1px solid var(--border); pointer-events:none; background:#0b1020; }
+
+    /* QR-Container mit Quiet Zone */
+    #qrImageHeader {
+      width:256px; height:256px;
+      background:#fff;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:4px;
+      display:flex; align-items:center; justify-content:center;
+      box-sizing:content-box;
+    }
 
     .logoPath{
       display:inline-flex; align-items:center; gap:.35rem;
@@ -64,16 +74,16 @@
     .btn-success { border-color:#166534; background:#052e1b; color:#86efac; }
     .btn-danger  { border-color:#7f1d1d; background:#2b0c0c; color:#fecaca; }
     .btn-muted   { border-color:var(--border); background:#0b1020; color:#9ca3af; }
+
     .btn.grpA { border-color:var(--grpA-br); background:var(--grpA-bg); color:var(--grpA-fg); }
     .btn.grpB { border-color:var(--grpB-br); background:var(--grpB-bg); color:var(--grpB-fg); }
     .btn.grpC { border-color:var(--grpC-br); background:var(--grpC-bg); color:var(--grpC-fg); }
 
-    .input, select { background:#0b1020; color:var(--fg); border:1px solid var(--border);
-                     border-radius:6px; padding:.45rem .6rem; min-height:2rem; }
+    .input, select { background:#0b1020; color:var(--fg); border:1px solid var(--border); border-radius:6px; padding:.45rem .6rem; min-height:2rem; }
 
     table { width:100%; border-collapse:collapse; }
     th, td { border-bottom:1px solid var(--border); padding:.5rem; text-align:left; }
-    th { color:#cbd5e1; font-weight:700; }
+    th { color:#cbd5e1; font-weight:700; background:#0b1020; }
     tr:hover td { background:#0a0f1f; }
 
     .pill { display:inline-block; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.8rem; color:#9ca3af; }
@@ -98,20 +108,18 @@
     .tm-row label { color:#cbd5e1; font-size:.85rem; }
     .tm-row .input { min-width: 120px; }
 
-    /* Sieger-Icon */
+    /* ===== Sieger-Icon & Team-Text ===== */
     .winIcon { font-size: 1rem; margin-right: .35rem; vertical-align: middle; }
     .winnerText { color: var(--accent); font-weight: 600; }
     .loserText  { color: var(--muted); }
-    .teamCell   { display:flex; align-items:center; gap:.35rem; }
+    .teamNameWrap { display:inline-flex; align-items:center; gap:.35rem; }
   </style>
 </head>
 <body>
-  <!-- ===== HEADER: Logo + Viewer-Basis + QR rechts ===== -->
   <header>
     <div class="bar">
       <div class="leftWrap">
         <div class="titleWrap">
-          <!-- Vereinslogo, Pfad & Fehlermeldung -->
           <img class="clubLogo" id="clubLogo" alt="Vereinslogo" />
           <div style="display:flex; flex-direction:column; gap:.25rem;">
             <h1>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</h1>
@@ -123,21 +131,23 @@
         </div>
 
         <div class="row" style="gap:.5rem;">
-          <label for="qrBase" class="pill" title="Protokoll+Host+Port (z. B. http://192.168.0.25:3001)">Viewer‑Basis:</label>
-          <input id="qrBase" class="input" style="min-width:260px;" placeholder="http://192.168.0.25:3001" />
+          <label for="qrBase" class="pill" title="Protokoll+Host+Port (z. B. 192.168.0.25)">Viewer‑Basis:</label>
+          <input id="qrBase" type="text" class="input" style="min-width:260px;" placeholder="192.168.0.25" />
           <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
           <a id="viewerLink" class="viewerLink" target="_blank" rel="noopener">Viewer öffnen</a>
         </div>
       </div>
 
       <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
-        <img id="qrImageHeader" alt="QR-Code zum Viewer" />
+        <div class="container">
+			<img src="" id="qr-img">
+		</div>
       </div>
     </div>
   </header>
 
   <main>
-    <!-- ===== TEAMS ===== -->
+    <!-- Teams -->
     <section id="teamsSection">
       <header>
         <h2>Teams</h2>
@@ -169,7 +179,7 @@
       </div>
     </section>
 
-    <!-- ===== MATCHES ===== -->
+    <!-- Matches -->
     <section id="matchesSection">
       <header>
         <h2>Spiele</h2>
@@ -224,12 +234,13 @@
     </section>
   </main>
 
-  <!-- ===== Socket.IO ===== -->
+  <!-- ===== CHANGED: Socket.IO korrekt einbinden ===== -->
   <script src="/socket.io/socket.io.js"></script>
 
-  <!-- ===== Logo-Setup & QR-Header (offline, lokal) ===== -->
+  <script src="qr_script.js"></script>
+
+  <!-- Logo -->
   <script>
-    /* LOGO: relativer Pfad unterhalb von / (public-Root) */
     const LOGO_PATH = '/assets/Fussballwappen_logo.png';
     const cacheBust = () => `?_v=${Date.now()}`;
 
@@ -247,88 +258,8 @@
       img.src = url;
     }
 
-    /* QR-Basis-URL Speicher & Anzeige */
-    function loadQRBase() {
-      const v = localStorage.getItem('admin.qrBase') || '';
-      const inp = document.getElementById('qrBase');
-      if (inp) inp.value = v;
-      return v;
-    }
-    function saveQRBase() {
-      const v = (document.getElementById('qrBase')?.value || '').trim();
-      if (v && !/^https?:\/\/.+/.test(v)) {
-        alert('Bitte vollständige Basis-URL inkl. Protokoll (z. B. http://192.168.0.25:3001)');
-        return false;
-      }
-      localStorage.setItem('admin.qrBase', v);
-      return true;
-    }
-    function getViewerUrlFromQRBase() {
-      const base = loadQRBase() || window.location.origin;
-      return base.replace(/\/+$/,'') + '/viewer.html';
-    }
-
-    /* Lokaler QR-Generator (vereinfachtes Muster) */
-    function makeSimpleMatrix(text, size){
-      const n = size; const m = Array.from({length:n}, () => Array(n).fill(0));
-      const fp = (x,y)=>{
-        for(let i=0;i<7;i++){
-          for(let j=0;j<7;j++){
-            const b = (i===0||j===0||i===6||j===6) || (i>=2&&i<=4&&j>=2&&j<=4);
-            m[y+j][x+i] = b ? 1 : 0;
-          }
-        }
-      };
-      fp(0,0); fp(n-7,0); fp(0,n-7);
-      for(let i=8;i<n-8;i++){ m[6][i] = i%2?1:0; m[i][6] = i%2?1:0; }
-      let seed = 0; for (const ch of text) seed = (seed*131 + ch.charCodeAt(0)) >>> 0;
-      let x=n-1, y=n-1;
-      for(let k=0;k<n*n; k++){
-        const val = ((seed>>((k%24))) & 1);
-        if (m[y][x]===0) m[y][x]=val;
-        x--; if (x<0){ x=n-1; y--; if (y<0) break; }
-      }
-      return m;
-    }
-    function matrixToSVG(matrix, scale){
-      const n = matrix.length; const s = scale || 4; const sz = n*s;
-      let rects = '';
-      for(let y=0;y<n;y++){
-        for(let x=0;x<n;x++){
-          if (matrix[y][x]) rects += `<rect x="${x*s}" y="${y*s}" width="${s}" height="${s}" fill="#000"/>`;
-        }
-      }
-      const svg =
-        `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}">
-           <rect width="100%" height="100%" fill="#fff"/>
-           ${rects}
-         </svg>`;
-      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    }
-    function generateLocalQR(text){ const m = makeSimpleMatrix(text, 29); return matrixToSVG(m, 4); }
-
-    async function updateHeaderQR() {
-      const viewerUrl = getViewerUrlFromQRBase();
-      const a = document.getElementById('viewerLink');
-      if (a) { a.href = viewerUrl; a.textContent = viewerUrl; }
-      const qrImg = document.getElementById('qrImageHeader');
-      if (!qrImg) return;
-      try {
-        qrImg.src = generateLocalQR(viewerUrl);
-        qrImg.style.display = 'block';
-      } catch (e){
-        console.error('QR-Erzeugung fehlgeschlagen:', e);
-        qrImg.style.display = 'none';
-      }
-    }
     function initHeader(){
       setLogo();
-      loadQRBase();
-      document.getElementById('btnSaveQRBase')?.addEventListener('click', () => {
-        if (!saveQRBase()) return;
-        updateHeaderQR();
-      });
-      updateHeaderQR();
     }
   </script>
 
