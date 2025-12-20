@@ -16,6 +16,12 @@
       /* Sticky-Offsets werden per JS gesetzt */
       --sticky-offset: 64px;   /* Höhe des Haupt-Headers (Logo/Status) */
       --sticky-sec: 42px;      /* Höhe des Abschnitt-Headers („Spielübersicht“) */
+	  
+	  /* Bild hinter Kacheln: Breite der Zeit-Spalte + Gap (für Linksfreihaltung) */
+      --time-col-w: 102px;     /* 90px slotTime + 12px Gap */
+	  --time-col-w2: -15px;
+	  --time-col-h: -100px;
+	  --time-col-h2: -150px;
     }
 
     html,body{height:100%;}
@@ -120,10 +126,10 @@
       .tilesHeadGlobal{display:none;} /* auf sehr kleinen Screens Kopf ausblenden */
     }
 
-    .tile{border:1px solid var(--border); border-radius:10px; padding:.6rem .8rem; display:flex; flex-direction:column; gap:.4rem;}
-    .tile.grpA{background:var(--tileA); border-color:var(--tileAbr);}
-    .tile.grpB{background:var(--tileB); border-color:var(--tileBbr);}
-    .tile.grpC{background:var(--tileC); border-color:var(--tileCbr);}
+    .tile{background-color: rgba(17, 24, 39, 0.60); /* ~60% Deckkraft (aus --card abgeleitet) */border:1px solid var(--border); border-radius:10px; padding:.6rem .8rem; display:flex; flex-direction:column; gap:.4rem;}
+    .tile.grpA{background:var(--tileA); border-color:var(--tileAbr); background-color: rgba(11, 27, 58, 0.40);}
+    .tile.grpB{background:var(--tileB); border-color:var(--tileBbr); background-color: rgba(43, 12, 12, 0.40);}
+    .tile.grpC{background:var(--tileC); border-color:var(--tileCbr); background-color: rgba(5, 46, 27, 0.40);}
     .tileTop{display:flex; justify-content:space-between; align-items:center;}
     .tileTopLeft{display:flex; gap:.4rem; align-items:center; flex-wrap:wrap;}
     .tileTag{display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .5rem; font-size:.85rem; color:#cbd5e1;}
@@ -134,6 +140,28 @@
     /* ID-Tag & Runden-Badge in der Kachel (rechts, prominent unter der ID) */
     .idTag{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.1rem .45rem; font-size:.8rem; color:#cbd5e1; background:#0b1020; margin-left:.4rem;}
     .roundBadge{display:inline-block; margin-top:.35rem; border:1px solid var(--border); border-radius:8px; padding:.12rem .5rem; font-weight:700; font-size:.9rem; color:#e5e7eb; background:#0b1020;}
+	
+	/* ===== Bild NUR hinter den Kacheln, NICHT hinter der Zeit-Spalte ===== */
+    #tilesContainer{
+      position: relative;
+      isolation: isolate;           /* eigener Z-Stack */
+    }
+    #tilesContainer::before{
+      content: '';
+      position: absolute;
+      top: var(--time-col-h); right: var(--time-col-w2); bottom: var(--time-col-h2);
+      left: var(--time-col-w);      /* Bild startet NACH der Zeit-Spalte */
+      z-index: 0;
+      background:
+        linear-gradient(rgba(12,18,34,.45), rgba(12,18,34,.45)),
+        url('/assets/bg_hallenmasters_Gym.jpg') center / contain no-repeat; /* Pfad anpassen */
+      pointer-events: none;
+    }
+    /* Kachel-Inhalte über dem Bild-Layer halten */
+    #tilesHeadGlobal, #tilesContainer > .slotRow, #tilesEmpty{
+      position: relative;
+      z-index: 1;
+    }
   </style>
 </head>
 <body>
