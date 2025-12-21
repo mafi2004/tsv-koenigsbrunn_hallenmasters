@@ -198,33 +198,46 @@
     .view-hall  #hallView { display:block; }
     .view-teams #teamsView{ display:block; }
 	
-	/* ===== Werbe-Block (Tile-Stil, türkis), Bild neben Überschrift ===== */
+	/* ===== Werbe-Block (Tile-Stil, türkis, klappbar) ===== */
     .adWrap{ padding: 1rem; }
     .adTileHeader{
       display:flex; align-items:center; justify-content:space-between;
-      gap: 12px;
+      gap: 12px; cursor:pointer;
     }
-    .adTitle{
-      margin:0; font-size:1.2rem; font-weight:700; color:#e5e7eb;
-    }
+    .adTitle{ margin:0; font-size:1.2rem; font-weight:700; color:#e5e7eb; }
     .adHeaderImg{
-      /* halb so groß darstellen, bezogen auf typische Header-Logos */
-      height: 48px;          /* kannst du z. B. auf 40–56px variieren */
-      max-height: 48px;
-      width: auto;
-      border-radius:6px;
-      border:1px solid var(--border);
-      background:#0b1020;
+      height: 48px; max-height: 48px; width: auto;
+      border-radius:6px; border:1px solid var(--border); background:#0b1020;
       box-shadow:0 2px 8px rgba(0,0,0,.25);
     }
-    .adBody{
-      margin-top:.6rem;
-      color:#cbd5e1; line-height:1.55; white-space:pre-wrap; font-size: 0.9rem;
+    .adToggleIcon{
+      display:inline-block; margin-left:.5rem; transition: transform .18s ease;
     }
-    /* optional: auf sehr schmalen Screens Bild über Titel */
+    .adBody{
+      margin-top:.6rem; color:#cbd5e1; line-height:1.55; white-space:pre-wrap;
+      /* Collapsible animation: height transition via max-height */
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .22s ease, opacity .22s ease, margin-top .22s ease;
+      opacity: 0;
+	  font-size: 0.9rem;
+    }
+    .adTile[aria-expanded="true"] .adBody{
+      max-height: 500px; /* ausreichend groß für typischen Text */
+      opacity: 1;
+      margin-top: .6rem;
+    }
+    .adTile[aria-expanded="true"] .adToggleIcon{ transform: rotate(90deg); }
+
+    /* Tastatur-Fokus sichtbar auf Header */
+    .adTileHeader:focus{
+      outline: 2px solid #14b8a6; outline-offset: 2px;
+      border-radius: 6px;
+    }
+
     @media (max-width: 560px){
       .adTileHeader{ flex-wrap:wrap; }
-      .adHeaderImg{ order: 2; }
+      .adHeaderImg{ order: 2; margin-top:.35rem; }
     }
   </style>
 </head>
@@ -300,16 +313,18 @@
         <div id="teamsEmpty" class="emptyMsg" style="display:none">Es wurden noch keine Teams eingetragen.</div>
       </div>
 	  
-	  <!-- ===== Fester Werbe-Block (immer sichtbar, Tile-Stil, türkis, Bild neben Überschrift) ===== -->
+	  <!-- ===== Werbe-Infobox (klappbar) ===== -->
       <div class="adWrap">
-        <div class="tile grpF" aria-label="Werbung">
-          <!-- Kopfzeile des Werbe-Tiles: Titel links, Bild rechts -->
-          <div class="adTileHeader">
-            <h3 class="adTitle">2. Königsbrunner Mini-Fußball Sommerfestival</h3>
+        <div id="adTile" class="tile grpF adTile" aria-label="Werbung" aria-expanded="false">
+          <!-- Header: Titel + Bild + optionales Toggle-Icon -->
+          <div id="adHeader" class="adTileHeader" role="button" tabindex="0" aria-controls="adBody">
+            <h3 class="adTitle">2. Königsbrunner Mini-Fußball Sommerfestival
+              <span class="adToggleIcon">›</span>
+            </h3>
             <img id="adHeaderImg" class="adHeaderImg" src="/assets/save_the_date.jpg" alt="Info" />
           </div>
-          <!-- Text über volle Breite -->
-          <div class="adBody">
+          <!-- Body: Text (vollbreit, collapsible) -->
+          <div id="adBody" class="adBody">
 Der TSV Königsbrunn veranstaltet am 04. und 05. Juli 2026 im Rahmen des 100-jährigen Vereinsjubiläums ein Minifußball Sommerfestival für die Jahrgänge 2015-2020.
 
 Hierzu laden wir euch mit euren Teams recht herzlich ein!
@@ -323,7 +338,7 @@ Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird
           </div>
         </div>
       </div>
-      <!-- ===== Ende Werbe-Block ===== -->
+      <!-- ===== Ende Werbe-Infobox ===== -->
     </section>
   </main>
 
@@ -814,6 +829,27 @@ Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird
 	  updateSectionTitle('tiles'); // sicher den Titel initial setzen
       refresh();
       setInterval(refresh, 30000);
+	  
+	  // Collapsible: Header klickbar + Tastatur
+      var adTile   = document.getElementById('adTile');
+      var adHeader = document.getElementById('adHeader');
+
+      function toggleAd(){
+        if (!adTile) return;
+        var expanded = adTile.getAttribute('aria-expanded') === 'true';
+        adTile.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        console.debug('Ad toggled:', !expanded);
+      }
+
+      if (adHeader){
+        adHeader.addEventListener('click', toggleAd);
+        adHeader.addEventListener('keydown', function(ev){
+          if (ev.key === 'Enter' || ev.key === ' ' || ev.keyCode === 13 || ev.keyCode === 32){
+            ev.preventDefault();
+            toggleAd();
+          }
+        });
+      }
     });
   </script>
 </body>
