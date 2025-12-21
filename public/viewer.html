@@ -10,41 +10,37 @@
     :root{
       --bg:#0f172a; --card:#111827; --fg:#e5e7eb; --muted:#9ca3af;
       --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --border:#1f2937;
-      --tileA:#0b1b3a; --tileB:#2b0c0c; --tileC:#052e1b;
-      --tileAbr:#1d4ed8; --tileBbr:#7f1d1d; --tileCbr:#166534;
 
-      /* Sticky-Offsets werden per JS gesetzt */
-      --sticky-offset: 64px;   /* Höhe des Haupt-Headers (Logo/Status) */
-      --sticky-sec: 42px;      /* Höhe des Abschnitt-Headers („Spielübersicht“) */
-	  
-	  /* Bild hinter Kacheln: Breite der Zeit-Spalte + Gap (für Linksfreihaltung) */
-      --time-col-w: 102px;     /* 90px slotTime + 12px Gap */
-	  --time-col-w2: -15px;
-	  --time-col-h: -100px;
-	  --time-col-h2: -150px;
+      /* Sticky-Offsets (werden per JS gesetzt) */
+      --sticky-offset: 64px;  /* Höhe Haupt-Header */
+      --sticky-sec: 42px;     /* Höhe Abschnitt-Header */
+
+      /* Zeitspaltenbreite + Gap (Tiles) */
+      --time-col-w: 102px;    /* 90px .slotTime + 12px Gap */
+
+      /* Höhe des Feld-Kopfes über den Tiles (per JS gesetzt) */
+      --tiles-head-h: 0px;
     }
 
     html,body{height:100%;}
-    body{margin:0; background:var(--bg); color:var(--fg);
-         font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial;}
+    body{
+      margin:0; background:var(--bg); color:var(--fg);
+      font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+    }
 
     /* ===== STICKY: Hauptheader (Logo/Status) ===== */
     body > header{
-      position: sticky;
-      top: 0;
-      z-index: 1000;
+      position: sticky; top: 0; z-index: 1000;
       background: var(--card);
       border-bottom:1px solid var(--border);
       box-shadow: 0 2px 0 rgba(0,0,0,.15);
     }
     .bar{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem;}
     .leftWrap{display:flex; align-items:center; gap:.75rem;}
-    .clubLogo{width:48px; height:48px; object-fit:contain; border-radius:6px;
-              background:#0b1020; border:1px solid var(--border);}
+    .clubLogo{width:48px; height:48px; object-fit:contain; border-radius:6px; background:#0b1020; border:1px solid var(--border);}
     h1{margin:0; font-size:1.15rem;}
     .meta{display:flex; gap:.75rem; align-items:center; color:var(--muted); font-size:.9rem;}
-    .pill{display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .5rem;
-          border-radius:999px; border:1px solid var(--border); font-size:.85rem;}
+    .pill{display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.85rem;}
     .pill.ok{color:#d1fae5; border-color:#065f46; background:#064e3b;}
     .pill.err{color:#fee2e2; border-color:#7f1d1d; background:#1b0f12;}
     .pill.warn{color:#ffedd5; border-color:#7c2d12; background:#1c0f0a;}
@@ -56,60 +52,60 @@
     section > header{
       display:flex; align-items:center; justify-content:space-between;
       padding:.75rem 1rem; border-bottom:1px solid var(--border);
-      position: sticky;
-      top: var(--sticky-offset);
-      z-index: 900;
+      position: sticky; top: var(--sticky-offset); z-index: 900;
       background: var(--card);
       box-shadow: 0 2px 0 rgba(0,0,0,.15);
     }
     .hdrRight{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;}
-    .viewToggle{display:flex; gap:.35rem;}
-    .btn{cursor:pointer; border:1px solid var(--border); background:#0b1020; color:#e5e7eb; padding:.35rem .6rem; border-radius:6px; font-weight:600; font-size:.85rem;}
+    .viewToggle{display:flex; gap:.35rem; flex-wrap:wrap;}
+    .btn{
+      cursor:pointer; border:1px solid var(--border); background:#0b1020; color:#e5e7eb;
+      padding:.35rem .6rem; border-radius:6px; font-weight:600; font-size:.85rem;
+    }
     .btn-active{background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe;}
 
     /* ===== Tabellenansicht ===== */
-	/* Tabelle: feste Berechnung & sauberer Sticky-Kopf */
-	.tableWrap{
-	  padding: 1rem;
-	  overflow: auto;
-	}
+    .tableWrap{padding:1rem; overflow:auto;}
+    table{
+      width:100%;
+      border-collapse: separate; /* wichtig: kein collapse bei sticky */
+      table-layout: fixed;       /* identische Spaltenbreiten */
+    }
+    th,td{
+      padding:.5rem; border-bottom:1px solid var(--border); text-align:left;
+      box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    /* Kopf sticky im eigenen Scroll-Container (top:0, Bezug = .tableWrap) */
+    .tableWrap thead{
+      position: sticky; top: 0; z-index: 800; background:#0b1020;
+    }
+    /* Spacer für erste Datenzeile (Höhe des thead) — wird per JS gesetzt */
+    .tableWrap tbody::before{
+      content:''; display:block; height: var(--thead-spacer, 0px);
+    }
 
-	table{
-	  width: 100%;
-	  border-collapse: separate;     /* ← wichtig: kein collapse bei sticky */
-	  table-layout: fixed;           /* ← identische Spaltenbreiten für thead/tbody */
-	}
+    /* Zeilenfärbung je Gruppe A–F */
+    tr.grpA td{ background:rgba(29,78,216,.08); }
+    tr.grpB td{ background:rgba(220,38,38,.08); }
+    tr.grpC td{ background:rgba(22,163,74,.08); }
+    tr.grpD td{ background:rgba(245,158,11,.12); }
+    tr.grpE td{ background:rgba(139,92,246,.12); }
+    tr.grpF td{ background:rgba(20,184,166,.12); } /* Teal */
 
-	.tableWrap thead{
-	  position: sticky;              /* ← sticky auf thead statt th */
-	  top: 0;
-	  z-index: 1;
-	  background: #0b1020;           /* ← durchgehender Hintergrund */
-	}
-
-	/* optisch gleich für Kopf/Zellen */
-	th, td{
-	  padding: .5rem;
-	  border-bottom: 1px solid var(--border);
-	  text-align: left;
-	  box-sizing: border-box;
-	  white-space: nowrap;           /* verhindert Zeilenumbruch-Drift */
-	  overflow: hidden;
-	  text-overflow: ellipsis;
-	}
-    tr.grpA td{background:rgba(29,78,216,.07);}
-    tr.grpB td{background:rgba(220,38,38,.07);}
-    tr.grpC td{background:rgba(22,163,74,.07);}
     .grpBadge{display:inline-block; padding:.1rem .4rem; border-radius:999px; font-size:.75rem; border:1px solid var(--border);}
     .grpBadge.A{color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8;}
     .grpBadge.B{color:#fecaca; background:#2b0c0c; border-color:#7f1d1d;}
     .grpBadge.C{color:#86efac; background:#052e1b; border-color:#166534;}
+    .grpBadge.D{color:#fde68a; background:#1f2937; border-color:#f59e0b;}
+    .grpBadge.E{color:#ddd6fe; background:#1f2937; border-color:#8b5cf6;}
+    .grpBadge.F{color:#a7f3d0; background:#0f3b3a; border-color:#14b8a6;}
+
     .winIcon{font-size:1rem; margin-right:.3rem; vertical-align:middle;}
     .winnerText{color:var(--ok); font-weight:600;}
     .loserText{color:var(--muted);}
     .note{color:#9ca3af; font-size:.85rem; padding:0 1rem 1rem;}
 
-    /* ===== Kachelansicht (altes Layout: Zeit-Slots × Felder) ===== */
+    /* ===== Kachelansicht (Zeit-Slots × Felder) – OHNE Hintergrundbild ===== */
     .tilesWrap{padding:1rem;}
     .slotRow{display:flex; align-items:flex-start; gap:12px; margin-bottom:14px;}
     .slotTime{min-width:90px; flex:0 0 90px; text-align:right; padding-top:.35rem;}
@@ -123,48 +119,59 @@
     .tilesGrid{display:grid; gap:12px; flex:1;}
     @media (max-width: 680px){
       .slotTime{display:none;}
-      .tilesHeadGlobal{display:none;} /* auf sehr kleinen Screens Kopf ausblenden */
+      .tilesHeadGlobal{display:none;}
+      :root{ --time-col-w: 0px; }
     }
 
-    .tile{background-color: rgba(17, 24, 39, 0.60); /* ~60% Deckkraft (aus --card abgeleitet) */border:1px solid var(--border); border-radius:10px; padding:.6rem .8rem; display:flex; flex-direction:column; gap:.4rem;}
-    .tile.grpA{background:var(--tileA); border-color:var(--tileAbr); background-color: rgba(11, 27, 58, 0.40);}
-    .tile.grpB{background:var(--tileB); border-color:var(--tileBbr); background-color: rgba(43, 12, 12, 0.40);}
-    .tile.grpC{background:var(--tileC); border-color:var(--tileCbr); background-color: rgba(5, 46, 27, 0.40);}
+    /* Kacheln: jetzt OHNE Transparenz */
+    .tile{
+      background-color: #111827;   /* = var(--card) deckend */
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:.6rem .8rem;
+      display:flex; flex-direction:column; gap:.4rem;
+      /* KEIN backdrop-filter mehr */
+    }
+    .tile.grpA{ background-color: #0b1b3a;  border-color: #1d4ed8; }
+    .tile.grpB{ background-color: #2b0c0c;  border-color: #7f1d1d; }
+    .tile.grpC{ background-color: #052e1b;  border-color: #166534; }
+    .tile.grpD{ background-color: #1f2937;  border-color: #f59e0b; }
+    .tile.grpE{ background-color: #1f2937;  border-color: #8b5cf6; }
+    .tile.grpF{ background-color: #0f3b3a;  border-color: #14b8a6; } /* Teal */
+
     .tileTop{display:flex; justify-content:space-between; align-items:center;}
     .tileTopLeft{display:flex; gap:.4rem; align-items:center; flex-wrap:wrap;}
     .tileTag{display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .5rem; font-size:.85rem; color:#cbd5e1;}
     .tileMain{display:flex; justify-content:space-between; gap:.75rem; align-items:center;}
     .teamText{display:inline-flex; align-items:center; gap:.35rem;}
     .emptyMsg{color:#9ca3af; padding:1rem;}
-
-    /* ID-Tag & Runden-Badge in der Kachel (rechts, prominent unter der ID) */
     .idTag{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.1rem .45rem; font-size:.8rem; color:#cbd5e1; background:#0b1020; margin-left:.4rem;}
     .roundBadge{display:inline-block; margin-top:.35rem; border:1px solid var(--border); border-radius:8px; padding:.12rem .5rem; font-weight:700; font-size:.9rem; color:#e5e7eb; background:#0b1020;}
-	
-	/* ===== Bild NUR hinter den Kacheln, NICHT hinter der Zeit-Spalte ===== */
-    #tilesContainer{
-      position: relative;
-      isolation: isolate;           /* eigener Z-Stack */
+
+    /* ===== 3. View: Hallenlayout (nur Bild) ===== */
+    .hallWrap{
+      padding: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 40vh;
     }
-    #tilesContainer::before{
-      content: '';
-      position: absolute;
-      top: var(--time-col-h); right: var(--time-col-w2); bottom: var(--time-col-h2);
-      left: var(--time-col-w);      /* Bild startet NACH der Zeit-Spalte */
-      z-index: 0;
-      background:
-        linear-gradient(rgba(12,18,34,.45), rgba(12,18,34,.45)),
-        url('/assets/bg_hallenmasters_Gym.jpg') center / contain no-repeat; /* Pfad anpassen */
-      pointer-events: none;
+    .hallWrap .hall-img{
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 18px rgba(0,0,0,.25);
+      background: #0b1020;
     }
-    /* Kachel-Inhalte über dem Bild-Layer halten */
-    #tilesHeadGlobal, #tilesContainer > .slotRow, #tilesEmpty{
-      position: relative;
-      z-index: 1;
-    }
+
+    /* ===== View-Umschaltung ===== */
+    #tableView, #tilesView, #hallView{ display:none; }
+    .view-table #tableView{ display:block; }
+    .view-tiles #tilesView{ display:block; }
+    .view-hall  #hallView { display:block; }
   </style>
 </head>
-<body>
+<body class="view-tiles">
+  <!-- ===== STICKY: Hauptheader ===== -->
   <header>
     <div class="bar">
       <div class="leftWrap">
@@ -185,19 +192,20 @@
 
   <main>
     <section>
-      <header>
-        <h2 style="margin:0;">Spielübersicht</h2>
-        <div class="hdrRight">
+      <header id="sectionHeader">
+        <div style="display:flex; align-items:center; gap:.75rem;">
+          <h2 style="margin:0;">Spielübersicht</h2>
           <span class="note">Live‑Aktualisierung bei Ergebnissen, Gruppenstart, Rundenfortschritt und Reset.</span>
-          <div class="viewToggle">
-            <button id="btnViewTable" class="btn" type="button" title="Tabelle">Tabelle</button>
-            <button id="btnViewTiles" class="btn btn-active" type="button" title="Kacheln">Kacheln</button>
-          </div>
+        </div>
+        <div class="viewToggle">
+          <button id="btnViewTable" class="btn"             type="button">Tabellenansicht</button>
+          <button id="btnViewTiles" class="btn btn-active"  type="button">Kachelansicht</button>
+          <button id="btnViewHall"  class="btn"             type="button">Hallenlayout</button>
         </div>
       </header>
 
-      <!-- Tabellenansicht (Default: versteckt) -->
-      <div id="tableView" class="tableWrap" style="display:none">
+      <!-- 1) Tabellenansicht -->
+      <div id="tableView" class="tableWrap">
         <table id="matchesTable">
           <thead>
             <tr>
@@ -215,12 +223,17 @@
         </table>
       </div>
 
-      <!-- Kachelansicht (Default: sichtbar) -->
+      <!-- 2) Kachelansicht -->
       <div id="tilesView" class="tilesWrap">
         <!-- globaler Kopf mit Feld-Labels nur einmal -->
         <div id="tilesHeadGlobal" class="tilesHeadGlobal"></div>
         <div id="tilesContainer"></div>
         <div id="tilesEmpty" class="emptyMsg" style="display:none">Noch keine Spiele geplant.</div>
+      </div>
+
+      <!-- 3) Hallenlayout (nur Bild) -->
+      <div id="hallView" class="hallWrap">
+        <img id="hallImage" class="hall-img" alt="Hallenlayout" />
       </div>
     </section>
   </main>
@@ -229,6 +242,9 @@
   <script src="/socket.io/socket.io.js"></script>
 
   <script>
+    // === Konfiguration: Pfad zum Hallenlayout-Bild
+    var HALL_IMG_PATH = '/assets/bg_hallenmasters_Gym.jpg';
+
     // === Logo laden (optional)
     (function setLogo(){
       var LOGO_PATH = '/assets/Fussballwappen_logo.png';
@@ -240,22 +256,35 @@
       img.src = url;
     })();
 
+    // === Hallenlayout-Bild setzen (mit robuster Fehlerbehandlung)
+    (function setHallImage(){
+      var img = document.getElementById('hallImage');
+      if (!img) return;
+      var url = HALL_IMG_PATH + '?_v=' + Date.now();
+      img.onload  = function(){ img.style.display='block'; };
+      img.onerror = function(){ console.warn('Hallenlayout konnte nicht geladen werden:', url); img.style.display='none'; };
+      img.src = url;
+    })();
+
     // === Kleine Helfer
     function groupClass(g){
       var x = String(g || '').trim().toUpperCase();
-      if (x==='A') return 'grpA'; if (x==='B') return 'grpB'; if (x==='C') return 'grpC';
-      return '';
+      switch (x) {
+        case 'A': return 'grpA';
+        case 'B': return 'grpB';
+        case 'C': return 'grpC';
+        case 'D': return 'grpD';
+        case 'E': return 'grpE';
+        case 'F': return 'grpF';
+        default:  return null;
+      }
     }
+    function addClassSafe(el, cls){ if (el && cls) el.classList.add(cls); }
     function setStatus(ok){
       var el = document.getElementById('connStatus');
       if (!el) return;
-      if (ok){
-        el.textContent = 'Status: verbunden';
-        el.className = 'pill ok';
-      } else {
-        el.textContent = 'Status: getrennt';
-        el.className = 'pill err';
-      }
+      if (ok){ el.textContent = 'Status: verbunden'; el.className = 'pill ok'; }
+      else   { el.textContent = 'Status: getrennt';  el.className = 'pill err'; }
     }
     function setLastUpdate(){
       var el = document.getElementById('lastUpdate');
@@ -272,7 +301,9 @@
     var API_BASE = window.location.origin + '/api';
     function safeFetch(path, init){
       return fetch(API_BASE + path, init).then(function(res){
-        if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+        if (!res.ok){
+          return res.text().then(function(txt){ throw new Error('HTTP '+res.status+' '+res.statusText+(txt?': '+txt:'')); });
+        }
         return res.json();
       });
     }
@@ -292,26 +323,27 @@
         td0.style.color = '#9ca3af';
         tr0.appendChild(td0);
         tbody.appendChild(tr0);
+        updateTheadSpacer();
         return;
       }
 
       for (var i=0; i<rows.length; i++){
         var m = rows[i];
         var tr = document.createElement('tr');
-        tr.classList.add(groupClass(m && m.groupName));
+        addClassSafe(tr, groupClass(m && m.groupName));
 
         var id        = (m && m.id != null) ? m.id : '';
         var groupName = (m && m.groupName) ? m.groupName : '';
         var round     = (m && m.round != null) ? m.round : '';
         var field     = (m && m.field != null) ? m.field : '';
-        var teamAId   = (m && m.teamA_id != null) ? m.teamA_id : null;
-        var teamBId   = (m && m.teamB_id != null) ? m.teamB_id : null;
-        var teamAName = (m && m.teamA) ? m.teamA : (teamAId != null ? String(teamAId) : '');
-        var teamBName = (m && m.teamB) ? m.teamB : (teamBId != null ? String(teamBId) : '');
+        var teamAId   = (m && (m.teamA_id!=null || m.teamA!=null)) ? (m.teamA_id!=null?m.teamA_id:m.teamA) : null;
+        var teamBId   = (m && (m.teamB_id!=null || m.teamB!=null)) ? (m.teamB_id!=null?m.teamB_id:m.teamB) : null;
+        var teamAName = (m && m.teamA && typeof m.teamA==='string') ? m.teamA : (teamAId!=null?String(teamAId):'');
+        var teamBName = (m && m.teamB && typeof m.teamB==='string') ? m.teamB : (teamBId!=null?String(teamBId):'');
         var planned   = (m && m.plannedStart) ? m.plannedStart : '–';
 
-        var winnerVal = (m && typeof m.winner !== 'undefined') ? m.winner : null;
-        var hasWinner = (winnerVal !== null && winnerVal !== undefined);
+        var winnerVal = (m && typeof m.winner!=='undefined') ? m.winner : null;
+        var hasWinner = (winnerVal!==null && winnerVal!==undefined);
 
         var tdId    = document.createElement('td'); tdId.textContent = id;
 
@@ -326,26 +358,25 @@
         var tdField = document.createElement('td'); tdField.textContent = field;
         var tdTime  = document.createElement('td'); tdTime.textContent = planned;
 
-        var tdA   = document.createElement('td');
-        var wA    = document.createElement('span'); wA.className = 'loserText'; wA.textContent = teamAName;
-        if (hasWinner && Number(winnerVal) === Number(teamAId)){
+        var tdA = document.createElement('td');
+        var wA  = document.createElement('span'); wA.className = 'loserText'; wA.textContent = teamAName;
+        if (hasWinner && Number(winnerVal)===Number(teamAId)){
           var icoA = document.createElement('span'); icoA.className='winIcon'; icoA.textContent='🏆'; icoA.setAttribute('aria-label','Sieger');
           wA.className = 'winnerText';
           tdA.appendChild(icoA); tdA.appendChild(wA);
         } else { tdA.appendChild(wA); }
 
-        var tdB   = document.createElement('td');
-        var wB    = document.createElement('span'); wB.className = 'loserText'; wB.textContent = teamBName;
-        if (hasWinner && Number(winnerVal) === Number(teamBId)){
+        var tdB = document.createElement('td');
+        var wB  = document.createElement('span'); wB.className = 'loserText'; wB.textContent = teamBName;
+        if (hasWinner && Number(winnerVal)===Number(teamBId)){
           var icoB = document.createElement('span'); icoB.className='winIcon'; icoB.textContent='🏆'; icoB.setAttribute('aria-label','Sieger');
           wB.className = 'winnerText';
           tdB.appendChild(icoB); tdB.appendChild(wB);
         } else { tdB.appendChild(wB); }
 
         var tdWinner = document.createElement('td');
-        if (hasWinner) {
-          tdWinner.textContent = (Number(winnerVal) === Number(teamAId)) ? teamAName : teamBName;
-        } else { tdWinner.textContent = ''; }
+        if (hasWinner) tdWinner.textContent = (Number(winnerVal)===Number(teamAId)) ? teamAName : teamBName;
+        else tdWinner.textContent = '–';
 
         tr.appendChild(tdId);
         tr.appendChild(tdGroup);
@@ -358,18 +389,22 @@
 
         tbody.appendChild(tr);
       }
+
+      updateTheadSpacer();
     }
 
-    // === Tiles-Helfer (altes Layout: Zeit-Slots × Felder)
+    // === Tiles-Helpers
     function uniqueSortedFields(rows){
       var set = {};
       for (var i=0; i<rows.length; i++){
-        var f = (rows[i] && rows[i].field != null) ? rows[i].field : null;
-        if (f != null) set[String(f)] = true;
+        var f = (rows[i] && rows[i].field!=null) ? rows[i].field : null;
+        if (f!=null) set[String(f)] = true;
       }
       var arr = Object.keys(set);
-      arr.sort(function(a,b){ return Number(a) - Number(b); });
-      return arr.map(function(s){ return Number(s); });
+      arr.sort(function(a,b){ return Number(a)-Number(b); });
+      var out = [];
+      for (var j=0;j<arr.length;j++) out.push(Number(arr[j]));
+      return out;
     }
     function uniqueSortedTimes(rows){
       var set = {};
@@ -378,11 +413,65 @@
         if (t) set[String(t)] = true;
       }
       var arr = Object.keys(set);
-      arr.sort(function(a,b){ return String(a).localeCompare(String(b)); });
+      arr.sort(function(a,b){
+        if (a==='–' && b==='–') return 0;
+        if (a==='–') return 1;
+        if (b==='–') return -1;
+        return String(a).localeCompare(String(b));
+      });
       return arr;
     }
+    function tileNodeForMatch(m){
+      var grp = String((m && m.groupName)||'').trim().toUpperCase();
+      var teamAId = (m && m.teamA_id!=null) ? Number(m.teamA_id) : (m && m.teamA!=null ? Number(m.teamA) : NaN);
+      var teamBId = (m && m.teamB_id!=null) ? Number(m.teamB_id) : (m && m.teamB!=null ? Number(m.teamB) : NaN);
+      var winnerVal = (m && typeof m.winner!=='undefined') ? Number(m.winner) : NaN;
 
-    // === Kachel-Rendering (Zeit-Slots, globaler Feld-Header einmal oben)
+      var tile = document.createElement('div');
+      addClassSafe(tile, 'tile');
+      addClassSafe(tile, groupClass(grp));
+
+      var top = document.createElement('div'); top.className = 'tileTop';
+      var topLeft = document.createElement('div'); topLeft.className = 'tileTopLeft';
+      var tag = document.createElement('span'); tag.className = 'tileTag'; tag.textContent = 'Gruppe ' + (grp || '–');
+      var idTag = document.createElement('span'); idTag.className = 'idTag'; idTag.textContent = 'ID ' + ((m && m.id!=null)?m.id:'–');
+      topLeft.appendChild(tag); topLeft.appendChild(idTag);
+
+      var topRight = document.createElement('div');
+      var roundSpan = document.createElement('span'); roundSpan.className = 'roundBadge'; roundSpan.textContent = 'Runde ' + ((m && m.round!=null)?m.round:'-');
+      topRight.appendChild(roundSpan);
+
+      top.appendChild(topLeft); top.appendChild(topRight);
+      tile.appendChild(top);
+
+      var main = document.createElement('div'); main.className = 'tileMain';
+
+      var aWrap = document.createElement('span'); aWrap.className = 'teamText';
+      var aTxt  = document.createElement('span'); aTxt.textContent = (m && m.teamA && typeof m.teamA==='string') ? m.teamA : (teamAId?String(teamAId):'');
+      aTxt.className = (!isNaN(winnerVal) && winnerVal===teamAId) ? 'winnerText' : 'loserText';
+      if (!isNaN(winnerVal) && winnerVal===teamAId){
+        var aIco = document.createElement('span'); aIco.className='winIcon'; aIco.textContent='🏆'; aIco.setAttribute('aria-label','Sieger');
+        aWrap.appendChild(aIco);
+      }
+      aWrap.appendChild(aTxt);
+
+      var bWrap = document.createElement('span'); bWrap.className = 'teamText';
+      var bTxt  = document.createElement('span'); bTxt.textContent = (m && m.teamB && typeof m.teamB==='string') ? m.teamB : (teamBId?String(teamBId):'');
+      bTxt.className = (!isNaN(winnerVal) && winnerVal===teamBId) ? 'winnerText' : 'loserText';
+      if (!isNaN(winnerVal) && winnerVal===teamBId){
+        var bIco = document.createElement('span'); bIco.className='winIcon'; bIco.textContent='🏆'; bIco.setAttribute('aria-label','Sieger');
+        bWrap.appendChild(bIco);
+      }
+      bWrap.appendChild(bTxt);
+
+      main.appendChild(aWrap);
+      main.appendChild(bWrap);
+      tile.appendChild(main);
+
+      return tile;
+    }
+
+    // === Tiles-Rendering (Zeit-Slots × Felder, globaler Feld-Kopf)
     function renderTiles(rows){
       var head = document.getElementById('tilesHeadGlobal');
       var cont = document.getElementById('tilesContainer');
@@ -393,49 +482,27 @@
 
       if (!Array.isArray(rows) || !rows.length){
         empty.style.display = 'block';
+        updateTilesHeadHeight();
         return;
       }
       empty.style.display = 'none';
 
-      // Felder global ermitteln (Union über alle Matches)
-      var fieldsMap = {};
-      for (var i=0;i<rows.length;i++){
-        var fv = (rows[i] && rows[i].field != null) ? Number(rows[i].field) : NaN;
-        if (isFinite(fv) && fv > 0) fieldsMap[fv] = true;
-      }
-      var fields = Object.keys(fieldsMap).map(function(s){ return Number(s); }).sort(function(a,b){ return a-b; });
-      if (!fields.length){ fields = [1,2,3]; } // Fallback, wenn keine Feldinfo vorhanden
-
-      // Globalen Kopf einmal rendern
+      // Felder bestimmen und globalen Kopf aufbauen
+      var fields = uniqueSortedFields(rows);
+      if (!fields.length) fields = [1,2,3];
       head.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
       for (var h=0; h<fields.length; h++){
         var fh = document.createElement('div'); fh.className = 'fieldHead';
         var fb = document.createElement('span'); fb.className = 'fieldHeadBadge'; fb.textContent = 'Feld ' + fields[h];
-        fh.appendChild(fb);
-        head.appendChild(fh);
+        fh.appendChild(fb); head.appendChild(fh);
       }
 
-      // Gruppieren nach Zeit (plannedStart), fehlende -> '–' am Ende
-      var groups = {}; // { time: [matches] }
-      for (var j=0;j<rows.length;j++){
-        var m = rows[j];
-        var t = (m && m.plannedStart) ? m.plannedStart : '–';
-        if (!groups[t]) groups[t] = [];
-        groups[t].push(m);
-      }
+      // Zeiten sammeln
+      var times = uniqueSortedTimes(rows);
+      if (!times.length) times = ['–'];
 
-      // Zeiten sortieren (HH:MM, '–' zuletzt)
-      var times = Object.keys(groups).sort(function(a,b){
-        if (a === '–' && b === '–') return 0;
-        if (a === '–') return 1;
-        if (b === '–') return -1;
-        return a < b ? -1 : (a > b ? 1 : 0);
-      });
-
-      // Für jede Zeit Slot bauen
       for (var ti=0; ti<times.length; ti++){
         var timeKey = times[ti];
-        var list = groups[timeKey];
 
         var slot = document.createElement('div'); slot.className = 'slotRow';
 
@@ -449,121 +516,72 @@
         var grid = document.createElement('div'); grid.className = 'tilesGrid';
         grid.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
 
-        // Sort: Gruppe A/B/C, dann Feld
-        list.sort(function(a,b){
-          var ga = String((a && a.groupName) ? a.groupName : '').toUpperCase();
-          var gb = String((b && b.groupName) ? b.groupName : '').toUpperCase();
-          if (ga !== gb) return (ga < gb) ? -1 : 1;
-          var fa = (a && a.field != null) ? a.field : 0;
-          var fb = (b && b.field != null) ? b.field : 0;
-          return fa - fb;
-        });
+        // Für jedes Feld die passende Partie finden
+        for (var fIdx=0; fIdx<fields.length; fIdx++){
+          var f = fields[fIdx];
 
-        // Kacheln platzieren
-        for (var mi=0; mi<list.length; mi++){
-          var m2 = list[mi];
+          // Eine zum Zeitpunkt passende Partie mit field==f suchen
+          var match = null;
+          for (var i=0; i<rows.length; i++){
+            var m = rows[i];
+            var t = (m && m.plannedStart) ? m.plannedStart : '–';
+            var fld = (m && m.field!=null) ? Number(m.field) : null;
+            if (t===timeKey && fld===Number(f)){ match = m; break; }
+          }
 
-          var g = String((m2 && m2.groupName) ? m2.groupName : '').toUpperCase();
-          var tile = document.createElement('div');
-          tile.className = 'tile ' + groupClass(g);
-
-          var id        = (m2 && m2.id != null) ? m2.id : '';
-          var round     = (m2 && m2.round != null) ? m2.round : '';
-          var field     = (m2 && m2.field != null) ? Number(m2.field) : null;
-          var teamAId   = (m2 && m2.teamA_id != null) ? m2.teamA_id : null;
-          var teamBId   = (m2 && m2.teamB_id != null) ? m2.teamB_id : null;
-          var teamAName = (m2 && m2.teamA) ? m2.teamA : (teamAId != null ? String(teamAId) : '');
-          var teamBName = (m2 && m2.teamB) ? m2.teamB : (teamBId != null ? String(teamBId) : '');
-
-          var winnerVal = (m2 && typeof m2.winner !== 'undefined') ? m2.winner : null;
-          var hasWinner = (winnerVal !== null && winnerVal !== undefined);
-
-          // Top: links Gruppe + Tag, rechts ID + Runde prominent darunter
-          var top = document.createElement('div'); top.className = 'tileTop';
-          var topLeft = document.createElement('div'); topLeft.className = 'tileTopLeft';
-
-          var tag = document.createElement('span'); tag.className = 'tileTag';
-          tag.textContent = 'Gruppe ' + (g || 'A');
-          topLeft.appendChild(tag);
-
-          var topRight = document.createElement('div'); // rechts: ID + Runde darunter
-          var idSpan = document.createElement('span'); idSpan.className = 'idTag'; idSpan.textContent = 'ID ' + id;
-          topRight.appendChild(idSpan);
-          var roundSpan = document.createElement('span'); roundSpan.className = 'roundBadge'; roundSpan.textContent = 'Runde ' + (round || '-');
-          topRight.appendChild(roundSpan);
-
-          top.appendChild(topLeft);
-          top.appendChild(topRight);
-
-          // Main: Team A / Team B mit Sieger-Icon
-          var main = document.createElement('div'); main.className = 'tileMain';
-
-          var left = document.createElement('div'); left.style.display='flex'; left.style.flexDirection='column'; left.style.gap='.25rem';
-
-          var aWrap = document.createElement('span'); aWrap.className = 'teamText';
-          var aTxt  = document.createElement('span'); aTxt.textContent = teamAName; aTxt.className = 'loserText';
-          if (hasWinner && Number(winnerVal) === Number(teamAId)){
-            var aIco = document.createElement('span'); aIco.className = 'winIcon'; aIco.textContent='🏆'; aIco.setAttribute('aria-label','Sieger');
-            aTxt.className = 'winnerText';
-            aWrap.appendChild(aIco); aWrap.appendChild(aTxt);
-          } else { aWrap.appendChild(aTxt); }
-
-          var bWrap = document.createElement('span'); bWrap.className = 'teamText';
-          var bTxt  = document.createElement('span'); bTxt.textContent = teamBName; bTxt.className = 'loserText';
-          if (hasWinner && Number(winnerVal) === Number(teamBId)){
-            var bIco = document.createElement('span'); bIco.className = 'winIcon'; bIco.textContent='🏆'; bIco.setAttribute('aria-label','Sieger');
-            bTxt.className = 'winnerText';
-            bWrap.appendChild(bIco); bWrap.appendChild(bTxt);
-          } else { bWrap.appendChild(bTxt); }
-
-          left.appendChild(aWrap);
-          left.appendChild(bWrap);
-          main.appendChild(left);
-
-          tile.appendChild(top);
-          tile.appendChild(main);
-
-          // In passende Spalte (globales Feld-Layout) setzen
-          var colIdx = (field != null) ? fields.indexOf(Number(field)) : -1;
-          if (colIdx >= 0){ tile.style.gridColumn = (colIdx + 1) + ' / span 1'; }
-          grid.appendChild(tile);
+          if (match) {
+            grid.appendChild(tileNodeForMatch(match));
+          } else {
+            // dezenter Platzhalter
+            var placeholder = document.createElement('div');
+            addClassSafe(placeholder, 'tile');
+            var tag = document.createElement('span'); tag.className='tileTag'; tag.textContent = '—';
+            placeholder.appendChild(tag);
+            grid.appendChild(placeholder);
+          }
         }
 
         slot.appendChild(timeCol);
         slot.appendChild(grid);
         cont.appendChild(slot);
       }
+
+      updateTilesHeadHeight();
     }
 
-    // === Umschalter: Tabelle <-> Kacheln
+    // === Umschalter (3 Views)
     function setView(mode){
-      var tView = document.getElementById('tableView');
-      var kView = document.getElementById('tilesView');
+      var body = document.body;
       var btnT = document.getElementById('btnViewTable');
       var btnK = document.getElementById('btnViewTiles');
-      if (!tView || !kView || !btnT || !btnK) return;
+      var btnH = document.getElementById('btnViewHall');
 
-      if (mode === 'table'){
-        tView.style.display = 'block';
-        kView.style.display = 'none';
-        btnT.classList.add('btn-active');
-        btnK.classList.remove('btn-active');
-      } else {
-        tView.style.display = 'none';
-        kView.style.display = 'block';
-        btnK.classList.add('btn-active');
-        btnT.classList.remove('btn-active');
-      }
-      updateStickyOffsets(); // Abschnitt-Höhe kann sich ändern
+      // Body-Klasse setzen
+      body.classList.remove('view-table', 'view-tiles', 'view-hall');
+      if (mode==='table') body.classList.add('view-table');
+      else if (mode==='hall') body.classList.add('view-hall');
+      else body.classList.add('view-tiles');
+
+      // Buttons aktiv setzen
+      btnT.classList.remove('btn-active');
+      btnK.classList.remove('btn-active');
+      btnH.classList.remove('btn-active');
+      if (mode==='table') btnT.classList.add('btn-active');
+      else if (mode==='hall') btnH.classList.add('btn-active');
+      else btnK.classList.add('btn-active');
+
+      updateStickyOffsets();
+      updateTheadSpacer();
+      updateTilesHeadHeight();
     }
-
     document.getElementById('btnViewTable').addEventListener('click', function(){ setView('table'); });
     document.getElementById('btnViewTiles').addEventListener('click', function(){ setView('tiles'); });
+    document.getElementById('btnViewHall').addEventListener('click',  function(){ setView('hall'); });
 
     // === Sticky-Offsets dynamisch setzen
     function updateStickyOffsets(){
       var topHdr = document.querySelector('body > header');
-      var secHdr = document.querySelector('main > section > header');
+      var secHdr = document.getElementById('sectionHeader');
       var topH   = topHdr ? Math.ceil(topHdr.getBoundingClientRect().height) : 0;
       var secH   = secHdr ? Math.ceil(secHdr.getBoundingClientRect().height) : 0;
       document.documentElement.style.setProperty('--sticky-offset', topH + 'px');
@@ -572,6 +590,27 @@
     window.addEventListener('load', updateStickyOffsets);
     window.addEventListener('resize', updateStickyOffsets);
     setTimeout(updateStickyOffsets, 350);
+
+    // === Thead-Spacer (Höhe des Kopfes) setzen
+    function updateTheadSpacer(){
+      var tw = document.querySelector('.tableWrap');
+      var thead = tw ? tw.querySelector('thead') : null;
+      if (!thead || !tw) return;
+      var h = Math.ceil(thead.getBoundingClientRect().height) || 0;
+      tw.style.setProperty('--thead-spacer', h + 'px');
+    }
+    window.addEventListener('load', updateTheadSpacer);
+    window.addEventListener('resize', updateTheadSpacer);
+
+    // === Tiles-Head-Höhe setzen (für Reflows in Tiles)
+    function updateTilesHeadHeight(){
+      var head = document.getElementById('tilesHeadGlobal');
+      if (!head) return;
+      var h = Math.ceil(head.getBoundingClientRect().height) || 0;
+      document.documentElement.style.setProperty('--tiles-head-h', h + 'px');
+    }
+    window.addEventListener('load', updateTilesHeadHeight);
+    window.addEventListener('resize', updateTilesHeadHeight);
 
     // === Vollständige Aktualisierung
     function refresh(){
@@ -592,7 +631,7 @@
     // === Socket.IO Initialisierung (ES5)
     (function initSocket(){
       if (typeof io !== 'function'){
-        console.error('Socket.IO Client nicht geladen – prüfe /socket.io/socket.io.js im HTML.');
+        console.error('Socket.IO Client nicht geladen – prüfe /socket.io/socket.io.js');
         setStatus(false);
         return;
       }
@@ -604,28 +643,24 @@
         timeout:10000
       });
 
-      s.on('connect', function(){
-        setStatus(true);
-        console.log('Viewer connected');
-        updateStickyOffsets(); // nach Connect evtl. Layoutänderung
-      });
-      s.on('disconnect',    function(r){ setStatus(false); console.warn('Viewer disconnected', r); });
-      s.on('connect_error', function(e){ setStatus(false); console.error('Viewer connect_error', e); });
+      s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTheadSpacer(); updateTilesHeadHeight(); });
+      s.on('disconnect', function(r){ setStatus(false); });
 
-      // Debounce, um Event-Spitzen zu glätten
+      // Debounce auf Event-Sturm
       var t;
       function triggerDebounced(){ clearTimeout(t); t = setTimeout(function(){ refresh(); }, 250); }
 
-      // Relevante Events aus deinem Backend:
+      // Relevante Events
       s.on('resultUpdate',    triggerDebounced);
       s.on('results:updated', triggerDebounced);
       s.on('group:started',   triggerDebounced);
       s.on('round:advanced',  triggerDebounced);
       s.on('matches:reset',   triggerDebounced);
-      s.on('schedule:recalculated', triggerDebounced); // optional
+      s.on('groups:reseeded', triggerDebounced);
+      s.on('schedule:recalculated', triggerDebounced);
     })();
 
-    // === Erste Ladung + Fallback Polling
+    // === Start
     document.addEventListener('DOMContentLoaded', function(){
       setView('tiles');  // Default: Kachelansicht
       refresh();
@@ -634,4 +669,3 @@
   </script>
 </body>
 </html>
-``

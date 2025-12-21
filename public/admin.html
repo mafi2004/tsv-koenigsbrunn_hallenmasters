@@ -16,6 +16,9 @@
       --grpA-bg: #0b1b3a; --grpA-fg: #bfdbfe; --grpA-br: #1d4ed8;
       --grpB-bg: #2b0c0c; --grpB-fg: #fecaca; --grpB-br: #7f1d1d;
       --grpC-bg: #052e1b; --grpC-fg: #86efac; --grpC-br: #166534;
+	  --grpD-bg: #1f2937; --grpD-fg: #fde68a; --grpD-br: #f59e0b;
+      --grpE-bg: #1f2937; --grpE-fg: #ddd6fe; --grpE-br: #8b5cf6;
+      --grpF-bg: #0b3640; --grpF-fg: #c0fafe; --grpF-br: #06b6d4;
 
       /* Statusfarben */
       --ok:#22c55e; --warn:#f59e0b; --err:#ef4444;
@@ -78,6 +81,9 @@
     .btn.grpA { border-color:var(--grpA-br); background:var(--grpA-bg); color:var(--grpA-fg); }
     .btn.grpB { border-color:var(--grpB-br); background:var(--grpB-bg); color:var(--grpB-fg); }
     .btn.grpC { border-color:var(--grpC-br); background:var(--grpC-bg); color:var(--grpC-fg); }
+	.btn.grpD { border-color:var(--grpD-br); background:var(--grpD-bg); color:var(--grpD-fg); }
+    .btn.grpE { border-color:var(--grpE-br); background:var(--grpE-bg); color:var(--grpE-fg); }
+    .btn.grpF { border-color:var(--grpF-br); background:var(--grpF-bg); color:var(--grpF-fg); }
 
     .input, select { background:#0b1020; color:var(--fg); border:1px solid var(--border); border-radius:6px; padding:.45rem .6rem; min-height:2rem; }
 
@@ -90,6 +96,9 @@
     .pill.grpA { color:var(--grpA-fg); border-color:var(--grpA-br); background:var(--grpA-bg); }
     .pill.grpB { color:var(--grpB-fg); border-color:var(--grpB-br); background:var(--grpB-bg); }
     .pill.grpC { color:var(--grpC-fg); border-color:var(--grpC-br); background:var(--grpC-bg); }
+	.pill.grpD { color:var(--grpD-fg); border-color:var(--grpD-br); background:var(--grpD-bg); }
+    .pill.grpE { color:var(--grpE-fg); border-color:var(--grpE-br); background:var(--grpE-bg); }
+    .pill.grpF { color:var(--grpF-fg); border-color:var(--grpF-br); background:var(--grpF-bg); }
 
     tr.grpA td { background:rgba(29,78,216,.08); }
     tr.grpB td { background:rgba(220,38,38,.08); }
@@ -191,6 +200,9 @@
           <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
           <span id="nextMsg" class="pill" style="display:none"></span>
           <button id="btnReset"  type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
+		  <!-- Im Matches-Header (neben "Nächste Runde" / "Reset") -->
+		  <button id="btnReseedGroups" type="button" class="btn btn-primary">Gruppen neu zusammenstellen (nach 3 Runden)</button>
+		  <span id="reseedMsg" class="pill" style="display:none"></span>
         </div>
       </header>
 
@@ -331,12 +343,20 @@
     let TEAMS = [];
     let MATCHES = [];
 
-    /* === Helpers & Messages === */
-    function groupClass(g){
-      const x = String(g||'').trim().toUpperCase();
-      if(x==='A') return 'grpA'; if(x==='B') return 'grpB'; if(x==='C') return 'grpC';
-      return '';
-    }
+    /* === Helpers & Messages === */    
+	function groupClass(g){
+	  var x = String(g || '').trim().toUpperCase();
+	  switch (x) {
+		case 'A': return 'grpA';
+		case 'B': return 'grpB';
+		case 'C': return 'grpC';
+		case 'D': return 'grpD';
+		case 'E': return 'grpE';
+		case 'F': return 'grpF';
+		default:  return null;      // <-- NICHT '' zurückgeben
+	  }
+	}
+
     function showMsg(selector, text, isError){
       const el = typeof selector==='string' ? document.querySelector(selector) : selector;
       if(!el) return;
@@ -345,6 +365,39 @@
       el.style.color = isError ? '#fecaca' : '#86efac';
       clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 3000);
     }
+	
+	  
+// API Wrapper
+const apiReseedGroups = (schedule) =>
+  fetch(window.location.origin + '/api/funino/reseedGroups', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ schedule })    // ← Zeitplan mitgeben
+  }).then(res => {
+    if (!res.ok) return res.text().then(txt => { throw new Error('HTTP '+res.status+' '+res.statusText+': '+txt); });
+    return res.json();
+  });
+
+// Button-Handler
+document.getElementById('btnReseedGroups')?.addEventListener('click', async () => {
+  const msgEl = document.getElementById('reseedMsg');
+  const show = (text, isError) => {
+    msgEl.textContent = text; msgEl.style.display='inline-block';
+    msgEl.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
+    msgEl.style.color      = isError ? '#fecaca'      : '#86efac';
+    clearTimeout(msgEl._t); msgEl._t = setTimeout(() => { msgEl.style.display='none'; }, 4000);
+  };
+  try {
+    const schedule = getSchedule(); // { timeHHMM, dur, brk } oder null
+    const r = await apiReseedGroups(schedule);
+    show(r.msg + ` (D:${r.result.matchesCreated.D}, E:${r.result.matchesCreated.E}, F:${r.result.matchesCreated.F})`);
+    await refreshTeams?.();   // Tabellen D/E/F werden damit gefüllt
+    await refreshMatches?.(); // neue Spiele sichtbar
+  } catch (e) {
+    show('Fehler: '+e.message, true);
+  }
+});
+
   </script>
 
   <!-- ===== Zeitmanagement (v2) ===== -->
