@@ -1,5 +1,5 @@
 
-<!doctype html>
+<!doctype ht+ml>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
@@ -39,7 +39,7 @@
     .leftWrap{display:flex; align-items:center; gap:.75rem;}
     .clubLogo{width:48px; height:48px; object-fit:contain; border-radius:6px; background:#0b1020; border:1px solid var(--border);}
     h1{margin:0; font-size:1.15rem;}
-    .meta{display:flex; gap:.75rem; align-items:center; color:var(--muted); font-size:.9rem;}
+    .meta{display:flex; gap:.75rem; align-items:center; color:#9ca3af; font-size:.9rem;}
     .pill{display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.85rem;}
     .pill.ok{color:#d1fae5; border-color:#065f46; background:#064e3b;}
     .pill.err{color:#fee2e2; border-color:#7f1d1d; background:#1b0f0a;}
@@ -140,6 +140,39 @@
     .idTag{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.1rem .45rem; font-size:.8rem; color:#cbd5e1; background:#0b1020; margin-left:.4rem;}
     .roundBadge{display:inline-block; margin-top:.35rem; border:1px solid var(--border); border-radius:8px; padding:.12rem .5rem; font-weight:700; font-size:.9rem; color:#e5e7eb; background:#0b1020;}
 
+    /* ===== Hinweis-Großkachel (farbig je Gruppe) ===== */
+    .bigNotice{
+      grid-column: 1 / -1;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      display:flex; flex-direction:column; gap:.5rem;
+    }
+    .bigNoticeTitle{ font-weight:800; font-size:1.1rem; }
+    .bigNoticeHint{ color:#cbd5e1; font-size:.95rem; }
+
+    /* Farbliche Varianten für A–F (passend zu Tiles) */
+    .bigNotice.A{ background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe; }
+    .bigNotice.B{ background:#2b0c0c; border-color:#7f1d1d; color:#fecaca; }
+    .bigNotice.C{ background:#052e1b; border-color:#166534; color:#86efac; }
+    .bigNotice.D{ background:#1f2937; border-color:#f59e0b; color:#fde68a; }
+    .bigNotice.E{ background:#1f2937; border-color:#8b5cf6; color:#ddd6fe; }
+    .bigNotice.F{ background:#0f3b3a; border-color:#14b8a6; color:#a7f3d0; }
+
+    /* Hinweis-Zeile in der Tabelle (farbig je Gruppe, volle Breite) */
+    .tableNotice {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: .6rem .8rem;
+      font-weight:700;
+    }
+    .tableNotice.A{ background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe; }
+    .tableNotice.B{ background:#2b0c0c; border-color:#7f1d1d; color:#fecaca; }
+    .tableNotice.C{ background:#052e1b; border-color:#166534; color:#86efac; }
+    .tableNotice.D{ background:#1f2937; border-color:#f59e0b; color:#fde68a; }
+    .tableNotice.E{ background:#1f2937; border-color:#8b5cf6; color:#ddd6fe; }
+    .tableNotice.F{ background:#0f3b3a; border-color:#14b8a6; color:#a7f3d0; }
+
     /* ===== 3. View: Hallenlayout (nur Bild) ===== */
     .hallWrap{
       padding: 1rem;
@@ -155,34 +188,34 @@
       background: #0b1020;
     }
 
-    /* ===== NEW: Teams-View ===== */
+    /* ===== Teams-View ===== */
     .teamsWrap{ padding:1rem; }
     .teamsGrid{ display:grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 16px; }
     @media (max-width: 980px){ .teamsGrid{ grid-template-columns: repeat(2, minmax(260px, 1fr)); } }
     @media (max-width: 680px){ .teamsGrid{ grid-template-columns: 1fr; } }
     .teamCard{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px; }
-	.teamCard.grpA{ border-color:#1d4ed8; }
+    .teamCard.grpA{ border-color:#1d4ed8; }
     .teamCard.grpB{ border-color:#7f1d1d; }
     .teamCard.grpC{ border-color:#166534; }
     .teamCard.grpD{ border-color:#f59e0b; }
     .teamCard.grpE{ border-color:#8b5cf6; }
     .teamCard.grpF{ border-color:#14b8a6; }
-	
+
     .teamCardHeader{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem; }
     .teamBadge{ display:inline-block; border:1px solid var(--border); border-radius:10px; padding:.2rem .5rem; font-weight:700; font-size:.9rem; color:#cbd5e1; background:#0b1020; }
-	.teamBadge.A{ color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8; }
+    .teamBadge.A{ color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8; }
     .teamBadge.B{ color:#fecaca; background:#2b0c0c; border-color:#7f1d1d; }
     .teamBadge.C{ color:#86efac; background:#052e1b; border-color:#166534; }
     .teamBadge.D{ color:#fde68a; background:#1f2937; border-color:#f59e0b; }
     .teamBadge.E{ color:#ddd6fe; background:#1f2937; border-color:#8b5cf6; }
     .teamBadge.F{ color:#a7f3d0; background:#0f3b3a; border-color:#14b8a6; }
-	
+
     .teamList{ list-style:none; margin:0; padding:0; }
     .teamItem{ padding:.35rem .5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.5rem; }
     .teamEmpty{ color:#9ca3af; font-style:italic; }
     .teamCount{ color:#9ca3af; font-size:.85rem; }
-	
-	/* kleiner Farbpunk vor Namen */
+
+    /* kleiner Farbpunk vor Namen */
     .teamDot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
     .teamDot.A{ background:#1d4ed8; }  /* Blau */
     .teamDot.B{ background:#7f1d1d; }  /* Rotbraun */
@@ -197,50 +230,33 @@
     .view-tiles #tilesView{ display:block; }
     .view-hall  #hallView { display:block; }
     .view-teams #teamsView{ display:block; }
-	
-	/* ===== Werbe-Block (Tile-Stil, türkis, klappbar) ===== */
+
+    /* ===== Info-/Werbe-Kachel unter allen Views ===== */
     .adWrap{ padding: 1rem; }
+    .adTile { border:1px solid var(--border); border-radius:10px; padding:.8rem 1rem; background:#0b3640; color:#c0fafe; }
     .adTileHeader{
       display:flex; align-items:center; justify-content:space-between;
       gap: 12px; cursor:pointer;
     }
-    .adTitle{ margin:0; font-size:1.2rem; font-weight:700; color:#e5e7eb; }
+    .adTitle{ margin:0; font-size:1.2rem; font-weight:700; }
     .adHeaderImg{
       height: 48px; max-height: 48px; width: auto;
       border-radius:6px; border:1px solid var(--border); background:#0b1020;
       box-shadow:0 2px 8px rgba(0,0,0,.25);
     }
-    .adToggleIcon{
-      display:inline-block; margin-left:.5rem; transition: transform .18s ease;
-    }
+    .adToggleIcon{ display:inline-block; margin-left:.5rem; transition: transform .18s ease; }
     .adBody{
-      margin-top:.6rem; color:#cbd5e1; line-height:1.55; white-space:pre-wrap;
-      /* Collapsible animation: height transition via max-height */
-      max-height: 0;
-      overflow: hidden;
+      margin-top:.6rem; line-height:1.55; white-space:pre-wrap;
+      max-height: 0; overflow: hidden;
       transition: max-height .22s ease, opacity .22s ease, margin-top .22s ease;
-      opacity: 0;
-	  font-size: 0.9rem;
+      opacity: 0; font-size: 0.95rem;
     }
-    .adTile[aria-expanded="true"] .adBody{
-      max-height: 500px; /* ausreichend groß für typischen Text */
-      opacity: 1;
-      margin-top: .6rem;
-    }
-    .adTile[aria-expanded="true"] .adToggleIcon{ transform: rotate(90deg); }
-
-    /* Tastatur-Fokus sichtbar auf Header */
-    .adTileHeader:focus{
-      outline: 2px solid #14b8a6; outline-offset: 2px;
-      border-radius: 6px;
-    }
-
-    @media (max-width: 560px){
-      .adTileHeader{ flex-wrap:wrap; }
-      .adHeaderImg{ order: 2; margin-top:.35rem; }
-    }
+    .adTile[aria-expanded="true"] .adBody{ max-height: 500px; opacity: 1; margin-top: .6rem; }
+    .adTileHeader:focus{ outline: 2px solid #14b8a6; outline-offset: 2px; border-radius: 6px; }
+    @media (max-width: 560px){ .adTileHeader{ flex-wrap:wrap; } .adHeaderImg{ order: 2; margin-top:.35rem; } }
   </style>
 </head>
+
 <body class="view-tiles">
   <!-- ===== STICKY: Hauptheader ===== -->
   <header>
@@ -268,10 +284,10 @@
           <h2 id="sectionTitle" style="margin:0;">Spielübersicht</h2>
         </div>
         <div class="viewToggle">
-          <button id="btnViewTable" class="btn"             type="button">Spielplan</button>
-          <button id="btnViewTiles" class="btn btn-active"  type="button">Spielfeldbelegung</button>
-          <button id="btnViewHall"  class="btn"             type="button">Hallenlayout</button>
-          <button id="btnViewTeams" class="btn"             type="button">Teams</button>
+          <button id="btnViewTable" class="btn"            type="button">Spielplan</button>
+          <button id="btnViewTiles" class="btn btn-active" type="button">Spielfeldbelegung</button>
+          <button id="btnViewHall"  class="btn"            type="button">Hallenlayout</button>
+          <button id="btnViewTeams" class="btn"            type="button">Teams</button>
         </div>
       </header>
 
@@ -296,443 +312,345 @@
 
       <!-- 2) Kachelansicht -->
       <div id="tilesView" class="tilesWrap">
-        <!-- globaler Kopf mit Feld-Labels nur einmal -->
         <div id="tilesHeadGlobal" class="tilesHeadGlobal"></div>
         <div id="tilesContainer"></div>
         <div id="tilesEmpty" class="emptyMsg" style="display:none">Noch keine Spiele geplant.</div>
       </div>
 
-      <!-- 3) Hallenlayout (nur Bild) -->
+      <!-- 3) Hallenlayout -->
       <div id="hallView" class="hallWrap">
         <img id="hallImage" class="hall-img" alt="Hallenlayout" />
       </div>
 
-      <!-- NEW: Teams-Ansicht -->
+      <!-- Teams -->
       <div id="teamsView" class="teamsWrap">
         <div id="teamsGrid" class="teamsGrid"></div>
         <div id="teamsEmpty" class="emptyMsg" style="display:none">Es wurden noch keine Teams eingetragen.</div>
       </div>
-	  
-	  <!-- ===== Werbe-Infobox (klappbar) ===== -->
+
+      <!-- ===== Info-/Werbe-Kachel unter allen Views ===== -->
       <div class="adWrap">
-        <div id="adTile" class="tile grpF adTile" aria-label="Werbung" aria-expanded="false">
-          <!-- Header: Titel + Bild + optionales Toggle-Icon -->
+        <div id="adTile" class="adTile" aria-label="Info" aria-expanded="false">
           <div id="adHeader" class="adTileHeader" role="button" tabindex="0" aria-controls="adBody">
-            <h3 class="adTitle">2. Königsbrunner Mini-Fußball Sommerfestival
-              <span class="adToggleIcon">›</span>
-            </h3>
-            <img id="adHeaderImg" class="adHeaderImg" src="/assets/save_the_date.jpg" alt="Info" />
+            <h3 class="adTitle">Save the Date – Mini‑Fußball Sommerfestival <span class="adToggleIcon">›</span></h3>
+            /assets/save_the_date.jpg
           </div>
-          <!-- Body: Text (vollbreit, collapsible) -->
           <div id="adBody" class="adBody">
-Der TSV Königsbrunn veranstaltet am 04. und 05. Juli 2026 im Rahmen des 100-jährigen Vereinsjubiläums ein Minifußball Sommerfestival für die Jahrgänge 2015-2020.
-
-Hierzu laden wir euch mit euren Teams recht herzlich ein!
-  2019/20: Samstag, 04.07.26 Minifußball
-  2018: Samstag, 04.07.26 Minifußball
-  2017: Sonntag, 05.07.26 Minifußball
-  2015/16: Sonntag, 05.07.26 Minifußball
-  ...
-
-Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird für jeden etwas dabei sein. Für das leibliche Wohl wird vor Ort ausreichend gesorgt sein.
+Der TSV Königsbrunn veranstaltet am 04. und 05. Juli 2026 im Rahmen des 100‑jährigen Vereinsjubiläums ein Mini‑Fußball Sommerfestival.
+Weitere Details folgen in Kürze. Wir freuen uns auf euch!
           </div>
         </div>
       </div>
-      <!-- ===== Ende Werbe-Infobox ===== -->
+      <!-- ===== Ende Info-/Werbe-Kachel ===== -->
+
     </section>
   </main>
 
-  <!-- Socket.IO Client korrekt laden -->
+  <!-- Socket.IO Client -->
   <script src="/socket.io/socket.io.js"></script>
 
-  <!-- ===== Viewer Logik (Teile 2–4 zusammengeführt) ===== -->
   <script>
-    // === Konfiguration: Pfad zum Hallenlayout-Bild
+    // === Assets
     var HALL_IMG_PATH = '/assets/bg_hallenmasters_Gym.jpg';
+    (function setLogo(){ var img=document.getElementById('clubLogo'); if(!img) return; var url='/assets/Fussballwappen_logo.png?_v='+Date.now(); img.onerror=function(){img.style.display='none';}; img.src=url; })();
+    (function setHallImage(){ var img=document.getElementById('hallImage'); if(!img) return; var url=HALL_IMG_PATH+'?_v='+Date.now(); img.onerror=function(){img.style.display='none';}; img.onload=function(){img.style.display='block';}; img.src=url; })();
 
-    // === Logo laden (optional)
-    (function setLogo(){
-      var LOGO_PATH = '/assets/Fussballwappen_logo.png';
-      var img = document.getElementById('clubLogo');
-      if (!img) return;
-      var url = LOGO_PATH + '?_v=' + Date.now();
-      img.onload  = function(){};
-      img.onerror = function(){ img.style.display='none'; };
-      img.src = url;
-    })();
-
-    // === Hallenlayout-Bild setzen (mit robuster Fehlerbehandlung)
-    (function setHallImage(){
-      var img = document.getElementById('hallImage');
-      if (!img) return;
-      var url = HALL_IMG_PATH + '?_v=' + Date.now();
-      img.onload  = function(){ img.style.display='block'; };
-      img.onerror = function(){ console.warn('Hallenlayout konnte nicht geladen werden:', url); img.style.display='none'; };
-      img.src = url;
-    })();
-
-    // === Kleine Helfer
-    function groupClass(g){
-      var x = String(g || '').trim().toUpperCase();
-      switch (x) {
-        case 'A': return 'grpA';
-        case 'B': return 'grpB';
-        case 'C': return 'grpC';
-        case 'D': return 'grpD';
-        case 'E': return 'grpE';
-        case 'F': return 'grpF';
-        default:  return null;
-      }
-    }
+    // === Helpers
+    function groupClass(g){ var x=String(g||'').trim().toUpperCase(); switch(x){ case 'A':return 'grpA'; case 'B':return 'grpB'; case 'C':return 'grpC'; case 'D':return 'grpD'; case 'E':return 'grpE'; case 'F':return 'grpF'; default:return null; } }
     function addClassSafe(el, cls){ if (el && cls) el.classList.add(cls); }
-    function setStatus(ok){
-      var el = document.getElementById('connStatus');
-      if (!el) return;
-      if (ok){ el.textContent = 'Status: verbunden'; el.className = 'pill ok'; }
-      else   { el.textContent = 'Status: getrennt';  el.className = 'pill err'; }
-    }
-    function setLastUpdate(){
-      var el = document.getElementById('lastUpdate');
-      if (!el) return;
-      var now = new Date();
-      var hh = String(now.getHours()).padStart(2,'0');
-      var mm = String(now.getMinutes()).padStart(2,'0');
-      var ss = String(now.getSeconds()).padStart(2,'0');
-      el.textContent = 'Letztes Update: ' + hh + ':' + mm + ':' + ss;
-      el.className = 'pill ok';
-    }
+    function setStatus(ok){ var el=document.getElementById('connStatus'); if(!el) return; if(ok){ el.textContent='Status: verbunden'; el.className='pill ok'; } else { el.textContent='Status: getrennt'; el.className='pill err'; } }
+    function setLastUpdate(){ var el=document.getElementById('lastUpdate'); if(!el) return; var now=new Date(); var hh=String(now.getHours()).padStart(2,'0'); var mm=String(now.getMinutes()).padStart(2,'0'); var ss=String(now.getSeconds()).padStart(2,'0'); el.textContent='Letztes Update: '+hh+':'+mm+':'+ss; el.className='pill ok'; }
 
-    // === Daten laden
+    // === API
     var API_BASE = window.location.origin + '/api';
-    function safeFetch(path, init){
-      return fetch(API_BASE + path, init).then(function(res){
-        if (!res.ok){
-          return res.text().then(function(txt){ throw new Error('HTTP '+res.status+' '+res.statusText+(txt?': '+txt:'')); });
-        }
-        return res.json();
-      });
-    }
+    function safeFetch(path, init){ return fetch(API_BASE + path, init).then(function(res){ if(!res.ok){ return res.text().then(function(txt){ throw new Error('HTTP '+res.status+' '+res.statusText+(txt?': '+txt:'')); }); } return res.json(); }); }
     function loadMatches(){ return safeFetch('/matches', { method:'GET' }); }
     function loadTeams(){ return safeFetch('/teams', { method:'GET' }); }
 
-    // === Tabellen-Rendering
-    function renderTable(rows){
-      var tbody = document.querySelector('#matchesTable tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
+    // === Sortierung
+    function hhmmToNum(hhmm){ var m=/^(\d{2}):(\d{2})$/.exec(String(hhmm||'')); if(!m) return Number.POSITIVE_INFINITY; return Number(m[1])*60+Number(m[2]); }
+    function sortMatches(rows){ return [].concat(rows||[]).sort(function(a,b){ var ta=hhmmToNum(a && a.plannedStart), tb=hhmmToNum(b && b.plannedStart); if(ta!==tb) return ta-tb; var fa=Number(a && a.field || 0), fb=Number(b && b.field || 0); if(fa!==fb) return fa-fb; return Number(a && a.id || 0) - Number(b && b.id || 0); }); }
 
-      if (!Array.isArray(rows) || !rows.length){
-        var tr0 = document.createElement('tr');
-        var td0 = document.createElement('td');
-        td0.colSpan = 8;
-        td0.textContent = 'Noch keine Spiele geplant.';
-        td0.style.color = '#9ca3af';
-        tr0.appendChild(td0);
-        tbody.appendChild(tr0);
-        updateTheadSpacer();
-        return;
+    // ===== Regel-Erkennung: A/B/C @ Runde==4, D/E/F @ Runde==7 =====
+    function computeCompletedByRules(rows){
+      var seen = {A:false,B:false,C:false,D:false,E:false,F:false};
+      (rows||[]).forEach(function(m){
+        var g = String(m.groupName||'').trim().toUpperCase();
+        var r = Number(m.round||0);
+        if ((g==='A'||g==='B'||g==='C') && r === 4) seen[g] = true;
+        if ((g==='D'||g==='E'||g==='F') && r === 7) seen[g] = true;
+      });
+      return seen;
+    }
+    function isABC(g){ return g==='A'||g==='B'||g==='C'; }
+    function isDEF(g){ return g==='D'||g==='E'||g==='F'; }
+
+    // ===== Tabellen-Rendering (Regel angewendet) =====
+    function updateTheadSpacer(){ var tw=document.querySelector('.tableWrap'); var thead=tw?tw.querySelector('thead'):null; if(!thead||!tw) return; var h=Math.ceil(thead.getBoundingClientRect().height)||0; tw.style.setProperty('--thead-spacer', h+'px'); }
+    function renderTable(rows){
+      var tbody=document.querySelector('#matchesTable tbody');
+      if(!tbody) return;
+      tbody.innerHTML='';
+      rows=sortMatches(rows);
+      if(!Array.isArray(rows)||!rows.length){
+        var tr0=document.createElement('tr'); var td0=document.createElement('td'); td0.colSpan=8; td0.textContent='Noch keine Spiele geplant.'; td0.style.color='#9ca3af'; tr0.appendChild(td0); tbody.appendChild(tr0);
+        updateTheadSpacer(); return;
       }
 
-      for (var i=0; i<rows.length; i++){
-        var m = rows[i];
-        var tr = document.createElement('tr');
-        addClassSafe(tr, groupClass(m && m.groupName));
+      var completed = computeCompletedByRules(rows); // {A..F}
+      for(var i=0;i<rows.length;i++){
+        var m=rows[i];
+        var g=String(m.groupName||'').trim().toUpperCase();
+        var r=Number(m.round||0);
 
-        var id        = (m && m.id != null) ? m.id : '';
-        var groupName = (m && m.groupName) ? m.groupName : '';
-        var round     = (m && m.round != null) ? m.round : '';
-        var field     = (m && m.field != null) ? m.field : '';
-        var teamAId   = (m && (m.teamA_id!=null || m.teamA!=null)) ? (m.teamA_id!=null?m.teamA_id:m.teamA) : null;
-        var teamBId   = (m && (m.teamB_id!=null || m.teamB!=null)) ? (m.teamB_id!=null?m.teamB_id:m.teamB) : null;
-        var teamAName = (m && m.teamA && typeof m.teamA==='string') ? m.teamA : (teamAId!=null?String(teamAId):'');
-        var teamBName = (m && m.teamB && typeof m.teamB==='string') ? m.teamB : (teamBId!=null?String(teamBId):'');
-        var planned   = (m && m.plannedStart) ? m.plannedStart : '–';
+        // Regel: A/B/C @ 4, D/E/F @ 7 -> keine normale Zeile
+        if ( (isABC(g) && r===4) || (isDEF(g) && r===7) ) continue;
 
-        var winnerVal = (m && typeof m.winner!=='undefined') ? m.winner : null;
-        var hasWinner = (winnerVal!==null && winnerVal!==undefined);
+        var tr=document.createElement('tr'); addClassSafe(tr, groupClass(g));
+        var id=(m && m.id!=null)?m.id:''; var field=(m && m.field!=null)?m.field:'';
+        var teamAId=(m&&(m.teamA_id!=null||m.teamA!=null))?(m.teamA_id!=null?m.teamA_id:m.teamA):null;
+        var teamBId=(m&&(m.teamB_id!=null||m.teamB!=null))?(m.teamB_id!=null?m.teamB_id:m.teamB):null;
+        var teamAName=(m&&m.teamA&&typeof m.teamA==='string'&&m.teamA.trim())?m.teamA:(teamAId!=null?('Team #'+teamAId):'—');
+        var teamBName=(m&&m.teamB&&typeof m.teamB==='string'&&m.teamB.trim())?m.teamB:(teamBId!=null?('Team #'+teamBId):'—');
+        var planned=(m && m.plannedStart) ? m.plannedStart : '–';
+        var winnerVal=(typeof m?.winner!=='undefined' && m.winner!==null)?Number(m.winner):NaN;
+        var hasWinner=!isNaN(winnerVal);
 
-        var tdId    = document.createElement('td'); tdId.textContent = id;
+        var tdId=document.createElement('td'); tdId.textContent=id;
+        var tdGroup=document.createElement('td'); var badge=document.createElement('span'); badge.className='grpBadge '+g; badge.textContent=g; tdGroup.appendChild(badge);
+        var tdRound=document.createElement('td'); tdRound.textContent=r;
+        var tdField=document.createElement('td'); tdField.textContent=field;
+        var tdTime=document.createElement('td'); tdTime.textContent=planned;
 
-        var tdGroup = document.createElement('td');
-        var badge   = document.createElement('span');
-        var gTrim   = String(groupName || '').trim().toUpperCase();
-        badge.className = 'grpBadge ' + (gTrim || 'A');
-        badge.textContent = gTrim || 'A';
-        tdGroup.appendChild(badge);
+        var tdA=document.createElement('td');
+        var wA=document.createElement('span'); wA.className=hasWinner && Number(winnerVal)===Number(teamAId)?'winnerText':'loserText'; wA.textContent=teamAName;
+        if(hasWinner && Number(winnerVal)===Number(teamAId)){ var icoA=document.createElement('span'); icoA.className='winIcon'; icoA.textContent='🏆'; icoA.setAttribute('role','img'); icoA.title='Sieger'; tdA.appendChild(icoA); }
+        tdA.appendChild(wA);
 
-        var tdRound = document.createElement('td'); tdRound.textContent = round;
-        var tdField = document.createElement('td'); tdField.textContent = field;
-        var tdTime  = document.createElement('td'); tdTime.textContent = planned;
+        var tdB=document.createElement('td');
+        var wB=document.createElement('span'); wB.className=hasWinner && Number(winnerVal)===Number(teamBId)?'winnerText':'loserText'; wB.textContent=teamBName;
+        if(hasWinner && Number(winnerVal)===Number(teamBId)){ var icoB=document.createElement('span'); icoB.className='winIcon'; icoB.textContent='🏆'; icoB.setAttribute('role','img'); icoB.title='Sieger'; tdB.appendChild(icoB); }
+        tdB.appendChild(wB);
 
-        var tdA = document.createElement('td');
-        var wA  = document.createElement('span'); wA.className = 'loserText'; wA.textContent = teamAName;
-        if (hasWinner && Number(winnerVal)===Number(teamAId)){
-          var icoA = document.createElement('span'); icoA.className='winIcon'; icoA.textContent='🏆'; icoA.setAttribute('aria-label','Sieger');
-          wA.className = 'winnerText';
-          tdA.appendChild(icoA); tdA.appendChild(wA);
-        } else { tdA.appendChild(wA); }
+        var tdWinner=document.createElement('td'); tdWinner.textContent=hasWinner ? ((Number(winnerVal)===Number(teamAId)) ? teamAName : teamBName) : '–';
 
-        var tdB = document.createElement('td');
-        var wB  = document.createElement('span'); wB.className = 'loserText'; wB.textContent = teamBName;
-        if (hasWinner && Number(winnerVal)===Number(teamBId)){
-          var icoB = document.createElement('span'); icoB.className='winIcon'; icoB.textContent='🏆'; icoB.setAttribute('aria-label','Sieger');
-          wB.className = 'winnerText';
-          tdB.appendChild(icoB); tdB.appendChild(wB);
-        } else { tdB.appendChild(wB); }
-
-        var tdWinner = document.createElement('td');
-        tdWinner.textContent = hasWinner ? ((Number(winnerVal)===Number(teamAId)) ? teamAName : teamBName) : '–';
-
-        tr.appendChild(tdId);
-        tr.appendChild(tdGroup);
-        tr.appendChild(tdRound);
-        tr.appendChild(tdField);
-        tr.appendChild(tdTime);
-        tr.appendChild(tdA);
-        tr.appendChild(tdB);
-        tr.appendChild(tdWinner);
-
+        tr.append(tdId, tdGroup, tdRound, tdField, tdTime, tdA, tdB, tdWinner);
         tbody.appendChild(tr);
       }
+
+      /* Hinweis-Zeilen je betroffene Gruppe (A–C mit Zusatz, D–F ohne) */
+      ['A','B','C','D','E','F'].forEach(function(g){
+        if (completed[g]){
+          var tr = document.createElement('tr'); addClassSafe(tr, groupClass(g));
+          var td = document.createElement('td'); td.colSpan = 8;
+          var box = document.createElement('div'); box.className = 'tableNotice '+g;
+          box.textContent = isABC(g)
+            ? ('Spiele Gruppe '+g+' beendet, Update des Spielplans erfolgt in Kürze')
+            : ('Spiele Gruppe '+g+' beendet');
+          td.appendChild(box); tr.appendChild(td);
+          tbody.appendChild(tr);
+        }
+      });
 
       updateTheadSpacer();
     }
 
-    // === Tiles-Helpers
-    function uniqueSortedFields(rows){
-      var set = {};
-      for (var i=0; i<rows.length; i++){
-        var f = (rows[i] && rows[i].field!=null) ? rows[i].field : null;
-        if (f!=null) set[String(f)] = true;
+    // ===== Tiles-Rendering (Regel angewendet) =====
+    function uniqueSortedFields(rows){ var set={}; for(var i=0;i<rows.length;i++){ var f=(rows[i] && rows[i].field!=null)?rows[i].field:null; if(f!=null) set[String(f)]=true; } var arr=Object.keys(set); arr.sort(function(a,b){return Number(a)-Number(b);}); return arr.map(Number); }
+    function uniqueSortedTimes(rows){ var set=new Set(); for(var i=0;i<rows.length;i++){ var t=(rows[i] && rows[i].plannedStart) ? rows[i].plannedStart : '–'; set.add(t); } var arr=Array.from(set); arr.sort(function(a,b){ return hhmmToNum(a)-hhmmToNum(b); }); return arr; }
+    function updateTilesHeadHeight(){ var head=document.getElementById('tilesHeadGlobal'); if(!head) return; var h=Math.ceil(head.getBoundingClientRect().height)||0; document.documentElement.style.setProperty('--tiles-head-h', h+'px'); }
+
+    function bigNoticeTile(group){
+      var div = document.createElement('div');
+      div.className = 'bigNotice '+group; /* farbig: A–F */
+
+      var title = document.createElement('div');
+      title.className = 'bigNoticeTitle';
+      title.textContent = 'Spiele Gruppe ' + group + ' beendet';
+      div.appendChild(title);
+
+      // Nur für A/B/C den Zusatztext anzeigen
+      if (isABC(group)) {
+        var hint = document.createElement('div');
+        hint.className = 'bigNoticeHint';
+        hint.textContent = 'Update des Spielplans erfolgt in Kürze';
+        div.appendChild(hint);
       }
-      var arr = Object.keys(set);
-      arr.sort(function(a,b){ return Number(a)-Number(b); });
-      var out = [];
-      for (var j=0;j<arr.length;j++) out.push(Number(arr[j]));
-      return out;
+      return div;
     }
-    function uniqueSortedTimes(rows){
-      var set = {};
-      for (var i=0; i<rows.length; i++){
-        var t = (rows[i] && rows[i].plannedStart) ? rows[i].plannedStart : null;
-        if (t) set[String(t)] = true;
-      }
-      var arr = Object.keys(set);
-      arr.sort(function(a,b){
-        if (a==='–' && b==='–') return 0;
-        if (a==='–') return 1;
-        if (b==='–') return -1;
-        return String(a).localeCompare(String(b));
-      });
-      return arr;
-    }
+
     function tileNodeForMatch(m){
       var grp = String((m && m.groupName)||'').trim().toUpperCase();
-      var teamAId = (m && m.teamA_id!=null) ? Number(m.teamA_id) : (m && m.teamA!=null ? Number(m.teamA) : NaN);
-      var teamBId = (m && m.teamB_id!=null) ? Number(m.teamB_id) : (m && m.teamB!=null ? Number(m.teamB) : NaN);
-      var winnerVal = (m && typeof m.winner!=='undefined') ? Number(m.winner) : NaN;
+      var teamAId=(m && m.teamA_id!=null)?Number(m.teamA_id):(m && m.teamA!=null?Number(m.teamA):NaN);
+      var teamBId=(m && m.teamB_id!=null)?Number(m.teamB_id):(m && m.teamB!=null?Number(m.teamB):NaN);
+      var winnerVal=(m && typeof m.winner!=='undefined' && m.winner!==null)?Number(m.winner):NaN;
 
-      var tile = document.createElement('div');
-      addClassSafe(tile, 'tile');
-      addClassSafe(tile, groupClass(grp));
+      var tile=document.createElement('div'); addClassSafe(tile,'tile'); addClassSafe(tile,groupClass(grp));
 
-      var top = document.createElement('div'); top.className = 'tileTop';
-      var topLeft = document.createElement('div'); topLeft.className = 'tileTopLeft';
-      var tag = document.createElement('span'); tag.className = 'tileTag'; tag.textContent = 'Gruppe ' + (grp || '–');
-      var idTag = document.createElement('span'); idTag.className = 'idTag'; idTag.textContent = 'ID ' + ((m && m.id!=null)?m.id:'–');
-      topLeft.appendChild(tag); topLeft.appendChild(idTag);
+      var top=document.createElement('div'); top.className='tileTop';
+      var topLeft=document.createElement('div'); topLeft.className='tileTopLeft';
+      var tag=document.createElement('span'); tag.className='tileTag'; tag.textContent='Gruppe '+(grp||'–');
+      var idTag=document.createElement('span'); idTag.className='idTag'; idTag.textContent='ID '+((m && m.id!=null)?m.id:'–');
+      topLeft.append(tag,idTag);
 
-      var topRight = document.createElement('div');
-      var roundSpan = document.createElement('span'); roundSpan.className = 'roundBadge'; roundSpan.textContent = 'Runde ' + ((m && m.round!=null)?m.round:'-');
+      var topRight=document.createElement('div');
+      var roundSpan=document.createElement('span'); roundSpan.className='roundBadge'; roundSpan.textContent='Runde '+((m && m.round!=null)?m.round:'-');
       topRight.appendChild(roundSpan);
 
-      top.appendChild(topLeft); top.appendChild(topRight);
-      tile.appendChild(top);
+      top.append(topLeft, topRight); tile.appendChild(top);
 
-      var main = document.createElement('div'); main.className = 'tileMain';
-
-      var aWrap = document.createElement('span'); aWrap.className = 'teamText';
-      var aTxt  = document.createElement('span'); aTxt.textContent = (m && m.teamA && typeof m.teamA==='string') ? m.teamA : (teamAId?String(teamAId):'');
-      aTxt.className = (!isNaN(winnerVal) && winnerVal===teamAId) ? 'winnerText' : 'loserText';
-      if (!isNaN(winnerVal) && winnerVal===teamAId){
-        var aIco = document.createElement('span'); aIco.className='winIcon'; aIco.textContent='🏆'; aIco.setAttribute('aria-label','Sieger');
-        aWrap.appendChild(aIco);
-      }
+      var main=document.createElement('div'); main.className='tileMain';
+      var aWrap=document.createElement('span'); aWrap.className='teamText';
+      var aName=(m && m.teamA && typeof m.teamA==='string' && m.teamA.trim()) ? m.teamA : (isFinite(teamAId)?('Team #'+teamAId):'—');
+      var aTxt=document.createElement('span'); aTxt.textContent=aName; aTxt.className=(!isNaN(winnerVal) && winnerVal===teamAId)?'winnerText':'loserText';
+      if(!isNaN(winnerVal) && winnerVal===teamAId){ var aIco=document.createElement('span'); aIco.className='winIcon'; aIco.textContent='🏆'; aIco.setAttribute('role','img'); aIco.title='Sieger'; aWrap.appendChild(aIco); }
       aWrap.appendChild(aTxt);
 
-      var bWrap = document.createElement('span'); bWrap.className = 'teamText';
-      var bTxt  = document.createElement('span'); bTxt.textContent = (m && m.teamB && typeof m.teamB==='string') ? m.teamB : (teamBId?String(teamBId):'');
-      bTxt.className = (!isNaN(winnerVal) && winnerVal===teamBId) ? 'winnerText' : 'loserText';
-      if (!isNaN(winnerVal) && winnerVal===teamBId){
-        var bIco = document.createElement('span'); bIco.className='winIcon'; bIco.textContent='🏆'; bIco.setAttribute('aria-label','Sieger');
-        bWrap.appendChild(bIco);
-      }
+      var bWrap=document.createElement('span'); bWrap.className='teamText';
+      var bName=(m && m.teamB && typeof m.teamB==='string' && m.teamB.trim()) ? m.teamB : (isFinite(teamBId)?('Team #'+teamBId):'—');
+      var bTxt=document.createElement('span'); bTxt.textContent=bName; bTxt.className=(!isNaN(winnerVal) && winnerVal===teamBId)?'winnerText':'loserText';
+      if(!isNaN(winnerVal) && winnerVal===teamBId){ var bIco=document.createElement('span'); bIco.className='winIcon'; bIco.textContent='🏆'; bIco.setAttribute('role','img'); bIco.title='Sieger'; bWrap.appendChild(bIco); }
       bWrap.appendChild(bTxt);
 
-      main.appendChild(aWrap);
-      main.appendChild(bWrap);
-      tile.appendChild(main);
-
+      main.append(aWrap, bWrap); tile.appendChild(main);
       return tile;
     }
 
-    // === Tiles-Rendering (Zeit-Slots × Felder, globaler Feld-Kopf)
     function renderTiles(rows){
-      var head = document.getElementById('tilesHeadGlobal');
-      var cont = document.getElementById('tilesContainer');
-      var empty = document.getElementById('tilesEmpty');
-      if (!head || !cont || !empty) return;
-      head.innerHTML = '';
-      cont.innerHTML = '';
+      var head=document.getElementById('tilesHeadGlobal');
+      var cont=document.getElementById('tilesContainer');
+      var empty=document.getElementById('tilesEmpty');
+      if(!head||!cont||!empty) return;
+      head.innerHTML=''; cont.innerHTML='';
 
-      if (!Array.isArray(rows) || !rows.length){
-        empty.style.display = 'block';
+      var all = Array.isArray(rows) ? sortMatches(rows) : [];
+      if(!all.length){
+        empty.style.display='block';
         updateTilesHeadHeight();
         return;
       }
-      empty.style.display = 'none';
+      empty.style.display='none';
 
-      // Felder bestimmen und globalen Kopf aufbauen
-      var fields = uniqueSortedFields(rows);
-      if (!fields.length) fields = [1,2,3];
+      var completed = computeCompletedByRules(all); // {A..F}
+
+      // Aktive = alle außer (A/B/C @ 4) und (D/E/F @ 7)
+      var activeRows = all.filter(function(m){
+        var g = String(m.groupName||'').trim().toUpperCase();
+        var r = Number(m.round||0);
+        if (isABC(g) && r===4) return false;
+        if (isDEF(g) && r===7) return false;
+        return true;
+      });
+
+      var fields = uniqueSortedFields(activeRows.length ? activeRows : all); if(!fields.length) fields=[1,2,3];
       head.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
       for (var h=0; h<fields.length; h++){
-        var fh = document.createElement('div'); fh.className = 'fieldHead';
-        var fb = document.createElement('span'); fb.className = 'fieldHeadBadge'; fb.textContent = 'Feld ' + fields[h];
+        var fh=document.createElement('div'); fh.className='fieldHead';
+        var fb=document.createElement('span'); fb.className='fieldHeadBadge'; fb.textContent='Feld '+fields[h];
         fh.appendChild(fb); head.appendChild(fh);
       }
 
-      // Zeiten sammeln
-      var times = uniqueSortedTimes(rows);
-      if (!times.length) times = ['–'];
+      var times = uniqueSortedTimes(activeRows.length ? activeRows : all); if(!times.length) times=['–'];
 
       for (var ti=0; ti<times.length; ti++){
         var timeKey = times[ti];
+        var slot=document.createElement('div'); slot.className='slotRow';
 
-        var slot = document.createElement('div'); slot.className = 'slotRow';
-
-        // Zeit links
-        var timeCol = document.createElement('div'); timeCol.className = 'slotTime';
-        var timeBadge = document.createElement('span'); timeBadge.className = 'timeBadge';
-        timeBadge.textContent = timeKey;
+        // Zeitspalte
+        var timeCol=document.createElement('div'); timeCol.className='slotTime';
+        var timeBadge=document.createElement('span'); timeBadge.className='timeBadge'; timeBadge.textContent=timeKey;
         timeCol.appendChild(timeBadge);
 
-        // Grid rechts
-        var grid = document.createElement('div'); grid.className = 'tilesGrid';
-        grid.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
+        // Grid
+        var grid=document.createElement('div'); grid.className='tilesGrid';
+        grid.style.gridTemplateColumns='repeat('+fields.length+', minmax(260px, 1fr))';
 
-        // Für jedes Feld die passende Partie finden
+        // Pro Feld: passendes Match suchen
         for (var fIdx=0; fIdx<fields.length; fIdx++){
           var f = fields[fIdx];
-
-          // Eine zum Zeitpunkt passende Partie mit field==f suchen
-          var match = null;
-          for (var i=0; i<rows.length; i++){
-            var m = rows[i];
-            var t = (m && m.plannedStart) ? m.plannedStart : '–';
-            var fld = (m && m.field!=null) ? Number(m.field) : null;
-            if (t===timeKey && fld===Number(f)){ match = m; break; }
+          var match=null;
+          for (var i=0; i<activeRows.length; i++){
+            var m=activeRows[i];
+            var t=(m && m.plannedStart)?m.plannedStart:'–';
+            var fld=(m && m.field!=null)?Number(m.field):null;
+            if (t===timeKey && fld===Number(f)){ match=m; break; }
           }
-
           if (match) {
             grid.appendChild(tileNodeForMatch(match));
           } else {
-            // dezenter Platzhalter
-            var placeholder = document.createElement('div');
-            addClassSafe(placeholder, 'tile');
-            var tag = document.createElement('span'); tag.className='tileTag'; tag.textContent = '—';
-            placeholder.appendChild(tag);
-            grid.appendChild(placeholder);
+            var placeholder=document.createElement('div'); addClassSafe(placeholder,'tile'); var tag=document.createElement('span'); tag.className='tileTag'; tag.textContent='—'; placeholder.appendChild(tag); grid.appendChild(placeholder);
           }
         }
 
-        slot.appendChild(timeCol);
-        slot.appendChild(grid);
+        slot.append(timeCol, grid);
         cont.appendChild(slot);
       }
+
+      // Hinweis-Großkacheln für betroffene Gruppen
+      ['A','B','C','D','E','F'].forEach(function(g){
+        if (completed[g]){
+          cont.appendChild(bigNoticeTile(g));
+        }
+      });
 
       updateTilesHeadHeight();
     }
 
-    /* ==== Teams Rendering ==== */
+    // ===== Teams =====
     function renderTeamsGrid(teams){
       var grid=document.getElementById('teamsGrid'), empty=document.getElementById('teamsEmpty');
       if(!grid||!empty) return;
       grid.innerHTML='';
-      if(!Array.isArray(teams)||teams.length===0){
-        empty.style.display='block'; return;
-      }
+      if(!Array.isArray(teams)||teams.length===0){ empty.style.display='block'; return; }
       empty.style.display='none';
-      // Gruppen A–F
-      var groups = ['A','B','C','D','E','F'];
+      var groups=['A','B','C','D','E','F'];
       groups.forEach(function(g){
-        var list = teams.filter(function(t){ return String(t.groupName||'').trim().toUpperCase()===g; })
-                        .sort(function(a,b){ return String(a.name||'').localeCompare(String(b.name||'')); });
-        var card=document.createElement('div'); card.className='teamCard'; addClassSafe(card, groupClass(g)); /* farbiger Rahmen */
-        var head = document.createElement('div'); head.className='teamCardHeader';
-        var badge=document.createElement('span'); badge.className='teamBadge '+g; badge.textContent='Gruppe '+g; /* farbige Badge */
-        var count = document.createElement('span'); count.className='teamCount'; count.textContent = list.length+' Team(s)';
-        head.appendChild(badge); head.appendChild(count); card.appendChild(head);
-        var ul = document.createElement('ul'); ul.className='teamList';
-        if (list.length===0){
-          var li = document.createElement('li'); li.className='teamItem teamEmpty'; li.textContent='– keine Teams –';
-          ul.appendChild(li);
-        } else {
-          list.forEach(function(t){
-            var li=document.createElement('li'); li.className='teamItem';
-            var dot=document.createElement('span'); dot.className='teamDot '+g; /* farbiger Punkt */
-            var name=document.createElement('span'); name.textContent=t.name;
-            li.appendChild(dot); li.appendChild(name);
-            ul.appendChild(li);
-          });
-        }
-        card.appendChild(ul);
-        grid.appendChild(card);
+        var list=teams.filter(function(t){ return String(t.groupName||'').trim().toUpperCase()===g; })
+                      .sort(function(a,b){ return String(a.name||'').localeCompare(String(b.name||'')); });
+        var card=document.createElement('div'); card.className='teamCard'; addClassSafe(card, groupClass(g));
+        var head=document.createElement('div'); head.className='teamCardHeader';
+        var badge=document.createElement('span'); badge.className='teamBadge '+g; badge.textContent='Gruppe '+g;
+        var count=document.createElement('span'); count.className='teamCount'; count.textContent=list.length+' Team(s)';
+        head.append(badge, count); card.appendChild(head);
+        var ul=document.createElement('ul'); ul.className='teamList';
+        if(list.length===0){ var li=document.createElement('li'); li.className='teamItem teamEmpty'; li.textContent='– keine Teams –'; ul.appendChild(li); }
+        else { list.forEach(function(t){ var li=document.createElement('li'); li.className='teamItem'; var dot=document.createElement('span'); dot.className='teamDot '+g; var name=document.createElement('span'); name.textContent=t.name; li.append(dot,name); ul.appendChild(li); }); }
+        card.appendChild(ul); grid.appendChild(card);
       });
     }
-	
-	// === Titel-Umschaltung je View
-    function updateSectionTitle(mode){
-      var h2 = document.getElementById('sectionTitle');
-      if (!h2) return;
-      // mode: 'table' | 'tiles' | 'hall' | 'teams'
-      if (mode === 'hall') {
-        h2.textContent = 'Halle';
-      } else if (mode === 'teams') {
-        h2.textContent = 'Gruppeneinteilung';
-      } else {
-        h2.textContent = 'Spielübersicht';
-      }
-    }
-	
-    // === Umschalter (4 Views)
-    function setView(mode){
-      var body = document.body;
-      var btnT = document.getElementById('btnViewTable');
-      var btnK = document.getElementById('btnViewTiles');
-      var btnH = document.getElementById('btnViewHall');
-      var btnTe= document.getElementById('btnViewTeams');
 
-      // Body-Klasse setzen
+    // ===== View-Umschaltung & Init =====
+    function updateSectionTitle(mode){ var h2=document.getElementById('sectionTitle'); if(!h2) return; if(mode==='hall') h2.textContent='Halle'; else if(mode==='teams') h2.textContent='Gruppeneinteilung'; else h2.textContent='Spielübersicht'; }
+    function updateStickyOffsets(){ var topHdr=document.querySelector('body > header'); var secHdr=document.getElementById('sectionHeader'); var topH=topHdr?Math.ceil(topHdr.getBoundingClientRect().height):0; var secH=secHdr?Math.ceil(secHdr.getBoundingClientRect().height):0; document.documentElement.style.setProperty('--sticky-offset', topH+'px'); document.documentElement.style.setProperty('--sticky-sec',  secH+'px'); }
+    window.addEventListener('load', updateStickyOffsets); window.addEventListener('resize', updateStickyOffsets); setTimeout(updateStickyOffsets, 350);
+    window.addEventListener('load', updateTheadSpacer); window.addEventListener('resize', updateTheadSpacer);
+    window.addEventListener('load', updateTilesHeadHeight); window.addEventListener('resize', updateTilesHeadHeight);
+
+    function setView(mode){
+      var body=document.body;
+      var btnT=document.getElementById('btnViewTable');
+      var btnK=document.getElementById('btnViewTiles');
+      var btnH=document.getElementById('btnViewHall');
+      var btnTe=document.getElementById('btnViewTeams');
+
       body.classList.remove('view-table','view-tiles','view-hall','view-teams');
       if (mode==='table') body.classList.add('view-table');
       else if (mode==='hall') body.classList.add('view-hall');
       else if (mode==='teams') body.classList.add('view-teams');
       else body.classList.add('view-tiles');
 
-      [btnT,btnK,btnH,btnTe].forEach(function(b){ b && b.classList.remove('btn-active'); });
-
-      if (mode==='table') btnT.classList.add('btn-active');
-      else if (mode==='hall') btnH.classList.add('btn-active');
-      else if (mode==='teams') btnTe.classList.add('btn-active');
-      else btnK.classList.add('btn-active');
+      [btnT,btnK,btnH,btnTe].forEach(function(b){ b&&b.classList.remove('btn-active'); });
+      if (mode==='table') btnT&&btnT.classList.add('btn-active');
+      else if (mode==='hall') btnH&&btnH.classList.add('btn-active');
+      else if (mode==='teams') btnTe&&btnTe.classList.add('btn-active');
+      else btnK&&btnK.classList.add('btn-active');
 
       updateSectionTitle(mode);
       updateStickyOffsets();
       updateTheadSpacer();
       updateTilesHeadHeight();
 
-      if (mode==='teams'){ // bei Wechsel auf Teams: neu laden/anzeigen
+      if (mode==='teams'){
         loadTeams().then(renderTeamsGrid).catch(function(e){ console.warn('Teams laden fehlgeschlagen:', e); });
       }
     }
@@ -741,113 +659,48 @@ Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird
     document.getElementById('btnViewHall').addEventListener('click',  function(){ setView('hall'); });
     document.getElementById('btnViewTeams').addEventListener('click', function(){ setView('teams'); });
 
-    // === Sticky-Offsets dynamisch setzen
-    function updateStickyOffsets(){
-      var topHdr = document.querySelector('body > header');
-      var secHdr = document.getElementById('sectionHeader');
-      var topH   = topHdr ? Math.ceil(topHdr.getBoundingClientRect().height) : 0;
-      var secH   = secHdr ? Math.ceil(secHdr.getBoundingClientRect().height) : 0;
-      document.documentElement.style.setProperty('--sticky-offset', topH + 'px');
-      document.documentElement.style.setProperty('--sticky-sec', secH + 'px');
-    }
-    window.addEventListener('load', updateStickyOffsets);
-    window.addEventListener('resize', updateStickyOffsets);
-    setTimeout(updateStickyOffsets, 350);
-
-    // === Thead-Spacer (Höhe des Kopfes) setzen
-    function updateTheadSpacer(){
-      var tw = document.querySelector('.tableWrap');
-      var thead = tw ? tw.querySelector('thead') : null;
-      if (!thead || !tw) return;
-      var h = Math.ceil(thead.getBoundingClientRect().height) || 0;
-      tw.style.setProperty('--thead-spacer', h + 'px');
-    }
-    window.addEventListener('load', updateTheadSpacer);
-    window.addEventListener('resize', updateTheadSpacer);
-
-    // === Tiles-Head-Höhe setzen (für Reflows in Tiles)
-    function updateTilesHeadHeight(){
-      var head = document.getElementById('tilesHeadGlobal');
-      if (!head) return;
-      var h = Math.ceil(head.getBoundingClientRect().height) || 0;
-      document.documentElement.style.setProperty('--tiles-head-h', h + 'px');
-    }
-    window.addEventListener('load', updateTilesHeadHeight);
-    window.addEventListener('resize', updateTilesHeadHeight);
-	
-    // === Vollständige Aktualisierung
     function refresh(){
       return loadMatches()
-        .then(function(rows){
-          renderTable(rows);
-          renderTiles(rows);
-          setLastUpdate();
-        })
-        .catch(function(e){
-          console.error('Laden fehlgeschlagen:', e);
-          var el = document.getElementById('lastUpdate');
-          if (el){ el.textContent = 'Letztes Update: Fehler'; el.className = 'pill err'; }
-          setStatus(false);
-        });
+        .then(function(rows){ renderTable(rows); renderTiles(rows); setLastUpdate(); })
+        .catch(function(e){ console.error('Laden fehlgeschlagen:', e); var el=document.getElementById('lastUpdate'); if(el){ el.textContent='Letztes Update: Fehler'; el.className='pill err'; } setStatus(false); });
     }
 
-    // === Socket.IO Initialisierung (ES5)
     (function initSocket(){
       if (typeof io !== 'function'){
         console.error('Socket.IO Client nicht geladen – prüfe /socket.io/socket.io.js');
         setStatus(false);
         return;
       }
-      var base = window.location.origin;
-      var s = io(base, {
-        path:'/socket.io',
-        transports:['websocket','polling'],
-        reconnectionAttempts:10,
-        timeout:10000
-      });
+      var base=window.location.origin;
+      var s=io(base, { path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000 });
 
       s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTheadSpacer(); updateTilesHeadHeight(); });
-      s.on('disconnect', function(r){ setStatus(false); });
+      s.on('disconnect', function(){ setStatus(false); });
 
-      // Debounce auf Event-Sturm
-      var t;
-      function triggerDebounced(){ clearTimeout(t); t = setTimeout(function(){ refresh(); }, 250); }
+      var t; function triggerDebounced(){ clearTimeout(t); t=setTimeout(function(){ refresh(); }, 250); }
 
-      // Relevante Events
-      s.on('resultUpdate',    triggerDebounced);
-      s.on('results:updated', triggerDebounced);
-      s.on('group:started',   triggerDebounced);
-      s.on('round:advanced',  triggerDebounced);
-      s.on('matches:reset',   triggerDebounced);
-      s.on('groups:reseeded', triggerDebounced);
-      s.on('schedule:recalculated', triggerDebounced);
+      s.on('resultUpdate',           triggerDebounced);
+      s.on('results:updated',        triggerDebounced);
+      s.on('group:started',          triggerDebounced);
+      s.on('round:advanced',         triggerDebounced);
+      s.on('matches:reset',          triggerDebounced);
+      s.on('groups:reseeded',        triggerDebounced);
+      s.on('schedule:recalculated',  triggerDebounced);
     })();
 
-    // === Start
     document.addEventListener('DOMContentLoaded', function(){
-      setView('tiles');  // Default: Kachelansicht
-	  updateSectionTitle('tiles'); // sicher den Titel initial setzen
+      setView('tiles');
+      updateSectionTitle('tiles');
       refresh();
       setInterval(refresh, 30000);
-	  
-	  // Collapsible: Header klickbar + Tastatur
-      var adTile   = document.getElementById('adTile');
-      var adHeader = document.getElementById('adHeader');
 
-      function toggleAd(){
-        if (!adTile) return;
-        var expanded = adTile.getAttribute('aria-expanded') === 'true';
-        adTile.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        console.debug('Ad toggled:', !expanded);
-      }
-
+      // Info-/Werbe-Kachel Toggle
+      var adTile=document.getElementById('adTile'); var adHeader=document.getElementById('adHeader');
+      function toggleAd(){ if(!adTile) return; var expanded=adTile.getAttribute('aria-expanded')==='true'; adTile.setAttribute('aria-expanded', expanded?'false':'true'); }
       if (adHeader){
         adHeader.addEventListener('click', toggleAd);
         adHeader.addEventListener('keydown', function(ev){
-          if (ev.key === 'Enter' || ev.key === ' ' || ev.keyCode === 13 || ev.keyCode === 32){
-            ev.preventDefault();
-            toggleAd();
-          }
+          if(ev.key==='Enter'||ev.key===' '||ev.keyCode===13||ev.keyCode===32){ ev.preventDefault(); toggleAd(); }
         });
       }
     });
