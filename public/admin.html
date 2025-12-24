@@ -7,7 +7,6 @@
   <title>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</title>
 
   <style>
-    /* ===== Dunkles Grund-Theme ===== */
     :root {
       --bg: #0f172a; --fg: #e5e7eb; --muted: #9ca3af; --accent: #22c55e; --danger: #ef4444;
       --card: #111827; --border: #1f2937;
@@ -16,14 +15,11 @@
       --grpA-bg: #0b1b3a; --grpA-fg: #bfdbfe; --grpA-br: #1d4ed8;
       --grpB-bg: #2b0c0c; --grpB-fg: #fecaca; --grpB-br: #7f1d1d;
       --grpC-bg: #052e1b; --grpC-fg: #86efac; --grpC-br: #166534;
-	  --grpD-bg: #1f2937; --grpD-fg: #fde68a; --grpD-br: #f59e0b;
+      --grpD-bg: #1f2937; --grpD-fg: #fde68a; --grpD-br: #f59e0b;
       --grpE-bg: #1f2937; --grpE-fg: #ddd6fe; --grpE-br: #8b5cf6;
       --grpF-bg: #0b3640; --grpF-fg: #c0fafe; --grpF-br: #06b6d4;
 
-      /* Statusfarben */
       --ok:#22c55e; --warn:#f59e0b; --err:#ef4444;
-
-      /* Hinweise */
       --hint-bg:#0b1020; --hint-br:#2a3b57; --hint-fg:#cbd5e1;
     }
 
@@ -31,7 +27,6 @@
     body { margin:0; background:var(--bg); color:var(--fg);
            font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial; }
 
-    /* ===== Header mit Logo, QR und Basis-URL ===== */
     header { position: sticky; top: 0; z-index: 8; background: var(--card); border-bottom: 1px solid var(--border); }
     header .bar { display:flex; align-items:center; justify-content:space-between; padding: .75rem 1rem; gap: 1rem; }
     .leftWrap { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; min-height:56px; }
@@ -41,16 +36,8 @@
 
     .viewerLink { color: var(--muted); text-decoration: none; }
 
-    /* QR-Container mit Quiet Zone */
-    #qrImageHeader {
-      width:256px; height:256px;
-      background:#fff;
-      padding:12px;
-      border:1px solid var(--border);
-      border-radius:4px;
-      display:flex; align-items:center; justify-content:center;
-      box-sizing:content-box;
-    }
+    #qrImageHeader { width:256px; height:256px; background:#fff; padding:12px; border:1px solid var(--border);
+      border-radius:4px; display:flex; align-items:center; justify-content:center; box-sizing:content-box; }
 
     .logoPath{
       display:inline-flex; align-items:center; gap:.35rem;
@@ -64,7 +51,6 @@
       padding:.2rem .5rem; border-radius:6px; font-size:.85rem;
     }
 
-    /* ===== Layout & Elemente ===== */
     main { padding:1rem; max-width:1200px; margin:0 auto; }
     section { margin-bottom:2rem; background:var(--card); border:1px solid var(--border); border-radius:8px; }
     section > header { position: static; z-index: auto; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); display:flex; }
@@ -81,7 +67,7 @@
     .btn.grpA { border-color:var(--grpA-br); background:var(--grpA-bg); color:var(--grpA-fg); }
     .btn.grpB { border-color:var(--grpB-br); background:var(--grpB-bg); color:var(--grpB-fg); }
     .btn.grpC { border-color:var(--grpC-br); background:var(--grpC-bg); color:var(--grpC-fg); }
-	.btn.grpD { border-color:var(--grpD-br); background:var(--grpD-bg); color:var(--grpD-fg); }
+    .btn.grpD { border-color:var(--grpD-br); background:var(--grpD-bg); color:var(--grpD-fg); }
     .btn.grpE { border-color:var(--grpE-br); background:var(--grpE-bg); color:var(--grpE-fg); }
     .btn.grpF { border-color:var(--grpF-br); background:var(--grpF-bg); color:var(--grpF-fg); }
 
@@ -96,7 +82,7 @@
     .pill.grpA { color:var(--grpA-fg); border-color:var(--grpA-br); background:var(--grpA-bg); }
     .pill.grpB { color:var(--grpB-fg); border-color:var(--grpB-br); background:var(--grpB-bg); }
     .pill.grpC { color:var(--grpC-fg); border-color:var(--grpC-br); background:var(--grpC-bg); }
-	.pill.grpD { color:var(--grpD-fg); border-color:var(--grpD-br); background:var(--grpD-bg); }
+    .pill.grpD { color:var(--grpD-fg); border-color:var(--grpD-br); background:var(--grpD-bg); }
     .pill.grpE { color:var(--grpE-fg); border-color:var(--grpE-br); background:var(--grpE-bg); }
     .pill.grpF { color:var(--grpF-fg); border-color:var(--grpF-br); background:var(--grpF-bg); }
 
@@ -104,7 +90,6 @@
     tr.grpB td { background:rgba(220,38,38,.08); }
     tr.grpC td { background:rgba(22,163,74,.08); }
 
-    /* ===== Teams-Grid ===== */
     .teams-grid{ display: grid; grid-template-columns: repeat(3, minmax(320px, 1fr)); gap: 16px; align-items: start; padding: 1rem; }
     @media (max-width: 1100px){ .teams-grid{ grid-template-columns: repeat(2, minmax(320px, 1fr)); } }
     @media (max-width: 720px){ .teams-grid{ grid-template-columns: 1fr; } }
@@ -112,12 +97,10 @@
     .table-wrap { overflow:auto; }
     .table-wrap thead th { background:#0b1020; }
 
-    /* ===== Zeitmanagement ===== */
     .tm-row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
     .tm-row label { color:#cbd5e1; font-size:.85rem; }
     .tm-row .input { min-width: 120px; }
 
-    /* ===== Sieger-Icon & Team-Text ===== */
     .winIcon { font-size: 1rem; margin-right: .35rem; vertical-align: middle; }
     .winnerText { color: var(--accent); font-weight: 600; }
     .loserText  { color: var(--muted); }
@@ -149,8 +132,8 @@
 
       <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
         <div class="container">
-			<img src="" id="qr-img">
-		</div>
+          <img src="" id="qr-img" alt="QR-Code zum Viewer">
+        </div>
       </div>
     </div>
   </header>
@@ -188,7 +171,7 @@
       </div>
     </section>
 
-    <!-- Matches -->
+    <!-- Matches (Haupt-View) -->
     <section id="matchesSection">
       <header>
         <h2>Spiele</h2>
@@ -200,9 +183,8 @@
           <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
           <span id="nextMsg" class="pill" style="display:none"></span>
           <button id="btnReset"  type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
-		  <!-- Im Matches-Header (neben "Nächste Runde" / "Reset") -->
-		  <button id="btnReseedGroups" type="button" class="btn btn-primary">Gruppen neu zusammenstellen (nach 3 Runden)</button>
-		  <span id="reseedMsg" class="pill" style="display:none"></span>
+          <button id="btnReseedGroups" type="button" class="btn btn-primary">Gruppen neu zusammenstellen (nach 3 Runden)</button>
+          <span id="reseedMsg" class="pill" style="display:none"></span>
         </div>
       </header>
 
@@ -244,11 +226,45 @@
         </table>
       </div>
     </section>
+
+    <!-- Historie (separater View) -->
+    <section id="historySection">
+      <header>
+        <h2>Historie (letzte gespielte Runde)</h2>
+        <div class="row">
+          <label for="hist-group" class="pill">Gruppe:</label>
+          <select id="hist-group" class="input">
+            <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+            <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+          </select>
+          <button id="btnLoadHistory" type="button" class="btn btn-muted">History laden</button>
+          <button id="btnApplyHistory" type="button" class="btn btn-primary" title="Korrekturen anwenden und aktuellen 3er-Block im Haupt-View aktualisieren">Übernehmen & Haupt‑View aktualisieren</button>
+          <span id="histMsg" class="pill" style="display:none"></span>
+        </div>
+      </header>
+
+      <div class="tableWrap" style="padding:1rem">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Gruppe·Runde</th>
+              <th>Feld</th>
+              <th>Team A</th>
+              <th>Team B</th>
+              <th>Sieger</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
-  <!-- ===== CHANGED: Socket.IO korrekt einbinden ===== -->
+  <!-- Socket.IO -->
   <script src="/socket.io/socket.io.js"></script>
-
+  <!-- QR helper -->
   <script src="qr_script.js"></script>
 
   <!-- Logo -->
@@ -270,9 +286,7 @@
       img.src = url;
     }
 
-    function initHeader(){
-      setLogo();
-    }
+    function initHeader(){ setLogo(); }
   </script>
 
   <!-- ===== API / State / Helpers ===== -->
@@ -326,6 +340,26 @@
         body: JSON.stringify({ schedule })
       });
 
+    const apiReseedGroups = (schedule) =>
+      safeFetch('/funino/reseedGroups', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ schedule })
+      });
+
+    /* === History APIs === */
+    const apiHistoryLatest     = (group) => safeFetch('/history/latest/' + encodeURIComponent(group), { method:'GET' });
+    const apiHistorySetWinner  = (historyId, winner) => safeFetch('/history/' + encodeURIComponent(historyId) + '/winner', {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ winner })
+    });
+    const apiRebuildCurrRound  = (group) => safeFetch('/funino/rebuildCurrentRound', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ groupName: group })
+    });
+
     /* === Aliases für UI === */
     const loadTeams      = apiTeamsList;
     const deleteAllTeams = apiTeamsDeleteAll;
@@ -339,23 +373,29 @@
     const setWinner      = apiWinnerSet;
     const nextRoundReq   = apiNextRound;
 
+    // History
+    const loadHistoryLatest = apiHistoryLatest;
+    const setHistoryWinner  = apiHistorySetWinner;
+    const rebuildCurrentRound = apiRebuildCurrRound;
+
     /* === State === */
     let TEAMS = [];
     let MATCHES = [];
+    let HISTORY = { groupName:null, round:null, batchId:null, items:[] };
 
-    /* === Helpers & Messages === */    
-	function groupClass(g){
-	  var x = String(g || '').trim().toUpperCase();
-	  switch (x) {
-		case 'A': return 'grpA';
-		case 'B': return 'grpB';
-		case 'C': return 'grpC';
-		case 'D': return 'grpD';
-		case 'E': return 'grpE';
-		case 'F': return 'grpF';
-		default:  return null;      // <-- NICHT '' zurückgeben
-	  }
-	}
+    /* === Helpers & Messages === */
+    function groupClass(g){
+      const x = String(g || '').trim().toUpperCase();
+      switch (x) {
+        case 'A': return 'grpA';
+        case 'B': return 'grpB';
+        case 'C': return 'grpC';
+        case 'D': return 'grpD';
+        case 'E': return 'grpE';
+        case 'F': return 'grpF';
+        default:  return '';
+      }
+    }
 
     function showMsg(selector, text, isError){
       const el = typeof selector==='string' ? document.querySelector(selector) : selector;
@@ -365,39 +405,6 @@
       el.style.color = isError ? '#fecaca' : '#86efac';
       clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 3000);
     }
-	
-	  
-// API Wrapper
-const apiReseedGroups = (schedule) =>
-  fetch(window.location.origin + '/api/funino/reseedGroups', {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify({ schedule })    // ← Zeitplan mitgeben
-  }).then(res => {
-    if (!res.ok) return res.text().then(txt => { throw new Error('HTTP '+res.status+' '+res.statusText+': '+txt); });
-    return res.json();
-  });
-
-// Button-Handler
-document.getElementById('btnReseedGroups')?.addEventListener('click', async () => {
-  const msgEl = document.getElementById('reseedMsg');
-  const show = (text, isError) => {
-    msgEl.textContent = text; msgEl.style.display='inline-block';
-    msgEl.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
-    msgEl.style.color      = isError ? '#fecaca'      : '#86efac';
-    clearTimeout(msgEl._t); msgEl._t = setTimeout(() => { msgEl.style.display='none'; }, 4000);
-  };
-  try {
-    const schedule = getSchedule(); // { timeHHMM, dur, brk } oder null
-    const r = await apiReseedGroups(schedule);
-    show(r.msg + ` (D:${r.result.matchesCreated.D}, E:${r.result.matchesCreated.E}, F:${r.result.matchesCreated.F})`);
-    await refreshTeams?.();   // Tabellen D/E/F werden damit gefüllt
-    await refreshMatches?.(); // neue Spiele sichtbar
-  } catch (e) {
-    show('Fehler: '+e.message, true);
-  }
-});
-
   </script>
 
   <!-- ===== Zeitmanagement (v2) ===== -->
@@ -442,7 +449,7 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
         showMsg('#timeMsg', 'Zeitplan gespeichert. Berechne Zeiten ...');
 
         try {
-          await apiScheduleRecalc(schedule);   // serverseitige Rekalkulation aller geplanten Zeiten
+          await apiScheduleRecalc(schedule);
           await refreshMatches();
           showMsg('#timeMsg', 'Zeiten aktualisiert.');
         } catch(e) {
@@ -452,14 +459,19 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
     }
   </script>
 
-  <!-- ===== Teams: je Gruppe eigene Tabelle (ohne „Gruppe“-Spalte) ===== -->
+  <!-- ===== Teams: je Gruppe eigene Tabelle ===== -->
   <script>
     function buildTeamsGrid(groups){
       const grid = document.getElementById('teamsGrid');
       grid.innerHTML = '';
-      groups.forEach(g => {
+      const order = ['A','B','C','D','E','F'];
+      const groupsOrdered = groups.slice().sort((a,b)=> order.indexOf(a) - order.indexOf(b));
+
+      groupsOrdered.forEach(g => {
         const card = document.createElement('div'); card.className = 'card';
-        const badge = document.createElement('span'); badge.className = 'pill ' + groupClass(g); badge.textContent = 'Gruppe ' + g; badge.style.marginBottom = '.5rem'; card.appendChild(badge);
+        const badge = document.createElement('span'); badge.className = 'pill ' + groupClass(g);
+        badge.textContent = 'Gruppe ' + g; badge.style.marginBottom = '.5rem'; card.appendChild(badge);
+
         const wrap = document.createElement('div'); wrap.className = 'table-wrap';
         const table = document.createElement('table'); table.id = `teams-table-${g}`;
         const thead = document.createElement('thead'); thead.innerHTML = `
@@ -487,14 +499,18 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
 
     function renderTeams(){
       const groupsSet = new Set(TEAMS.map(t => String(t.groupName || '').trim().toUpperCase()).filter(Boolean));
-      const groups = groupsSet.size ? Array.from(groupsSet).sort() : ['A','B','C'];
+      const groups = groupsSet.size ? Array.from(groupsSet) : ['A','B','C'];
       buildTeamsGrid(groups);
+
       groups.forEach(g => { const tbody = document.getElementById(`teams-tbody-${g}`); if (tbody) tbody.innerHTML = ''; });
       TEAMS.forEach(t => {
         const g = String(t.groupName || '').trim().toUpperCase();
         const tbody = document.getElementById(`teams-tbody-${g}`); if (!tbody) return;
 
-        const tr = document.createElement('tr'); tr.classList.add(groupClass(t.groupName));
+        const tr = document.createElement('tr');
+        const cls = groupClass(t.groupName);
+        if (cls) tr.classList.add(cls);
+
         const tdId = document.createElement('td'); tdId.textContent = t.id ?? '';
         const tdName = document.createElement('td'); tdName.textContent = t.name ?? '';
         const tdAction = document.createElement('td');
@@ -518,7 +534,7 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
     }
   </script>
 
-  <!-- ===== Matches: Rendering (altes Layout, Bugfix Team A/B) ===== -->
+  <!-- ===== Matches: Rendering ===== -->
   <script>
     function renderMatches() {
       const tbody = document.querySelector('#matchesTable tbody');
@@ -532,7 +548,8 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
 
       MATCHES.forEach(m => {
         const tr = document.createElement('tr');
-        tr.classList.add(groupClass(m.groupName));
+        const cls = groupClass(m.groupName);
+        if (cls) tr.classList.add(cls);
 
         const id        = m?.id ?? '';
         const groupName = m?.groupName ?? '';
@@ -542,11 +559,10 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
         const teamBId   = m?.teamB_id ?? null;
         const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
         const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
-        const planned   = m?.plannedStart ?? '–';        
-		const winnerVal = m && typeof m.winner !== 'undefined' ? m.winner : null;
-		const hasWinner = winnerVal !== null && winnerVal !== undefined;
+        const planned   = m?.plannedStart ?? '–';
+        const winnerVal = m && typeof m.winner !== 'undefined' ? m.winner : null;
+        const hasWinner = winnerVal !== null && winnerVal !== undefined;
 
-        // Zellen
         const tdId    = document.createElement('td'); tdId.textContent = id;
 
         const tdGroup = document.createElement('td');
@@ -558,46 +574,41 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
         const tdRound = document.createElement('td'); tdRound.textContent = round;
         const tdField = document.createElement('td'); tdField.textContent = field;
         const tdTime  = document.createElement('td'); tdTime.textContent = planned;
-				
-		// Gewinner ermitteln		
-		const isWinA = hasWinner && Number(winnerVal) === Number(teamAId);
-		const isWinB = hasWinner && Number(winnerVal) === Number(teamBId);
 
-		// Team A (nur Team A in dieser Spalte)
-		const tdA = document.createElement('td');
-		const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
-		if (isWinA) {
-		  const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
-		  const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = teamAName;
-		  wrapA.append(icoA, txtA);
-		} else {
-		  const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = teamAName;
-		  wrapA.append(txtA);
-		}
-		tdA.replaceChildren(wrapA);
+        const isWinA = hasWinner && Number(winnerVal) === Number(teamAId);
+        const isWinB = hasWinner && Number(winnerVal) === Number(teamBId);
 
-		// Team B (nur Team B in dieser Spalte)
-		const tdB = document.createElement('td');
-		const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
-		if (isWinB) {
-		  const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
-		  const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = teamBName;
-		  wrapB.append(icoB, txtB);
-		} else {
-		  const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = teamBName;
-		  wrapB.append(txtB);
-		}
-		tdB.replaceChildren(wrapB);
+        const tdA = document.createElement('td');
+        const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
+        if (isWinA) {
+          const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
+          const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = teamAName;
+          wrapA.append(icoA, txtA);
+        } else {
+          const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = teamAName;
+          wrapA.append(txtA);
+        }
+        tdA.replaceChildren(wrapA);
 
-		// Sieger-Spalte		
-		const tdWinner = document.createElement('td');
-		if (hasWinner) {
-		  tdWinner.textContent = Number(winnerVal) === Number(teamAId) ? teamAName : teamBName;
-		} else {
-		  tdWinner.textContent = '';         // oder '\u00A0' für neutralen Leerraum
-		}
+        const tdB = document.createElement('td');
+        const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
+        if (isWinB) {
+          const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
+          const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = teamBName;
+          wrapB.append(icoB, txtB);
+        } else {
+          const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = teamBName;
+          wrapB.append(txtB);
+        }
+        tdB.replaceChildren(wrapB);
 
-        // Aktionen
+        const tdWinner = document.createElement('td');
+        if (hasWinner) {
+          tdWinner.textContent = Number(winnerVal) === Number(teamAId) ? teamAName : teamBName;
+        } else {
+          tdWinner.textContent = '';
+        }
+
         const tdAct = document.createElement('td'); tdAct.className = 'row';
         const grpCls = groupClass(groupName);
 
@@ -613,7 +624,6 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
 
         tdAct.append(btnWinA, btnWinB);
 
-        // Reihenfolge gemäß Tabellenkopf
         tr.append(tdId, tdGroup, tdRound, tdField, tdTime, tdA, tdB, tdWinner, tdAct);
         tbody.appendChild(tr);
       });
@@ -636,6 +646,101 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
     async function refreshMatches(){
       try { MATCHES = await loadMatches(); renderMatches(); }
       catch(e){ showMsg('#nextMsg', 'Fehler: '+e.message, true); }
+    }
+  </script>
+
+  <!-- ===== History-View (Winner-Icon markiert) ===== -->
+  <script>
+    function renderHistory() {
+      const tbody = document.querySelector('#historyTable tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const items = Array.isArray(HISTORY.items) ? HISTORY.items : [];
+      if (!items.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td'); td.colSpan = 7; td.textContent = 'Keine History vorhanden.';
+        tr.appendChild(td); tbody.appendChild(tr); return;
+      }
+
+      items.forEach((h, idx) => {
+        const tr = document.createElement('tr');
+
+        const tdIdx   = document.createElement('td'); tdIdx.textContent = String(idx + 1);
+        const tdGR    = document.createElement('td'); tdGR.textContent = `${h.groupName ?? ''} · R${h.round ?? ''}`;
+        const tdField = document.createElement('td'); tdField.textContent = h.field ?? '';
+
+        // Team A (mit Icon, wenn Sieger)
+        const tdA = document.createElement('td');
+        const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
+        const aIsWinner = Number(h.winner) === Number(h.teamA);
+        if (aIsWinner) {
+          const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
+          const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = h.teamA_name ?? h.teamA ?? '';
+          wrapA.append(icoA, txtA);
+        } else {
+          const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = h.teamA_name ?? h.teamA ?? '';
+          wrapA.append(txtA);
+        }
+        tdA.replaceChildren(wrapA);
+
+        // Team B (mit Icon, wenn Sieger)
+        const tdB = document.createElement('td');
+        const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
+        const bIsWinner = Number(h.winner) === Number(h.teamB);
+        if (bIsWinner) {
+          const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
+          const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = h.teamB_name ?? h.teamB ?? '';
+          wrapB.append(icoB, txtB);
+        } else {
+          const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = h.teamB_name ?? h.teamB ?? '';
+          wrapB.append(txtB);
+        }
+        tdB.replaceChildren(wrapB);
+
+        // Sieger-Spalte (nur Textzusammenfassung)
+        const tdWin   = document.createElement('td');
+        tdWin.textContent =
+          aIsWinner ? (h.teamA_name ?? h.teamA ?? '') :
+          bIsWinner ? (h.teamB_name ?? h.teamB ?? '') : '–';
+
+        // Aktionen (Sieger setzen)
+        const tdAct   = document.createElement('td'); tdAct.className = 'row';
+        const btnA = document.createElement('button');
+        btnA.className = 'btn ' + groupClass(h.groupName); btnA.type='button';
+        btnA.textContent = 'Sieger: Team A'; btnA.addEventListener('click', async () => {
+          try {
+            await setHistoryWinner(h.id, h.teamA);
+            showMsg('#histMsg', `#${idx+1}: Sieger → Team A gespeichert.`);
+            await loadHistoryUI();   // Ansicht neu aufbauen -> Icon wechselt
+          } catch (e) { showMsg('#histMsg', 'Fehler: ' + e.message, true); }
+        });
+
+        const btnB = document.createElement('button');
+        btnB.className = 'btn ' + groupClass(h.groupName); btnB.type='button';
+        btnB.textContent = 'Sieger: Team B'; btnB.addEventListener('click', async () => {
+          try {
+            await setHistoryWinner(h.id, h.teamB);
+            showMsg('#histMsg', `#${idx+1}: Sieger → Team B gespeichert.`);
+            await loadHistoryUI();   // Ansicht neu aufbauen -> Icon wechselt
+          } catch (e) { showMsg('#histMsg', 'Fehler: ' + e.message, true); }
+        });
+
+        tdAct.append(btnA, btnB);
+
+        tr.append(tdIdx, tdGR, tdField, tdA, tdB, tdWin, tdAct);
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadHistoryUI() {
+      const g = (document.getElementById('hist-group').value || '').trim().toUpperCase();
+      try {
+        HISTORY = await loadHistoryLatest(g);
+        renderHistory();
+      } catch (e) {
+        showMsg('#histMsg', 'History-Fehler: ' + e.message, true);
+      }
     }
   </script>
 
@@ -679,12 +784,14 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
       s.on('disconnect', (reason) => console.warn('Admin socket disconnected:', reason));
       s.on('connect_error', (err) => console.error('Admin socket connect_error:', err));
 
-      // Reloads
       const reloadMatches = () => refreshMatches();
       s.on('resultUpdate', reloadMatches);
       s.on('results:updated', reloadMatches);
       s.on('group:started',   reloadMatches);
       s.on('round:advanced',  reloadMatches);
+      s.on('round:rebuilt',   reloadMatches);
+      s.on('history:archived', () => {}); // optional nutzen
+      s.on('history:updated',  () => {}); // optional nutzen
       s.on('matches:reset',   reloadMatches);
       s.on('schedule:recalculated', reloadMatches);
     }
@@ -746,6 +853,19 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
         catch (err) { showMsg('#nextMsg','Fehler: ' + err.message, true); }
       });
 
+      // History
+      document.getElementById('btnLoadHistory')?.addEventListener('click', loadHistoryUI);
+      document.getElementById('btnApplyHistory')?.addEventListener('click', async () => {
+        const g = (document.getElementById('hist-group').value || '').trim().toUpperCase();
+        try {
+          await rebuildCurrentRound(g);
+          await refreshMatches();
+          showMsg('#histMsg', 'Aktueller 3er‑Block im Haupt‑View aktualisiert.');
+        } catch (e) {
+          showMsg('#histMsg', 'Rebuild-Fehler: ' + e.message, true);
+        }
+      });
+
       // Zeitplan
       wireScheduleUI();
       fillScheduleUI();
@@ -757,6 +877,7 @@ document.getElementById('btnReseedGroups')?.addEventListener('click', async () =
       initSocket();   // Live-Updates
       refreshTeams();
       refreshMatches();
+      loadHistoryUI();
       setInterval(refreshMatches, 15000); // Fallback Polling
     });
   </script>
