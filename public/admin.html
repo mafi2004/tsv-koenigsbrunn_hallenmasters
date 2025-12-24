@@ -20,6 +20,8 @@
       --grpF-bg: #0b3640; --grpF-fg: #c0fafe; --grpF-br: #06b6d4;
 
       --ok:#22c55e; --warn:#f59e0b; --err:#ef4444;
+
+      /* Hinweise */
       --hint-bg:#0b1020; --hint-br:#2a3b57; --hint-fg:#cbd5e1;
     }
 
@@ -33,27 +35,11 @@
     .titleWrap { display:flex; align-items:center; gap:.75rem; }
     .clubLogo { width:56px; height:56px; object-fit:contain; border-radius:6px; background:#0b1020; border:1px solid var(--border); }
     header h1 { margin:0; font-size:1.25rem; }
-
     .viewerLink { color: var(--muted); text-decoration: none; }
-
-    #qrImageHeader { width:256px; height:256px; background:#fff; padding:12px; border:1px solid var(--border);
-      border-radius:4px; display:flex; align-items:center; justify-content:center; box-sizing:content-box; }
-
-    .logoPath{
-      display:inline-flex; align-items:center; gap:.35rem;
-      background:var(--hint-bg); color:var(--hint-fg);
-      border:1px dashed var(--hint-br); border-radius:8px;
-      padding:.2rem .5rem; font-size:.85rem;
-    }
-    .logoError{
-      display:none; margin-left:.5rem;
-      color:#fecaca; background:#1b0f12; border:1px solid #7f1d1d;
-      padding:.2rem .5rem; border-radius:6px; font-size:.85rem;
-    }
 
     main { padding:1rem; max-width:1200px; margin:0 auto; }
     section { margin-bottom:2rem; background:var(--card); border:1px solid var(--border); border-radius:8px; }
-    section > header { position: static; z-index: auto; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); display:flex; }
+    section > header { align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem; border-bottom:1px solid var(--border); display:flex; }
     .row { display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; }
     .tableWrap { overflow-x:auto; }
 
@@ -86,25 +72,26 @@
     .pill.grpE { color:var(--grpE-fg); border-color:var(--grpE-br); background:var(--grpE-bg); }
     .pill.grpF { color:var(--grpF-fg); border-color:var(--grpF-br); background:var(--grpF-bg); }
 
-    tr.grpA td { background:rgba(29,78,216,.08); }
-    tr.grpB td { background:rgba(220,38,38,.08); }
-    tr.grpC td { background:rgba(22,163,74,.08); }
-
-    .teams-grid{ display: grid; grid-template-columns: repeat(3, minmax(320px, 1fr)); gap: 16px; align-items: start; padding: 1rem; }
-    @media (max-width: 1100px){ .teams-grid{ grid-template-columns: repeat(2, minmax(320px, 1fr)); } }
-    @media (max-width: 720px){ .teams-grid{ grid-template-columns: 1fr; } }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius:8px; padding: 12px; }
-    .table-wrap { overflow:auto; }
-    .table-wrap thead th { background:#0b1020; }
-
-    .tm-row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
-    .tm-row label { color:#cbd5e1; font-size:.85rem; }
-    .tm-row .input { min-width: 120px; }
-
     .winIcon { font-size: 1rem; margin-right: .35rem; vertical-align: middle; }
     .winnerText { color: var(--accent); font-weight: 600; }
     .loserText  { color: var(--muted); }
     .teamNameWrap { display:inline-flex; align-items:center; gap:.35rem; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius:8px; padding: 12px; }
+    .kvt { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: .9rem; background:#0b1020; color:#cbd5e1; border:1px solid var(--border); border-radius:6px; padding:.5rem; white-space:pre-wrap; }
+
+    /* Teams nebeneinander (Grid) */
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(320px, 1fr));
+      gap: 16px;
+      align-items: start;
+      padding: 1rem;
+    }
+    @media (max-width: 1100px) { .teams-grid { grid-template-columns: repeat(2, minmax(320px, 1fr)); } }
+    @media (max-width: 720px)  { .teams-grid { grid-template-columns: 1fr; } }
+    .table-wrap { overflow:auto; }
+    .table-wrap thead th { background:#0b1020; }
   </style>
 </head>
 <body>
@@ -227,7 +214,7 @@
       </div>
     </section>
 
-    <!-- Historie (separater View) -->
+    <!-- Historie -->
     <section id="historySection">
       <header>
         <h2>Historie (letzte gespielte Runde)</h2>
@@ -260,36 +247,60 @@
         </table>
       </div>
     </section>
+
+    <!-- Recovery & Snapshots (Dropdown-only) -->
+    <section id="recoverySection">
+      <header>
+        <h2>Recovery & Snapshots</h2>
+        <div class="row">
+          <button id="btnMakeSnapshot" type="button" class="btn btn-success" title="Aktuellen Zustand als Snapshot sichern">Snapshot jetzt erstellen</button>
+          <button id="btnRecoverLatest" type="button" class="btn btn-danger" title="Neuesten Snapshot wiederherstellen">Neuesten Snapshot wiederherstellen</button>
+
+          <label for="snapshotSelect" class="pill">Snapshot wählen:</label>
+          <select id="snapshotSelect" class="input" style="min-width:320px;"></select>
+          <button id="btnRecoverSelected" type="button" class="btn btn-primary">Gewählten Snapshot wiederherstellen</button>
+
+          <label for="opsSelect" class="pill" style="margin-left:.5rem;">Letzte Admin‑Operation:</label>
+          <select id="opsSelect" class="input" style="min-width:320px;"></select>
+          <button id="btnShowOp" type="button" class="btn btn-muted">Details anzeigen</button>
+
+          <span id="recMsg" class="pill" style="display:none;"></span>
+        </div>
+      </header>
+
+      <!-- Op-Details (kompakt) -->
+      <div class="row" style="padding:1rem">
+        <div class="card" style="flex:1 1 100%">
+          <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Ausgewählte Operation (Details)</h3>
+          <div id="opDetails" class="kvt" aria-live="polite">–</div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- Socket.IO -->
+  <!-- Skripte -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- QR helper -->
-  <script src="qr_script.js"></script>
+  <script src="/qr_script.js"></script>
 
   <!-- Logo -->
   <script>
     const LOGO_PATH = '/assets/Fussballwappen_logo.png';
     const cacheBust = () => `?_v=${Date.now()}`;
-
     function setLogo(){
       const img = document.getElementById('clubLogo');
       const pathEl = document.getElementById('logoPathText');
       const errEl  = document.getElementById('logoError');
-
       if (!img || !pathEl) return;
       const url = LOGO_PATH + cacheBust();
       pathEl.textContent = LOGO_PATH;
-
       img.onload = () => { if (errEl) errEl.style.display = 'none'; };
       img.onerror = () => { if (errEl) errEl.style.display = 'inline-flex'; };
       img.src = url;
     }
-
     function initHeader(){ setLogo(); }
   </script>
 
-  <!-- ===== API / State / Helpers ===== -->
+  <!-- API / State / Helpers -->
   <script>
     const API_BASE = window.location.origin + '/api';
 
@@ -303,7 +314,7 @@
       return res.json();
     }
 
-    /* === API Wrapper === */
+    /* APIs */
     const apiTeamsList      = () => safeFetch('/teams', { method:'GET' });
     const apiTeamsDeleteAll = () => safeFetch('/teams', { method:'DELETE' });
     const apiTeamAdd        = (name, groupName) => safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, groupName }) });
@@ -314,9 +325,7 @@
       const schedule = getSchedule();
       if (!schedule) throw new Error('Kein gültiger Zeitplan konfiguriert.');
       return safeFetch('/matches/start/' + encodeURIComponent(group), {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ schedule })
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ schedule })
       });
     };
     const apiMatchesReset   = () => safeFetch('/matches/reset', { method:'DELETE' });
@@ -327,40 +336,31 @@
       const schedule = getSchedule();
       if (!schedule) throw new Error('Kein gültiger Zeitplan konfiguriert.');
       return safeFetch('/funino/nextRound', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ groupName, results, schedule })
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ groupName, results, schedule })
       });
     };
 
     const apiScheduleRecalc = (schedule) =>
-      safeFetch('/schedule/recalculate', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ schedule })
-      });
+      safeFetch('/schedule/recalculate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ schedule }) });
 
     const apiReseedGroups = (schedule) =>
-      safeFetch('/funino/reseedGroups', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({ schedule })
-      });
+      safeFetch('/funino/reseedGroups', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ schedule }) });
 
-    /* === History APIs === */
     const apiHistoryLatest     = (group) => safeFetch('/history/latest/' + encodeURIComponent(group), { method:'GET' });
     const apiHistorySetWinner  = (historyId, winner) => safeFetch('/history/' + encodeURIComponent(historyId) + '/winner', {
-      method:'PATCH',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ winner })
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ winner })
     });
     const apiRebuildCurrRound  = (group) => safeFetch('/funino/rebuildCurrentRound', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ groupName: group })
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ groupName: group })
     });
 
-    /* === Aliases für UI === */
+    const apiOpsList       = (limit=200) => safeFetch('/adminOps/ops?limit=' + encodeURIComponent(limit), { method:'GET' });
+    const apiSnapList      = () => safeFetch('/adminOps/snapshots', { method:'GET' });
+    const apiSnapCreate    = () => safeFetch('/adminOps/snapshot', { method:'POST' });
+    const apiRecoverLatest = () => safeFetch('/adminOps/recover', { method:'POST' });
+    const apiRecoverById   = (id) => safeFetch('/adminOps/recover/' + encodeURIComponent(id), { method:'POST' });
+
+    /* Aliases */
     const loadTeams      = apiTeamsList;
     const deleteAllTeams = apiTeamsDeleteAll;
     const addTeam        = apiTeamAdd;
@@ -373,48 +373,51 @@
     const setWinner      = apiWinnerSet;
     const nextRoundReq   = apiNextRound;
 
-    // History
     const loadHistoryLatest = apiHistoryLatest;
     const setHistoryWinner  = apiHistorySetWinner;
     const rebuildCurrentRound = apiRebuildCurrRound;
 
-    /* === State === */
+    const loadOps        = apiOpsList;
+    const loadSnapshots  = apiSnapList;
+    const makeSnapshot   = apiSnapCreate;
+    const recoverLatest  = apiRecoverLatest;
+    const recoverById    = apiRecoverById;
+
+    /* State */
     let TEAMS = [];
     let MATCHES = [];
     let HISTORY = { groupName:null, round:null, batchId:null, items:[] };
+    let SNAPSHOTS = [];
+    let OPS = [];
 
-    /* === Helpers & Messages === */
+    /* Helpers */
     function groupClass(g){
       const x = String(g || '').trim().toUpperCase();
-      switch (x) {
-        case 'A': return 'grpA';
-        case 'B': return 'grpB';
-        case 'C': return 'grpC';
-        case 'D': return 'grpD';
-        case 'E': return 'grpE';
-        case 'F': return 'grpF';
-        default:  return '';
-      }
+      switch (x) { case 'A':return 'grpA'; case 'B':return 'grpB'; case 'C':return 'grpC'; case 'D':return 'grpD'; case 'E':return 'grpE'; case 'F':return 'grpF'; default:return ''; }
     }
-
-    function showMsg(selector, text, isError){
-      const el = typeof selector==='string' ? document.querySelector(selector) : selector;
-      if(!el) return;
-      el.textContent = text; el.style.display='inline-block';
+    function showMsg(selectorOrEl, text, isError){
+      const el = typeof selectorOrEl==='string' ? document.querySelector(selectorOrEl) : selectorOrEl;
+      if(!el) return; el.textContent = text; el.style.display='inline-block';
       el.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
       el.style.color = isError ? '#fecaca' : '#86efac';
-      clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 3000);
+      clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 3500);
+    }
+    function fmtTs(ts){ try { return new Date(ts).toLocaleString(); } catch { return ts; } }
+
+    /* NEW: History leeren */
+    function clearHistoryUI(){
+      HISTORY = { groupName: (document.getElementById('hist-group')?.value || '').toUpperCase(), round:null, batchId:null, items:[] };
+      renderHistory();  
+	  // Optional: kurze Info
+      const el = document.getElementById('histMsg');
+      if (el) { el.style.display = 'inline-block'; el.textContent = 'History zurückgesetzt.'; setTimeout(() => el.style.display='none', 2000); }
     }
   </script>
 
-  <!-- ===== Zeitmanagement (v2) ===== -->
+  <!-- Zeitmanagement -->
   <script>
-    const SCHED_KEY = 'admin.schedule.v2'; // { timeHHMM, dur, brk }
-
-    function loadSchedule(){
-      try { return JSON.parse(localStorage.getItem(SCHED_KEY) || 'null'); }
-      catch { return null; }
-    }
+    const SCHED_KEY = 'admin.schedule.v2';
+    function loadSchedule(){ try { return JSON.parse(localStorage.getItem(SCHED_KEY) || 'null'); } catch { return null; } }
     function saveSchedule(cfg){ localStorage.setItem(SCHED_KEY, JSON.stringify(cfg)); }
     function getSchedule(){
       const s = loadSchedule();
@@ -424,7 +427,6 @@
       if(!Number.isFinite(s.brk) || s.brk < 0) return null;
       return s;
     }
-
     function fillScheduleUI(){
       const cfg = loadSchedule() || {};
       const time = document.getElementById('sched-time');
@@ -438,79 +440,59 @@
       const btn = document.getElementById('sched-save');
       btn && btn.addEventListener('click', async () => {
         const timeHHMM = document.getElementById('sched-time').value;
-        const dur   = Number(document.getElementById('sched-dur').value);
-        const brk   = Number(document.getElementById('sched-break').value);
+        const dur = Number(document.getElementById('sched-dur').value);
+        const brk = Number(document.getElementById('sched-break').value);
         if (!/^\d{2}:\d{2}$/.test(timeHHMM)) { showMsg('#timeMsg', 'Bitte Startzeit im Format HH:MM setzen.', true); return; }
         if (!Number.isFinite(dur) || dur <= 0) { showMsg('#timeMsg', 'Dauer (min) ungültig.', true); return; }
         if (!Number.isFinite(brk) || brk < 0) { showMsg('#timeMsg', 'Pause (min) ungültig.', true); return; }
-
         const schedule = { timeHHMM, dur, brk };
         saveSchedule(schedule);
         showMsg('#timeMsg', 'Zeitplan gespeichert. Berechne Zeiten ...');
-
-        try {
-          await apiScheduleRecalc(schedule);
-          await refreshMatches();
-          showMsg('#timeMsg', 'Zeiten aktualisiert.');
-        } catch(e) {
-          showMsg('#timeMsg', 'Recalc-Fehler: ' + e.message, true);
-        }
+        try { await apiScheduleRecalc(schedule); await refreshMatches(); showMsg('#timeMsg', 'Zeiten aktualisiert.'); }
+        catch(e) { showMsg('#timeMsg', 'Recalc-Fehler: ' + e.message, true); }
       });
     }
   </script>
 
-  <!-- ===== Teams: je Gruppe eigene Tabelle ===== -->
+  <!-- Teams -->
   <script>
     function buildTeamsGrid(groups){
       const grid = document.getElementById('teamsGrid');
       grid.innerHTML = '';
       const order = ['A','B','C','D','E','F'];
       const groupsOrdered = groups.slice().sort((a,b)=> order.indexOf(a) - order.indexOf(b));
-
       groupsOrdered.forEach(g => {
         const card = document.createElement('div'); card.className = 'card';
         const badge = document.createElement('span'); badge.className = 'pill ' + groupClass(g);
         badge.textContent = 'Gruppe ' + g; badge.style.marginBottom = '.5rem'; card.appendChild(badge);
-
         const wrap = document.createElement('div'); wrap.className = 'table-wrap';
         const table = document.createElement('table'); table.id = `teams-table-${g}`;
         const thead = document.createElement('thead'); thead.innerHTML = `
-          <tr>
-            <th style="width:80px;">ID</th>
-            <th>Name</th>
-            <th style="width:160px;">Aktion</th>
-          </tr>`;
+          <tr><th style="width:80px;">ID</th><th>Name</th><th style="width:160px;">Aktion</th></tr>`;
         table.appendChild(thead);
         const tbody = document.createElement('tbody'); tbody.id = `teams-tbody-${g}`; table.appendChild(tbody);
         wrap.appendChild(table); card.appendChild(wrap); grid.appendChild(card);
       });
-
       document.querySelectorAll('[id^="teams-table-"]').forEach(tbl => {
         tbl.addEventListener('click', async (e) => {
           const btn = e.target.closest('button'); if(!btn) return;
-          const action = btn.dataset.action; const id = btn.dataset.id;
-          if(action === 'delete'){
-            try { await deleteTeam(id); await refreshTeams(); }
+          if(btn.dataset.action === 'delete'){
+            try { await deleteTeam(btn.dataset.id); await refreshTeams(); }
             catch (err) { showMsg('#teamsMsg', 'Fehler beim Löschen: ' + err.message, true); }
           }
         });
       });
     }
-
     function renderTeams(){
       const groupsSet = new Set(TEAMS.map(t => String(t.groupName || '').trim().toUpperCase()).filter(Boolean));
       const groups = groupsSet.size ? Array.from(groupsSet) : ['A','B','C'];
       buildTeamsGrid(groups);
-
       groups.forEach(g => { const tbody = document.getElementById(`teams-tbody-${g}`); if (tbody) tbody.innerHTML = ''; });
       TEAMS.forEach(t => {
         const g = String(t.groupName || '').trim().toUpperCase();
         const tbody = document.getElementById(`teams-tbody-${g}`); if (!tbody) return;
-
         const tr = document.createElement('tr');
-        const cls = groupClass(t.groupName);
-        if (cls) tr.classList.add(cls);
-
+        const cls = groupClass(t.groupName); if (cls) tr.classList.add(cls);
         const tdId = document.createElement('td'); tdId.textContent = t.id ?? '';
         const tdName = document.createElement('td'); tdName.textContent = t.name ?? '';
         const tdAction = document.createElement('td');
@@ -519,232 +501,118 @@
         btnDel.dataset.action='delete'; btnDel.dataset.id=String(t.id);
         btnDel.textContent='Löschen';
         tdAction.appendChild(btnDel);
-
-        tr.appendChild(tdId);
-        tr.appendChild(tdName);
-        tr.appendChild(tdAction);
-
+        tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdAction);
         tbody.appendChild(tr);
       });
     }
-
-    async function refreshTeams(){
-      try { TEAMS = await loadTeams(); renderTeams(); }
-      catch(e){ showMsg('#teamsMsg', 'Fehler: '+e.message, true); }
-    }
+    async function refreshTeams(){ try { TEAMS = await loadTeams(); renderTeams(); } catch(e){ showMsg('#teamsMsg', 'Fehler: '+e.message, true); } }
   </script>
 
-  <!-- ===== Matches: Rendering ===== -->
+  <!-- Matches -->
   <script>
-    function renderMatches() {
+    function renderMatches(){
       const tbody = document.querySelector('#matchesTable tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-
-      if (!Array.isArray(MATCHES)) {
-        showMsg('#nextMsg', 'Spieldaten ungültig (kein Array).', true);
-        return;
-      }
-
+      if (!tbody) return; tbody.innerHTML = '';
+      if (!Array.isArray(MATCHES)) { showMsg('#nextMsg', 'Spieldaten ungültig (kein Array).', true); return; }
       MATCHES.forEach(m => {
-        const tr = document.createElement('tr');
-        const cls = groupClass(m.groupName);
-        if (cls) tr.classList.add(cls);
-
-        const id        = m?.id ?? '';
-        const groupName = m?.groupName ?? '';
-        const round     = m?.round ?? '';
-        const field     = m?.field ?? '';
-        const teamAId   = m?.teamA_id ?? null;
-        const teamBId   = m?.teamB_id ?? null;
-        const teamAName = m?.teamA ?? (teamAId != null ? String(teamAId) : '');
-        const teamBName = m?.teamB ?? (teamBId != null ? String(teamBId) : '');
-        const planned   = m?.plannedStart ?? '–';
-        const winnerVal = m && typeof m.winner !== 'undefined' ? m.winner : null;
-        const hasWinner = winnerVal !== null && winnerVal !== undefined;
-
-        const tdId    = document.createElement('td'); tdId.textContent = id;
-
-        const tdGroup = document.createElement('td');
-        const badge   = document.createElement('span');
-        badge.className = 'pill ' + groupClass(groupName);
-        badge.textContent = groupName;
-        tdGroup.appendChild(badge);
-
-        const tdRound = document.createElement('td'); tdRound.textContent = round;
-        const tdField = document.createElement('td'); tdField.textContent = field;
-        const tdTime  = document.createElement('td'); tdTime.textContent = planned;
-
-        const isWinA = hasWinner && Number(winnerVal) === Number(teamAId);
-        const isWinB = hasWinner && Number(winnerVal) === Number(teamBId);
-
-        const tdA = document.createElement('td');
-        const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
-        if (isWinA) {
-          const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
-          const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = teamAName;
-          wrapA.append(icoA, txtA);
-        } else {
-          const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = teamAName;
-          wrapA.append(txtA);
-        }
-        tdA.replaceChildren(wrapA);
-
-        const tdB = document.createElement('td');
-        const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
-        if (isWinB) {
-          const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
-          const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = teamBName;
-          wrapB.append(icoB, txtB);
-        } else {
-          const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = teamBName;
-          wrapB.append(txtB);
-        }
-        tdB.replaceChildren(wrapB);
-
-        const tdWinner = document.createElement('td');
-        if (hasWinner) {
-          tdWinner.textContent = Number(winnerVal) === Number(teamAId) ? teamAName : teamBName;
-        } else {
-          tdWinner.textContent = '';
-        }
-
-        const tdAct = document.createElement('td'); tdAct.className = 'row';
-        const grpCls = groupClass(groupName);
-
-        const btnWinA = document.createElement('button');
-        btnWinA.className = 'btn ' + grpCls; btnWinA.type = 'button'; btnWinA.dataset.action = 'winA';
-        btnWinA.dataset.id = String(id); if (teamAId != null) btnWinA.dataset.team = String(teamAId);
-        btnWinA.textContent = 'Sieger: Team A';
-
-        const btnWinB = document.createElement('button');
-        btnWinB.className = 'btn ' + grpCls; btnWinB.type = 'button'; btnWinB.dataset.action = 'winB';
-        btnWinB.dataset.id = String(id); if (teamBId != null) btnWinB.dataset.team = String(teamBId);
-        btnWinB.textContent = 'Sieger: Team B';
-
-        tdAct.append(btnWinA, btnWinB);
-
-        tr.append(tdId, tdGroup, tdRound, tdField, tdTime, tdA, tdB, tdWinner, tdAct);
+        const tr = document.createElement('tr'); const cls = groupClass(m.groupName); if (cls) tr.classList.add(cls);
+        const id=m?.id??'', g=m?.groupName??'', r=m?.round??'', f=m?.field??'';
+        const taId=m?.teamA_id??null, tbId=m?.teamB_id??null;
+        const taName=m?.teamA ?? (taId!=null?String(taId):''), tbName=m?.teamB ?? (tbId!=null?String(tbId):'');
+        const planned=m?.plannedStart??'–'; const w=m && typeof m.winner!=='undefined' ? m.winner : null; const hasW = w!==null && w!==undefined;
+        const td = (t)=>{ const el=document.createElement('td'); el.textContent=t; return el; };
+        const tdGroup=document.createElement('td'); const badge=document.createElement('span'); badge.className='pill '+groupClass(g); badge.textContent=g; tdGroup.appendChild(badge);
+        const tdA=document.createElement('td'); const wrapA=document.createElement('span'); wrapA.className='teamNameWrap';
+        const winA=hasW && Number(w)===Number(taId); if(winA){ const ico=document.createElement('span'); ico.className='winIcon'; ico.textContent='🏆'; ico.setAttribute('aria-label','Sieger'); const txt=document.createElement('span'); txt.className='winnerText'; txt.textContent=taName; wrapA.append(ico,txt);} else { const txt=document.createElement('span'); txt.className='loserText'; txt.textContent=taName; wrapA.append(txt);} tdA.replaceChildren(wrapA);
+        const tdB=document.createElement('td'); const wrapB=document.createElement('span'); wrapB.className='teamNameWrap';
+        const winB=hasW && Number(w)===Number(tbId); if(winB){ const ico=document.createElement('span'); ico.className='winIcon'; ico.textContent='🏆'; ico.setAttribute('aria-label','Sieger'); const txt=document.createElement('span'); txt.className='winnerText'; txt.textContent=tbName; wrapB.append(ico,txt);} else { const txt=document.createElement('span'); txt.className='loserText'; txt.textContent=tbName; wrapB.append(txt);} tdB.replaceChildren(wrapB);
+        const tdWinner=document.createElement('td'); tdWinner.textContent = hasW ? (Number(w)===Number(taId)?taName:tbName) : '';
+        const tdAct=document.createElement('td'); tdAct.className='row';
+        const btnA=document.createElement('button'); btnA.className='btn '+groupClass(g); btnA.type='button'; btnA.dataset.action='winA'; btnA.dataset.id=String(id); if(taId!=null) btnA.dataset.team=String(taId); btnA.textContent='Sieger: Team A';
+        const btnB=document.createElement('button'); btnB.className='btn '+groupClass(g); btnB.type='button'; btnB.dataset.action='winB'; btnB.dataset.id=String(id); if(tbId!=null) btnB.dataset.team=String(tbId); btnB.textContent='Sieger: Team B';
+        tdAct.append(btnA, btnB);
+        tr.append(td(id), tdGroup, td(r), td(f), td(planned), tdA, tdB, tdWinner, tdAct);
         tbody.appendChild(tr);
       });
-
-      // Delegation: Sieger setzen
       tbody.querySelectorAll('button[data-action]').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           const id = Number(e.currentTarget.dataset.id);
           const winnerId = Number(e.currentTarget.dataset.team);
-          if (!Number.isFinite(id) || !Number.isFinite(winnerId)) {
-            alert('Ungültige Match-/Team-ID.');
-            return;
-          }
+          if (!Number.isFinite(id) || !Number.isFinite(winnerId)) { alert('Ungültige Match-/Team-ID.'); return; }
           try { await setWinner(id, winnerId); await refreshMatches(); }
           catch (err) { alert('Fehler beim Setzen des Siegers: ' + err.message); }
         });
       });
     }
-
-    async function refreshMatches(){
-      try { MATCHES = await loadMatches(); renderMatches(); }
-      catch(e){ showMsg('#nextMsg', 'Fehler: '+e.message, true); }
-    }
+    async function refreshMatches(){ try { MATCHES = await loadMatches(); renderMatches(); } catch(e){ showMsg('#nextMsg', 'Fehler: '+e.message, true); } }
   </script>
 
-  <!-- ===== History-View (Winner-Icon markiert) ===== -->
+  <!-- History -->
   <script>
-    function renderHistory() {
+    function renderHistory(){
       const tbody = document.querySelector('#historyTable tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-
+      if (!tbody) return; tbody.innerHTML='';
       const items = Array.isArray(HISTORY.items) ? HISTORY.items : [];
-      if (!items.length) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td'); td.colSpan = 7; td.textContent = 'Keine History vorhanden.';
-        tr.appendChild(td); tbody.appendChild(tr); return;
+      if (!items.length){
+        const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=7; td.textContent='Keine History vorhanden.'; tr.appendChild(td); tbody.appendChild(tr); return;
       }
-
       items.forEach((h, idx) => {
-        const tr = document.createElement('tr');
-
-        const tdIdx   = document.createElement('td'); tdIdx.textContent = String(idx + 1);
-        const tdGR    = document.createElement('td'); tdGR.textContent = `${h.groupName ?? ''} · R${h.round ?? ''}`;
-        const tdField = document.createElement('td'); tdField.textContent = h.field ?? '';
-
-        // Team A (mit Icon, wenn Sieger)
-        const tdA = document.createElement('td');
-        const wrapA = document.createElement('span'); wrapA.className = 'teamNameWrap';
-        const aIsWinner = Number(h.winner) === Number(h.teamA);
-        if (aIsWinner) {
-          const icoA = document.createElement('span'); icoA.className = 'winIcon'; icoA.textContent = '🏆'; icoA.setAttribute('aria-label','Sieger');
-          const txtA = document.createElement('span'); txtA.className = 'winnerText'; txtA.textContent = h.teamA_name ?? h.teamA ?? '';
-          wrapA.append(icoA, txtA);
-        } else {
-          const txtA = document.createElement('span'); txtA.className = 'loserText'; txtA.textContent = h.teamA_name ?? h.teamA ?? '';
-          wrapA.append(txtA);
-        }
+        const tr=document.createElement('tr');
+        const td=(t)=>{ const el=document.createElement('td'); el.textContent=t; return el; };
+        const tdField = td(h.field ?? '');
+        const tdIdx = td(String(idx+1));
+        const tdGR  = td(`${h.groupName ?? ''} · R${h.round ?? ''}`);
+        const tdA=document.createElement('td'); const wrapA=document.createElement('span'); wrapA.className='teamNameWrap';
+        const aIsW = Number(h.winner)===Number(h.teamA);
+        if (aIsW){ const ico=document.createElement('span'); ico.className='winIcon'; ico.textContent='🏆'; ico.setAttribute('aria-label','Sieger'); const txt=document.createElement('span'); txt.className='winnerText'; txt.textContent=h.teamA_name ?? h.teamA ?? ''; wrapA.append(ico,txt); } else { const txt=document.createElement('span'); txt.className='loserText'; txt.textContent=h.teamA_name ?? h.teamA ?? ''; wrapA.append(txt); }
         tdA.replaceChildren(wrapA);
-
-        // Team B (mit Icon, wenn Sieger)
-        const tdB = document.createElement('td');
-        const wrapB = document.createElement('span'); wrapB.className = 'teamNameWrap';
-        const bIsWinner = Number(h.winner) === Number(h.teamB);
-        if (bIsWinner) {
-          const icoB = document.createElement('span'); icoB.className = 'winIcon'; icoB.textContent = '🏆'; icoB.setAttribute('aria-label','Sieger');
-          const txtB = document.createElement('span'); txtB.className = 'winnerText'; txtB.textContent = h.teamB_name ?? h.teamB ?? '';
-          wrapB.append(icoB, txtB);
-        } else {
-          const txtB = document.createElement('span'); txtB.className = 'loserText'; txtB.textContent = h.teamB_name ?? h.teamB ?? '';
-          wrapB.append(txtB);
-        }
+        const tdB=document.createElement('td'); const wrapB=document.createElement('span'); wrapB.className='teamNameWrap';
+        const bIsW = Number(h.winner)===Number(h.teamB);
+        if (bIsW){ const ico=document.createElement('span'); ico.className='winIcon'; ico.textContent='🏆'; ico.setAttribute('aria-label','Sieger'); const txt=document.createElement('span'); txt.className='winnerText'; txt.textContent=h.teamB_name ?? h.teamB ?? ''; wrapB.append(ico,txt); } else { const txt=document.createElement('span'); txt.className='loserText'; txt.textContent=h.teamB_name ?? h.teamB ?? ''; wrapB.append(txt); }
         tdB.replaceChildren(wrapB);
-
-        // Sieger-Spalte (nur Textzusammenfassung)
-        const tdWin   = document.createElement('td');
-        tdWin.textContent =
-          aIsWinner ? (h.teamA_name ?? h.teamA ?? '') :
-          bIsWinner ? (h.teamB_name ?? h.teamB ?? '') : '–';
-
-        // Aktionen (Sieger setzen)
-        const tdAct   = document.createElement('td'); tdAct.className = 'row';
-        const btnA = document.createElement('button');
-        btnA.className = 'btn ' + groupClass(h.groupName); btnA.type='button';
-        btnA.textContent = 'Sieger: Team A'; btnA.addEventListener('click', async () => {
-          try {
-            await setHistoryWinner(h.id, h.teamA);
-            showMsg('#histMsg', `#${idx+1}: Sieger → Team A gespeichert.`);
-            await loadHistoryUI();   // Ansicht neu aufbauen -> Icon wechselt
-          } catch (e) { showMsg('#histMsg', 'Fehler: ' + e.message, true); }
-        });
-
-        const btnB = document.createElement('button');
-        btnB.className = 'btn ' + groupClass(h.groupName); btnB.type='button';
-        btnB.textContent = 'Sieger: Team B'; btnB.addEventListener('click', async () => {
-          try {
-            await setHistoryWinner(h.id, h.teamB);
-            showMsg('#histMsg', `#${idx+1}: Sieger → Team B gespeichert.`);
-            await loadHistoryUI();   // Ansicht neu aufbauen -> Icon wechselt
-          } catch (e) { showMsg('#histMsg', 'Fehler: ' + e.message, true); }
-        });
-
+        const tdWin = td(aIsW ? (h.teamA_name ?? h.teamA ?? '') : (bIsW ? (h.teamB_name ?? h.teamB ?? '') : '–'));
+        const tdAct=document.createElement('td'); tdAct.className='row';
+        const btnA=document.createElement('button'); btnA.className='btn '+groupClass(h.groupName); btnA.type='button'; btnA.textContent='Sieger: Team A';
+        btnA.addEventListener('click', async () => { try { await setHistoryWinner(h.id, h.teamA); showMsg('#histMsg', `#${idx+1}: Sieger → Team A gespeichert.`); await loadHistoryUI(); } catch(e){ showMsg('#histMsg','Fehler: '+e.message, true);} });
+        const btnB=document.createElement('button'); btnB.className='btn '+groupClass(h.groupName); btnB.type='button'; btnB.textContent='Sieger: Team B';
+        btnB.addEventListener('click', async () => { try { await setHistoryWinner(h.id, h.teamB); showMsg('#histMsg', `#${idx+1}: Sieger → Team B gespeichert.`); await loadHistoryUI(); } catch(e){ showMsg('#histMsg','Fehler: '+e.message, true);} });
         tdAct.append(btnA, btnB);
-
         tr.append(tdIdx, tdGR, tdField, tdA, tdB, tdWin, tdAct);
         tbody.appendChild(tr);
       });
     }
-
-    async function loadHistoryUI() {
+    async function loadHistoryUI(){
       const g = (document.getElementById('hist-group').value || '').trim().toUpperCase();
-      try {
-        HISTORY = await loadHistoryLatest(g);
-        renderHistory();
-      } catch (e) {
-        showMsg('#histMsg', 'History-Fehler: ' + e.message, true);
-      }
+      try { HISTORY = await loadHistoryLatest(g); renderHistory(); }
+      catch(e){ showMsg('#histMsg', 'History-Fehler: ' + e.message, true); }
     }
   </script>
 
-  <!-- ===== Next Round / Socket / UI ===== -->
+  <!-- Snapshots / Ops (Dropdown-only) -->
+  <script>
+    function renderSnapshots(){
+      const sel = document.getElementById('snapshotSelect'); if (!sel) return;
+      sel.innerHTML = '';
+      if (!Array.isArray(SNAPSHOTS) || SNAPSHOTS.length===0){
+        const opt=document.createElement('option'); opt.value=''; opt.textContent='– keine Snapshots –'; sel.appendChild(opt); return;
+      }
+      const hint=document.createElement('option'); hint.value=''; hint.textContent='Snapshot wählen …'; hint.disabled=true; hint.selected=true; sel.appendChild(hint);
+      SNAPSHOTS.forEach(s => { const opt=document.createElement('option'); opt.value=String(s.id); opt.textContent=`#${s.id} · ${fmtTs(s.ts)} · ${s.path}`; sel.appendChild(opt); });
+    }
+    function renderOps(){
+      const sel = document.getElementById('opsSelect'); const detailsBox=document.getElementById('opDetails'); if(!sel||!detailsBox) return;
+      sel.innerHTML=''; detailsBox.textContent='–';
+      if (!Array.isArray(OPS) || OPS.length===0){
+        const opt=document.createElement('option'); opt.value=''; opt.textContent='– keine Operationen –'; sel.appendChild(opt); return;
+      }
+      const hint=document.createElement('option'); hint.value=''; hint.textContent='Operation wählen …'; hint.disabled=true; hint.selected=true; sel.appendChild(hint);
+      OPS.slice().reverse().forEach(op => { const opt=document.createElement('option'); opt.value=String(op.id); opt.textContent=`#${op.id} · ${op.op} · ${fmtTs(op.ts)}`; opt.dataset.payload=op.payload??''; opt.dataset.status=op.status??''; sel.appendChild(opt); });
+    }
+    async function refreshSnapshots(){ try { SNAPSHOTS = await loadSnapshots(); renderSnapshots(); } catch(e){ showMsg('#recMsg','Snapshots laden fehlgeschlagen: '+e.message, true);} }
+    async function refreshOps(){ try { OPS = await loadOps(200); renderOps(); } catch(e){ showMsg('#recMsg','Ops laden fehlgeschlagen: '+e.message, true);} }
+  </script>
+
+  <!-- Next Round / Socket / UI -->
   <script>
     function computeNextRoundPayloadFromTop3(){
       if (!Array.isArray(MATCHES)) throw new Error('Keine Spieldaten geladen.');
@@ -771,18 +639,10 @@
     }
 
     function initSocket(){
-      const base = window.location.origin;
-      const s = window.io ? window.io(base, {
-        path:'/socket.io',
-        transports:['websocket','polling'],
-        reconnectionAttempts:10,
-        timeout:10000
+      const s = window.io ? window.io(window.location.origin, {
+        path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000
       }) : null;
       if (!s) return;
-
-      s.on('connect', () => console.log('Admin socket connected'));
-      s.on('disconnect', (reason) => console.warn('Admin socket disconnected:', reason));
-      s.on('connect_error', (err) => console.error('Admin socket connect_error:', err));
 
       const reloadMatches = () => refreshMatches();
       s.on('resultUpdate', reloadMatches);
@@ -790,10 +650,22 @@
       s.on('group:started',   reloadMatches);
       s.on('round:advanced',  reloadMatches);
       s.on('round:rebuilt',   reloadMatches);
-      s.on('history:archived', () => {}); // optional nutzen
-      s.on('history:updated',  () => {}); // optional nutzen
-      s.on('matches:reset',   reloadMatches);
       s.on('schedule:recalculated', reloadMatches);
+
+      // 🔴 Plan gelöscht → History sofort leeren
+      s.on('matches:reset', () => {
+        reloadMatches();
+        clearHistoryUI();
+      });
+
+      // 🟢 Recovery fertig → Matches & History neu laden
+      s.on('snapshot:created', async () => { await refreshSnapshots(); showMsg('#recMsg', 'Snapshot erstellt.'); });
+      s.on('recovery:done', async () => {
+        await refreshMatches();
+        await loadHistoryUI();
+        await refreshSnapshots();
+        showMsg('#recMsg', 'Wiederherstellung abgeschlossen.');
+      });
     }
 
     function wireUI(){
@@ -840,8 +712,11 @@
       document.getElementById('btnLoadMatches')?.addEventListener('click', refreshMatches);
       document.getElementById('btnReset')?.addEventListener('click', async () => {
         if (!confirm('Spielplan wirklich zurücksetzen?')) return;
-        try { await resetMatches(); await refreshMatches(); }
-        catch (err) { alert('Fehler beim Reset: ' + err.message); }
+        try {
+          await resetMatches();
+          await refreshMatches();
+          clearHistoryUI(); // <<<<< UI sofort leeren nach Reset
+        } catch (err) { alert('Fehler beim Reset: ' + err.message); }
       });
 
       document.getElementById('btnStartA')?.addEventListener('click', async () => { try { await startGroup('A'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
@@ -849,8 +724,12 @@
       document.getElementById('btnStartC')?.addEventListener('click', async () => { try { await startGroup('C'); await refreshMatches(); } catch (err) { alert('Fehler: ' + err.message); } });
 
       document.getElementById('btnNextRound')?.addEventListener('click', async () => {
-        try { const p = computeNextRoundPayloadFromTop3(); await nextRoundReq(p.groupName, p.results); showMsg('#nextMsg', 'Nächste Runde für Gruppe ' + p.groupName + ' generiert.'); await refreshMatches(); }
-        catch (err) { showMsg('#nextMsg','Fehler: ' + err.message, true); }
+        try {
+          const p = computeNextRoundPayloadFromTop3();
+          await nextRoundReq(p.groupName, p.results);
+          showMsg('#nextMsg', 'Nächste Runde für Gruppe ' + p.groupName + ' generiert.');
+          await refreshMatches();
+        } catch (err) { showMsg('#nextMsg','Fehler: ' + err.message, true); }
       });
 
       // History
@@ -861,9 +740,73 @@
           await rebuildCurrentRound(g);
           await refreshMatches();
           showMsg('#histMsg', 'Aktueller 3er‑Block im Haupt‑View aktualisiert.');
-        } catch (e) {
-          showMsg('#histMsg', 'Rebuild-Fehler: ' + e.message, true);
-        }
+        } catch (e) { showMsg('#histMsg', 'Rebuild-Fehler: ' + e.message, true); }
+      });
+
+      // Recovery & Snapshots
+      document.getElementById('btnMakeSnapshot')?.addEventListener('click', async () => {
+        try { const r = await makeSnapshot(); showMsg('#recMsg', `Snapshot erstellt: ${r.path}`); await refreshSnapshots(); }
+        catch (e) { showMsg('#recMsg', 'Snapshot-Fehler: ' + e.message, true); }
+      });
+
+      document.getElementById('btnRecoverLatest')?.addEventListener('click', async () => {
+        if (!confirm('Neuesten Snapshot wiederherstellen? Dies überschreibt den aktuellen Stand.')) return;
+        try {
+          const r = await recoverLatest();
+          showMsg('#recMsg', `Snapshot #${r.snapshotId} wiederhergestellt.`);
+          await refreshMatches();
+          await loadHistoryUI();   // <<<<< nach Recovery History anpassen
+          await refreshSnapshots();
+        } catch (e) { showMsg('#recMsg', 'Recovery-Fehler: ' + e.message, true); }
+      });
+
+      document.getElementById('btnRecoverSelected')?.addEventListener('click', async () => {
+        const sel = document.getElementById('snapshotSelect'); const id = Number(sel?.value);
+        if (!Number.isFinite(id)) { showMsg('#recMsg', 'Bitte einen Snapshot wählen.', true); return; }
+        if (!confirm(`Snapshot #${id} wiederherstellen?`)) return;
+        try {
+          await recoverById(id);
+          showMsg('#recMsg', `Snapshot #${id} wiederhergestellt.`);
+          await refreshMatches();
+          await loadHistoryUI();   // <<<<< nach Recovery History anpassen
+          await refreshSnapshots();
+        } catch (e) { showMsg('#recMsg', 'Recovery-Fehler: ' + e.message, true); }
+      });
+
+      // Admin-Op Details
+      document.getElementById('opsSelect')?.addEventListener('change', (e) => {
+        const sel = e.currentTarget; const opt = sel.options[sel.selectedIndex];
+        const detailsBox = document.getElementById('opDetails');
+        if (!opt || !opt.value) { detailsBox.textContent = '–'; return; }
+        const id = opt.value; const status = opt.dataset.status || '';
+        let payloadText = opt.dataset.payload || '';
+        try { const obj = JSON.parse(payloadText); payloadText = JSON.stringify(obj, null, 2); } catch {}
+        detailsBox.textContent =
+`ID: ${id}
+Operation: ${opt.textContent}
+Status: ${status}
+
+Payload:
+${payloadText}`;
+      });
+      document.getElementById('btnShowOp')?.addEventListener('click', () => {
+        const sel = document.getElementById('opsSelect'); if (!sel?.value) { showMsg('#recMsg', 'Bitte eine Operation wählen.', true); return; }
+        alert(document.getElementById('opDetails').textContent || '–');
+      });
+
+      // Reseed (D/E/F)
+      document.getElementById('btnReseedGroups')?.addEventListener('click', async () => {
+        const msgEl = document.getElementById('reseedMsg');
+        const schedule = getSchedule();
+        try {
+          const r = await apiReseedGroups(schedule || {});
+          const d = r?.result?.matchesCreated?.D ?? 0;
+          const e = r?.result?.matchesCreated?.E ?? 0;
+          const f = r?.result?.matchesCreated?.F ?? 0;
+          showMsg(msgEl, (r?.msg || 'Gruppen neu zusammengestellt.') + ` (D:${d}, E:${e}, F:${f})`);
+          await refreshTeams();
+          await refreshMatches();
+        } catch (e) { showMsg(msgEl, 'Reseed-Fehler: ' + (e?.message || e), true); }
       });
 
       // Zeitplan
@@ -871,14 +814,16 @@
       fillScheduleUI();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      initHeader();   // Logo + QR
-      wireUI();       // Buttons
-      initSocket();   // Live-Updates
-      refreshTeams();
-      refreshMatches();
-      loadHistoryUI();
-      setInterval(refreshMatches, 15000); // Fallback Polling
+    document.addEventListener('DOMContentLoaded', async () => {
+      initHeader();
+      wireUI();
+      initSocket();
+      await refreshTeams();
+      await refreshMatches();
+      await loadHistoryUI();
+      await refreshSnapshots();
+      await refreshOps();
+      setInterval(refreshMatches, 15000);
     });
   </script>
 </body>

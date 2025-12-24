@@ -1,0 +1,12 @@
+{
+  "ts": "2025-12-24T10:44:23.444Z",
+  "teams": [
+    {
+      "id": 1,
+      "name": "a1",
+      "groupName": "A"
+    }
+  ],
+  "matches": [],
+  "group_state": []
+}

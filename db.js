@@ -1,11 +1,12 @@
 
+// server/db.js
 const sqlite3 = require('sqlite3').verbose();
-// Datenbankdatei anlegen/öffnen
+
+// Datenbankdatei anlegen/öffnen (relativ zum Prozess-Working-Dir)
 const db = new sqlite3.Database('./tournament.db');
 
-// Tabellen anlegen + ggf. Migration ausführen
 db.serialize(() => {
-  // Teams-Tabelle
+  // Teams
   db.run(`
     CREATE TABLE IF NOT EXISTS teams (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +15,7 @@ db.serialize(() => {
     )
   `);
 
-  // group_state für Rundenstand pro Gruppe
+  // Gruppenstand
   db.run(`
     CREATE TABLE IF NOT EXISTS group_state (
       groupName TEXT PRIMARY KEY,
@@ -22,7 +23,7 @@ db.serialize(() => {
     )
   `);
 
-  // matches Schema (Ziel-Schema inkl. plannedStart TEXT)
+  // Matches (mit Migration auf Ziel-Schema inkl. plannedStart)
   db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='matches'`, (err, row) => {
     if (err) {
       console.error('Fehler beim Prüfen der Tabelle matches:', err.message);
@@ -39,7 +40,7 @@ db.serialize(() => {
         scoreA INTEGER,
         scoreB INTEGER,
         winner INTEGER,
-        plannedStart TEXT -- 'HH:MM'
+        plannedStart TEXT
       )
     `;
     if (!row) {
@@ -48,103 +49,97 @@ db.serialize(() => {
       });
       return;
     }
-    // Migration falls Typen/Spalten nicht passen
     db.all(`PRAGMA table_info(matches)`, (e, cols) => {
       if (e) {
         console.error('PRAGMA table_info(matches) fehlgeschlagen:', e.message);
         return;
       }
       const upper = (s) => String(s || '').trim().toUpperCase();
-      const typeOf = (name) => {
+      const t = (name) => {
         const c = cols.find(x => x.name === name);
         return c ? upper(c.type) : '';
       };
-      const hasCol = (name) => cols.some(c => c.name === name);
-      const needsWinnerInt = typeOf('winner') !== 'INTEGER';
-      const needsFieldInt  = typeOf('field')  !== 'INTEGER';
-      const needsRoundInt  = typeOf('round')  !== 'INTEGER';
-      const hasPlanned     = hasCol('plannedStart');
-      const needsPlanned   = !hasPlanned;
+      const has = (name) => cols.some(c => c.name === name);
+      const needsWinnerInt = t('winner') !== 'INTEGER';
+      const needsFieldInt  = t('field')  !== 'INTEGER';
+      const needsRoundInt  = t('round')  !== 'INTEGER';
+      const needsPlanned   = !has('plannedStart');
 
       if (!needsWinnerInt && !needsFieldInt && !needsRoundInt && !needsPlanned) {
-        // Schema passt
-      } else {
-        console.log('Migration der Tabelle matches wird gestartet (winner/field/round -> INTEGER, plannedStart TEXT hinzufügen)...');
-        const selectPlanned = hasPlanned ? `plannedStart` : `NULL AS plannedStart`;
-        db.run(`BEGIN IMMEDIATE`, (beginErr) => {
-          if (beginErr) {
-            console.error('Konnte Transaktion nicht starten:', beginErr.message);
-            return;
+        return; // Schema passt bereits
+      }
+
+      console.log('Migration matches: winner/field/round -> INTEGER, plannedStart TEXT hinzufügen …');
+      const selectPlanned = has('plannedStart') ? `plannedStart` : `NULL AS plannedStart`;
+      db.run(`BEGIN IMMEDIATE`, (beginErr) => {
+        if (beginErr) {
+          console.error('BEGIN IMMEDIATE fehlgeschlagen:', beginErr.message);
+          return;
+        }
+        db.run(`
+          CREATE TABLE IF NOT EXISTS matches_migr (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            teamA INTEGER,
+            teamB INTEGER,
+            groupName TEXT,
+            round INTEGER,
+            field INTEGER,
+            scoreA INTEGER,
+            scoreB INTEGER,
+            winner INTEGER,
+            plannedStart TEXT
+          )
+        `, (crtErr) => {
+          if (crtErr) {
+            console.error('Erstellen matches_migr fehlgeschlagen:', crtErr.message);
+            return db.run(`ROLLBACK`);
           }
           db.run(`
-            CREATE TABLE IF NOT EXISTS matches_migr (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              teamA INTEGER,
-              teamB INTEGER,
-              groupName TEXT,
-              round INTEGER,
-              field INTEGER,
-              scoreA INTEGER,
-              scoreB INTEGER,
-              winner INTEGER,
-              plannedStart TEXT
-            )
-          `, (crtErr) => {
-            if (crtErr) {
-              console.error('Fehler beim Erstellen von matches_migr:', crtErr.message);
+            INSERT INTO matches_migr (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
+            SELECT
+              id,
+              teamA,
+              teamB,
+              groupName,
+              CASE WHEN round  IS NULL THEN NULL ELSE CAST(round  AS INTEGER) END,
+              CASE WHEN field  IS NULL THEN NULL ELSE CAST(field  AS INTEGER) END,
+              scoreA,
+              scoreB,
+              CASE WHEN winner IS NULL THEN NULL ELSE CAST(winner AS INTEGER) END,
+              ${selectPlanned}
+            FROM matches
+          `, (insErr) => {
+            if (insErr) {
+              console.error('Kopieren in matches_migr fehlgeschlagen:', insErr.message);
               return db.run(`ROLLBACK`);
             }
-            const insertSql = `
-              INSERT INTO matches_migr (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
-              SELECT
-                id,
-                teamA,
-                teamB,
-                groupName,
-                CASE WHEN round IS NULL THEN NULL ELSE CAST(round AS INTEGER) END,
-                CASE WHEN field IS NULL THEN NULL ELSE CAST(field AS INTEGER) END,
-                scoreA,
-                scoreB,
-                CASE WHEN winner IS NULL THEN NULL ELSE CAST(winner AS INTEGER) END,
-                ${selectPlanned}
-              FROM matches
-            `;
-            db.run(insertSql, (insErr) => {
-              if (insErr) {
-                console.error('Fehler beim Kopieren der Daten:', insErr.message);
+            db.run(`DROP TABLE matches`, (dropErr) => {
+              if (dropErr) {
+                console.error('DROP matches fehlgeschlagen:', dropErr.message);
                 return db.run(`ROLLBACK`);
               }
-              db.run(`DROP TABLE matches`, (dropErr) => {
-                if (dropErr) {
-                  console.error('Fehler beim Löschen der alten matches-Tabelle:', dropErr.message);
+              db.run(`ALTER TABLE matches_migr RENAME TO matches`, (renErr) => {
+                if (renErr) {
+                  console.error('RENAME fehlgeschlagen:', renErr.message);
                   return db.run(`ROLLBACK`);
                 }
-                db.run(`ALTER TABLE matches_migr RENAME TO matches`, (renErr) => {
-                  if (renErr) {
-                    console.error('Fehler beim Umbenennen der Tabelle:', renErr.message);
-                    return db.run(`ROLLBACK`);
-                  }
-                  db.run(`COMMIT`, (commitErr) => {
-                    if (commitErr) {
-                      console.error('Commit fehlgeschlagen:', commitErr.message);
-                    } else {
-                      console.log('Migration der matches-Tabelle erfolgreich abgeschlossen.');
-                    }
-                  });
+                db.run(`COMMIT`, (commitErr) => {
+                  if (commitErr) console.error('COMMIT fehlgeschlagen:', commitErr.message);
+                  else console.log('Migration matches abgeschlossen.');
                 });
               });
             });
           });
         });
-      }
+      });
     });
   });
 
-  // NEU: History-Tabelle (Archiv der gespielten 3er-Blöcke)
+  // *** WICHTIG: History-Tabelle ***
   db.run(`
     CREATE TABLE IF NOT EXISTS match_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      batchId TEXT,               -- Kennung für den 3er-Block (Gruppe+Runde+Zeit)
+      batchId TEXT,
       groupName TEXT,
       round INTEGER,
       field INTEGER,
@@ -154,8 +149,28 @@ db.serialize(() => {
       scoreB INTEGER,
       winner INTEGER,
       plannedStart TEXT,
-      originalMatchId INTEGER,    -- ID aus matches (zum Zeitpunkt des Archivierens)
+      originalMatchId INTEGER,
       archivedAt TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // Admin-Operationen (Audit)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_ops (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts TEXT NOT NULL,
+      op TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'COMMITTED'
+    )
+  `);
+
+  // Snapshots (Recovery)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_snapshots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts TEXT NOT NULL,
+      path TEXT NOT NULL
     )
   `);
 });

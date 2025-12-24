@@ -1,20 +1,19 @@
 
+// server/routes/funino.js
 const express = require('express');
 const db = require('../db');
-const fs = require('fs');
-const path = require('path');
+const { appendOp, makeSnapshot } = require('../utils/recovery');
 
 module.exports = (io) => {
   const router = express.Router();
 
-  const LOG_DIR = path.join(process.cwd(), 'logs');
-  const LOG_FILE = path.join(LOG_DIR, 'admin.log');
-  function logLine(line) {
-    try {
-      if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
-      fs.appendFileSync(LOG_FILE, line + '\n', 'utf8');
-    } catch {}
-  }
+  // Helpers (Promise-Wrapper)
+  const all = (sql, params = []) =>
+    new Promise((resolve, reject) => db.all(sql, params, (e, rows) => (e ? reject(e) : resolve(rows))));
+  const get = (sql, params = []) =>
+    new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
+  const run = (sql, params = []) =>
+    new Promise((resolve, reject) => db.run(sql, params, function (e) { e ? reject(e) : resolve(this); }));
 
   function addMinutesHHMM(hhmm, minutes) {
     const [h, m] = String(hhmm).split(':').map(Number);
@@ -26,296 +25,272 @@ module.exports = (io) => {
     return String(nh).padStart(2, '0') + ':' + String(nm).padStart(2, '0');
   }
 
-  // GET alle Matches (inkl. plannedStart)
-  router.get('/', (req, res) => {
-    const sql = `
-      SELECT m.id, m.groupName, m.round, m.field, m.plannedStart,
-             t1.name AS teamA, t2.name AS teamB,
-             m.teamA AS teamA_id, m.teamB AS teamB_id,
-             m.scoreA, m.scoreB, m.winner
-      FROM matches m
-      LEFT JOIN teams t1 ON m.teamA = t1.id
-      LEFT JOIN teams t2 ON m.teamB = t2.id
-      ORDER BY m.id ASC
-    `;
-    db.all(sql, [], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
+  /* =========================================================================
+   * GET /api/funino/   → Matches (für Admin-View)
+   * ========================================================================= */
+  router.get('/', async (req, res) => {
+    try {
+      const rows = await all(`
+        SELECT m.id, m.groupName, m.round, m.field, m.plannedStart,
+               t1.name AS teamA, t2.name AS teamB,
+               m.teamA AS teamA_id, m.teamB AS teamB_id,
+               m.scoreA, m.scoreB, m.winner
+        FROM matches m
+        LEFT JOIN teams t1 ON m.teamA = t1.id
+        LEFT JOIN teams t2 ON m.teamB = t2.id
+        ORDER BY m.id ASC
+      `);
       res.json(rows);
-    });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
-  // POST /funino/nextRound
-  // Body: { groupName, results:[{field,winnerId,loserId} x3], schedule:{timeHHMM,dur,brk} }
-  // Beibehalt des bisherigen UI-Verhaltens:
-  // 1) Vorhandene (gespielte) 3 Spiele der Gruppe ARCHIVIEREN
-  // 2) Diese 3 Spiele aus matches LÖSCHEN
-  // 3) Neue 3 Spiele (nächste Runde) UNTEN ANHÄNGEN
-  router.post('/nextRound', (req, res) => {
-    const { groupName: gRaw, results, schedule } = req.body;
-    const groupName = String(gRaw || '').trim().toUpperCase();
-    if (!Array.isArray(results) || results.length !== 3) {
-      return res.status(400).json({ error: 'Es müssen genau 3 Ergebnisse vorliegen' });
-    }
-    const timeHHMM = schedule?.timeHHMM;
-    const dur = Number(schedule?.dur);
-    const brk = Number(schedule?.brk);
-    if (!timeHHMM || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
-      return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM (HH:MM) im Schedule' });
-    }
-    if (!Number.isFinite(dur) || dur <= 0 || !Number.isFinite(brk) || brk < 0) {
-      return res.status(400).json({ error: 'Ungültige Dauer/Pause im Schedule' });
-    }
-    const slotLen = dur + brk;
+  /* =========================================================================
+   * POST /api/funino/nextRound
+   * Archiviert die aktuelle 3er-Gruppe einer Gruppe in match_history,
+   * löscht sie aus matches und hängt die neue Runde unten an (Zeitplanung via schedule).
+   * ========================================================================= */
+  router.post('/nextRound', async (req, res) => {
+    try {
+      const { groupName: gRaw, results, schedule } = req.body;
+      const groupName = String(gRaw || '').trim().toUpperCase();
 
-    // Feldreihenfolge sicherstellen
-    const haveField = results.every(r => typeof r.field === 'number');
-    const ordered = haveField ? [...results].sort((a,b)=>a.field-b.field) : [...results];
-    const winners = ordered.map(r => r.winnerId);
-    const losers  = ordered.map(r => r.loserId);
-    const pairs = [
-      { teamA: winners[0], teamB: winners[1], field: 1 },
-      { teamA: winners[2], teamB: losers[0],  field: 2 },
-      { teamA: losers[1],  teamB: losers[2],  field: 3 }
-    ];
+      if (!Array.isArray(results) || results.length !== 3) {
+        return res.status(400).json({ error: 'Es müssen genau 3 Ergebnisse vorliegen (3 Spiele einer Gruppe).' });
+      }
+      const timeHHMM = schedule?.timeHHMM;
+      const dur = Number(schedule?.dur);
+      const brk = Number(schedule?.brk);
+      if (!timeHHMM || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
+        return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM (HH:MM) im Schedule' });
+      }
+      if (!Number.isFinite(dur) || dur <= 0 || !Number.isFinite(brk) || brk < 0) {
+        return res.status(400).json({ error: 'Ungültige Dauer/Pause im Schedule' });
+      }
+      const slotLen = dur + brk;
 
-    db.serialize(() => {
-      // Alphabetische Gruppenliste aus TEAMS
-      db.all(`
+      // Feldsortierung
+      const ordered = [...results].sort((a, b) => Number(a.field) - Number(b.field));
+      const winners = ordered.map(r => Number(r.winnerId));
+      const losers  = ordered.map(r => Number(r.loserId));
+      const pairs = [
+        { teamA: winners[0], teamB: winners[1], field: 1 },
+        { teamA: winners[2], teamB: losers[0],  field: 2 },
+        { teamA: losers[1],  teamB: losers[2],  field: 3 }
+      ];
+
+      // Gruppenliste (alphabetisch)
+      const groups = (await all(`
         SELECT DISTINCT UPPER(TRIM(groupName)) AS g
         FROM teams
         WHERE groupName IS NOT NULL AND TRIM(groupName) <> ''
         ORDER BY g ASC
-      `, [], (eG, rowsG) => {
-        if (eG) return res.status(500).json({ error: eG.message });
-        const groups = rowsG.map(x => x.g);
-        if (!groups.length) return res.status(400).json({ error: 'Keine Gruppen gefunden (Teams leer?)' });
-        let gIndex = groups.indexOf(groupName);
-        if (gIndex < 0) groups.push(groupName), gIndex = groups.length - 1;
+      `)).map(r => r.g);
+      let gIndex = groups.indexOf(groupName);
+      if (gIndex < 0) groups.push(groupName), gIndex = groups.length - 1;
 
-        // lastRound lesen, nextRound berechnen
-        db.get(`SELECT lastRound FROM group_state WHERE groupName = ?`, [groupName], (eS, rowS) => {
-          if (eS) return res.status(500).json({ error: eS.message });
-          const lastRound = Number(rowS?.lastRound || 1);
-          const nextRound = lastRound + 1;
+      const rowState = await get(`SELECT lastRound FROM group_state WHERE groupName = ?`, [groupName]);
+      const lastRound = Number(rowState?.lastRound || 1);
+      const nextRound = lastRound + 1;
 
-          // globale Slotposition = (nextRound-1)*G + gIndex
-          const slotIndex = (nextRound - 1) * (groups.length) + gIndex;
-          const plannedStart = addMinutesHHMM(timeHHMM, slotIndex * slotLen);
+      const slotIndex = (nextRound - 1) * (groups.length) + gIndex;
+      const plannedStart = addMinutesHHMM(timeHHMM, slotIndex * slotLen);
 
-          db.run(`BEGIN IMMEDIATE`, (eBegin) => {
-            if (eBegin) return res.status(500).json({ error: 'Konnte Transaktion nicht starten: ' + eBegin.message });
+      // Transaktion
+      await run(`BEGIN IMMEDIATE`);
+      try {
+        // Aktuelle Spiele der Gruppe lesen
+        const curRows = await all(`
+          SELECT id AS originalMatchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart
+          FROM matches
+          WHERE UPPER(groupName) = ?
+          ORDER BY field ASC, id ASC
+        `, [groupName]);
 
-            // 1) Aktuelle (gespielte) 3 Matches der Gruppe zum Archiv lesen
-            db.all(`
-              SELECT id AS originalMatchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart
-              FROM matches
-              WHERE UPPER(groupName) = ?
-              ORDER BY id ASC
-            `, [groupName], (selErr, curRows) => {
-              if (selErr) {
-                return db.run(`ROLLBACK`, () => res.status(500).json({ error: 'Lesen der aktuellen Spiele fehlgeschlagen: ' + selErr.message }));
-              }
+        // History-Archiv
+        const batchId = `${groupName}-R${lastRound}-at-${Date.now()}`;
+        for (const r of curRows) {
+          await run(`
+            INSERT INTO match_history
+            (batchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart, originalMatchId)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `, [
+            batchId, r.groupName, r.round, r.field,
+            r.teamA, r.teamB,
+            r.scoreA ?? null, r.scoreB ?? null,
+            r.winner ?? null,
+            r.plannedStart ?? null,
+            r.originalMatchId
+          ]);
+        }
 
-              // BatchId für Audit
-              const batchId = `${groupName}-R${lastRound}-at-${Date.now()}`;
+        // Alte Spiele löschen
+        await run(`DELETE FROM matches WHERE UPPER(groupName) = ?`, [groupName]);
 
-              const insertArchNext = (i) => {
-                if (!curRows || i >= curRows.length) {
-                  // 2) Jetzt die aktuellen Spiele löschen (bisheriges Verhalten)
-                  db.run(`DELETE FROM matches WHERE UPPER(groupName) = ?`, [groupName], (delErr) => {
-                    if (delErr) {
-                      return db.run(`ROLLBACK`, () => res.status(500).json({ error: 'Löschen fehlgeschlagen: ' + delErr.message }));
-                    }
+        // Neue Runde einfügen
+        for (const p of pairs) {
+          await run(`
+            INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
+            VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?)
+          `, [p.teamA, p.teamB, groupName, nextRound, p.field, plannedStart]);
+        }
 
-                    // 3) Neue Runde einfügen
-                    const createdIds = [];
-                    const insNext = (k) => {
-                      if (k >= pairs.length) {
-                        // group_state updaten
-                        db.run(`
-                          INSERT INTO group_state (groupName, lastRound)
-                          VALUES (?, ?)
-                          ON CONFLICT(groupName) DO UPDATE SET lastRound = excluded.lastRound
-                        `, [groupName, nextRound], (gsErr) => {
-                          if (gsErr) {
-                            return db.run(`ROLLBACK`, () => res.status(500).json({ error: 'group_state Fehler: ' + gsErr.message }));
-                          }
-                          db.run(`COMMIT`, (commitErr) => {
-                            if (commitErr) return res.status(500).json({ error: 'Commit fehlgeschlagen: ' + commitErr.message });
+        // group_state updaten
+        await run(`
+          INSERT INTO group_state (groupName, lastRound)
+          VALUES (?, ?)
+          ON CONFLICT(groupName) DO UPDATE SET lastRound = excluded.lastRound
+        `, [groupName, nextRound]);
 
-                            // Events & Logging
-                            io.emit('history:archived', { groupName, round: lastRound, batchId, count: curRows?.length || 0 });
-                            io.emit('round:advanced', { groupName, plannedStart, round: nextRound });
-                            io.emit('resultUpdate', { type: 'nextRound', groupName, round: nextRound });
+        await run(`COMMIT`);
 
-                            logLine(`[${new Date().toISOString()}] ARCHIVE group=${groupName} round=${lastRound} batch=${batchId} size=${curRows?.length || 0}`);
-                            logLine(`[${new Date().toISOString()}] NEXT_ROUND group=${groupName} round=${nextRound} planned=${plannedStart}`);
+        // Log + Snapshot
+        try {
+          await appendOp(db, 'funino:nextRound', { groupName, results, schedule, round: nextRound });
+          await makeSnapshot(db);
+        } catch {}
 
-                            res.json({ success: true, created: pairs.length, createdIds, plannedStart, round: nextRound, archivedBatchId: batchId });
-                          });
-                        });
-                      } else {
-                        const p = pairs[k];
-                        db.run(`
-                          INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
-                          VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?)
-                        `, [p.teamA, p.teamB, groupName, nextRound, p.field, plannedStart], function (insErr) {
-                          if (insErr) {
-                            return db.run(`ROLLBACK`, () => res.status(500).json({ error: 'Insert fehlgeschlagen (Feld ' + p.field + '): ' + insErr.message }));
-                          }
-                          if (typeof this.lastID !== 'undefined') createdIds.push(this.lastID);
-                          insNext(k + 1);
-                        });
-                      }
-                    };
-                    insNext(0);
-                  });
+        // Events
+        io.emit('history:archived', { groupName, round: lastRound, batchId, count: curRows.length });
+        io.emit('round:advanced',  { groupName, plannedStart, round: nextRound });
+        io.emit('resultUpdate',    { type: 'nextRound', groupName, round: nextRound });
 
-                  return;
-                }
-
-                const r = curRows[i];
-                db.run(`
-                  INSERT INTO match_history
-                    (batchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart, originalMatchId)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `, [
-                  batchId,
-                  r.groupName, r.round, r.field,
-                  r.teamA, r.teamB,
-                  r.scoreA ?? null, r.scoreB ?? null,
-                  r.winner ?? null,
-                  r.plannedStart ?? null,
-                  r.originalMatchId
-                ], (insHErr) => {
-                  if (insHErr) {
-                    return db.run(`ROLLBACK`, () => res.status(500).json({ error: 'Archivieren fehlgeschlagen: ' + insHErr.message }));
-                  }
-                  insertArchNext(i + 1);
-                });
-              };
-              insertArchNext(0);
-            });
-          });
-        });
-      });
-    });
+        res.json({ success: true, plannedStart, round: nextRound, archivedBatchId: batchId });
+      } catch (inner) {
+        await run(`ROLLBACK`);
+        throw inner;
+      }
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
-  // NEU: Runde erneut aus vorheriger Runde berechnen/ersetzen (für Korrekturen)
-  // POST /funino/rebuildCurrentRound  Body: { groupName }
-  router.post('/rebuildCurrentRound', (req, res) => {
-    const groupName = String(req.body?.groupName || '').trim().toUpperCase();
-    if (!groupName) return res.status(400).json({ error: 'groupName fehlt' });
+  /* =========================================================================
+   * POST /api/funino/rebuildCurrentRound
+   * Rebuild der aktuellen Runde R aus der vorigen Runde R-1.
+   * FALLBACK: Wenn R-1 in matches unvollständig/ohne Sieger ist, wird der
+   * zuletzt passende History-Batch (round=R-1) verwendet.
+   * ========================================================================= */
+  router.post('/rebuildCurrentRound', async (req, res) => {
+    try {
+      const groupName = String(req.body?.groupName || '').trim().toUpperCase();
+      if (!groupName) return res.status(400).json({ error: 'groupName fehlt' });
 
-    // lastRound ermitteln
-    db.get(`SELECT lastRound FROM group_state WHERE UPPER(groupName) = ?`, [groupName], (eS, sRow) => {
-      if (eS) return res.status(500).json({ error: eS.message });
-      let lastRound = Number(sRow?.lastRound);
-      const useFallback = () => {
-        db.get(`SELECT MAX(round) AS r FROM matches WHERE UPPER(groupName) = ?`, [groupName], (eM, mRow) => {
-          if (eM) return res.status(500).json({ error: eM.message });
-          proceed(Number(mRow?.r));
-        });
-      };
-      const proceed = (lr) => {
-        if (!Number.isFinite(lr) || lr < 2) return res.status(400).json({ error: 'Keine aktuelle Runde zum Neuaufbau' });
-        lastRound = lr;
-        const prevRound = lastRound - 1;
+      // lastRound feststellen (primär group_state, sekundär matches)
+      let lastRound = Number((await get(
+        `SELECT lastRound FROM group_state WHERE UPPER(groupName) = ?`,
+        [groupName]
+      ))?.lastRound);
 
-        db.all(`
-          SELECT id, field, teamA AS teamA_id, teamB AS teamB_id, winner
+      if (!Number.isFinite(lastRound)) {
+        const maxRow = await get(
+          `SELECT MAX(round) AS r FROM matches WHERE UPPER(groupName) = ?`,
+          [groupName]
+        );
+        lastRound = Number(maxRow?.r);
+      }
+
+      if (!Number.isFinite(lastRound) || lastRound < 2) {
+        return res.status(400).json({ error: 'Keine aktuelle Runde zum Neuaufbau (lastRound < 2?)' });
+      }
+
+      const prevRound = lastRound - 1;
+
+      // 1) Versuche R-1 aus matches zu laden
+      let prev = await all(`
+        SELECT id, field, teamA AS teamA_id, teamB AS teamB_id, winner
+        FROM matches
+        WHERE UPPER(groupName) = ? AND round = ?
+        ORDER BY field ASC
+      `, [groupName, prevRound]);
+
+      let source = 'matches';
+      let usedBatchId = null;
+
+      // 2) FALLBACK: R-1 aus History-Batch, wenn unvollständig/ohne Sieger
+      const prevIncomplete = (!Array.isArray(prev) || prev.length !== 3 || prev.some(m => m.winner == null));
+      if (prevIncomplete) {
+        const lastBatch = await get(`
+          SELECT batchId, MAX(archivedAt) AS ts
           FROM match_history
           WHERE UPPER(groupName) = ? AND round = ?
+          GROUP BY batchId
+          ORDER BY ts DESC
+          LIMIT 1
+        `, [groupName, prevRound]);
+
+        if (!lastBatch?.batchId) {
+          return res.status(400).json({ error: `Vorige Runde (${prevRound}) unvollständig (3 Spiele erwartet) und kein passender History-Batch gefunden.` });
+        }
+
+        const histPrev = await all(`
+          SELECT field, teamA AS teamA_id, teamB AS teamB_id, winner
+          FROM match_history
+          WHERE batchId = ?
           ORDER BY field ASC
-        `, [groupName, prevRound], (eH, histRows) => {
-          // Falls History dieser Runde leer ist (z.B. alte Daten), als Fallback aus matches lesen:
-          const usePrevFromMatches = () => {
-            db.all(`
-              SELECT id, field, teamA AS teamA_id, teamB AS teamB_id, winner
-              FROM matches
-              WHERE UPPER(groupName) = ? AND round = ?
-              ORDER BY field ASC
-            `, [groupName, prevRound], build);
-          };
-          const build = (eP, prev) => {
-            if (eP) return res.status(500).json({ error: eP.message });
-            if (!Array.isArray(prev) || prev.length !== 3) return res.status(400).json({ error: `Vorige Runde (${prevRound}) unvollständig` });
-            if (prev.some(m => m.winner == null)) return res.status(400).json({ error: `Nicht alle Sieger in Runde ${prevRound} gesetzt` });
+        `, [lastBatch.batchId]);
 
-            const winners = prev.map(m => Number(m.winner));
-            const losers  = prev.map(m => {
-              const a = Number(m.teamA_id), b = Number(m.teamB_id), w = Number(m.winner);
-              return (w === a) ? b : a;
-            });
-            const pairs = [
-              { teamA: winners[0], teamB: winners[1], field: 1 },
-              { teamA: winners[2], teamB: losers[0],  field: 2 },
-              { teamA: losers[1],  teamB: losers[2],  field: 3 }
-            ];
+        if (!Array.isArray(histPrev) || histPrev.length !== 3 || histPrev.some(m => m.winner == null)) {
+          return res.status(400).json({ error: `History-Batch zu Runde ${prevRound} unvollständig/ohne Sieger.` });
+        }
 
-            // geplante Zeit der aktuellen Runde beibehalten
-            db.get(`
-              SELECT plannedStart FROM matches
-              WHERE UPPER(groupName) = ? AND round = ?
-              ORDER BY id ASC LIMIT 1
-            `, [groupName, lastRound], (ePS, psRow) => {
-              const keepPlanned = psRow?.plannedStart || null;
-              db.run(`BEGIN IMMEDIATE`, (eB) => {
-                if (eB) return res.status(500).json({ error: eB.message });
-                db.run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND round = ?`, [groupName, lastRound], (eDel) => {
-                  if (eDel) return db.run(`ROLLBACK`, () => res.status(500).json({ error: eDel.message }));
-                  const insertNext = (i) => {
-                    if (i >= pairs.length) {
-                      return db.run(`COMMIT`, (eC) => {
-                        if (eC) return res.status(500).json({ error: eC.message });
-                        io.emit('round:rebuilt', { groupName, round: lastRound });
-                        io.emit('resultUpdate', { type: 'roundRebuilt', groupName, round: lastRound });
-                        logLine(`[${new Date().toISOString()}] REBUILD group=${groupName} round=${lastRound}`);
-                        res.json({ ok: true, groupName, round: lastRound, rebuilt: 3, plannedStart: keepPlanned });
-                      });
-                    }
-                    const p = pairs[i];
-                    db.run(`
-                      INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
-                      VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?)
-                    `, [p.teamA, p.teamB, groupName, lastRound, p.field, keepPlanned], (eIns) => {
-                      if (eIns) return db.run(`ROLLBACK`, () => res.status(500).json({ error: eIns.message }));
-                      insertNext(i + 1);
-                    });
-                  };
-                  insertNext(0);
-                });
-              });
-            });
-          };
+        prev = histPrev;
+        source = 'history';
+        usedBatchId = lastBatch.batchId;
+      }
 
-          if (eH) return res.status(500).json({ error: eH.message });
-          if (Array.isArray(histRows) && histRows.length === 3) {
-            build(null, histRows);
-          } else {
-            usePrevFromMatches();
-          }
-        });
-      };
-
-      if (!Number.isFinite(lastRound)) useFallback();
-      else proceed(lastRound);
-    });
-  });
-
-  // Reset (bleibt unverändert)
-  router.delete('/reset', (req, res) => {
-    db.run(`DELETE FROM matches`, [], (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      db.run(`DELETE FROM group_state`, [], (err2) => {
-        if (err2) return res.status(500).json({ error: err2.message });
-        io.emit('matches:reset');
-        io.emit('resultUpdate', { type: 'reset' });
-        logLine(`[${new Date().toISOString()}] RESET matches & group_state`);
-        res.json({ success: true });
+      // Gewinner/Verlierer aus prev ableiten
+      const winners = prev.map(m => Number(m.winner));
+      const losers  = prev.map(m => {
+        const a = Number(m.teamA_id), b = Number(m.teamB_id), w = Number(m.winner);
+        return (w === a) ? b : a;
       });
-    });
+      const pairs = [
+        { teamA: winners[0], teamB: winners[1], field: 1 },
+        { teamA: winners[2], teamB: losers[0],  field: 2 },
+        { teamA: losers[1],  teamB: losers[2],  field: 3 }
+      ];
+
+      // geplante Zeit der aktuellen Runde beibehalten
+      const keepPlanned = (await get(`
+        SELECT plannedStart FROM matches
+        WHERE UPPER(groupName) = ? AND round = ?
+        ORDER BY id ASC LIMIT 1
+      `, [groupName, lastRound]))?.plannedStart || null;
+
+      await run(`BEGIN IMMEDIATE`);
+      try {
+        // aktuelle Runde R löschen …
+        await run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND round = ?`, [groupName, lastRound]);
+        // … und neu einfügen (mit gleicher plannedStart)
+        for (const p of pairs) {
+          await run(`
+            INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
+            VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?)
+          `, [p.teamA, p.teamB, groupName, lastRound, p.field, keepPlanned]);
+        }
+
+        await run(`COMMIT`);
+
+        // Log + Snapshot
+        try {
+          await appendOp(db, 'funino:rebuildCurrentRound', { groupName, round: lastRound, source, batchId: usedBatchId });
+          await makeSnapshot(db);
+        } catch {}
+
+        // Events
+        io.emit('round:rebuilt', { groupName, round: lastRound });
+        io.emit('resultUpdate',  { type: 'roundRebuilt', groupName, round: lastRound });
+
+        res.json({ ok: true, groupName, round: lastRound, rebuilt: 3, plannedStart: keepPlanned, source, batchId: usedBatchId });
+      } catch (inner) {
+        await run(`ROLLBACK`);
+        throw inner;
+      }
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   return router;

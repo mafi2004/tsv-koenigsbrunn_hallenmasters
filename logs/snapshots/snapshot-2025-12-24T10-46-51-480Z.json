@@ -1,0 +1,139 @@
+{
+  "ts": "2025-12-24T10:46:51.480Z",
+  "teams": [
+    {
+      "id": 1,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 2,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 3,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 4,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 5,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 6,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 7,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 8,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 9,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 10,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 11,
+      "name": "b5",
+      "groupName": "B"
+    },
+    {
+      "id": 12,
+      "name": "b6",
+      "groupName": "B"
+    },
+    {
+      "id": 13,
+      "name": "c1",
+      "groupName": "C"
+    },
+    {
+      "id": 14,
+      "name": "c2",
+      "groupName": "C"
+    },
+    {
+      "id": 15,
+      "name": "c3",
+      "groupName": "C"
+    },
+    {
+      "id": 16,
+      "name": "c4",
+      "groupName": "C"
+    },
+    {
+      "id": 17,
+      "name": "c5",
+      "groupName": "C"
+    },
+    {
+      "id": 18,
+      "name": "c6",
+      "groupName": "C"
+    }
+  ],
+  "matches": [
+    {
+      "id": 19,
+      "teamA": 1,
+      "teamB": 2,
+      "groupName": "A",
+      "round": 1,
+      "field": 1,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 20,
+      "teamA": 3,
+      "teamB": 4,
+      "groupName": "A",
+      "round": 1,
+      "field": 2,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 21,
+      "teamA": 5,
+      "teamB": 6,
+      "groupName": "A",
+      "round": 1,
+      "field": 3,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    }
+  ],
+  "group_state": [
+    {
+      "groupName": "A",
+      "lastRound": 1
+    }
+  ]
+}

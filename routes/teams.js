@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { appendOp, makeSnapshot } = require('../utils/recovery');
 
 // Alle Teams abrufen
 router.get('/', (req, res) => {
@@ -12,17 +13,23 @@ router.get('/', (req, res) => {
 });
 
 // Neues Team hinzufügen
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { name, groupName } = req.body;
   if (!name) return res.status(400).json({ error: 'Teamname fehlt' });
-
   const grp = groupName ? String(groupName).trim().toUpperCase() : null;
 
   db.run(
     `INSERT INTO teams (name, groupName) VALUES (?, ?)`,
     [name, grp],
-    function (err) {
+    async function (err) {
       if (err) return res.status(500).json({ error: err.message });
+
+      // Log + Snapshot
+      try {
+        await appendOp(db, 'team:add', { id: this.lastID, name, groupName: grp });
+        await makeSnapshot(db);
+      } catch {}
+
       res.json({ id: this.lastID, name, groupName: grp });
     }
   );
@@ -30,19 +37,32 @@ router.post('/', (req, res) => {
 
 // Team löschen
 router.delete('/:id', (req, res) => {
-  const id = req.params.id;
-  db.run(`DELETE FROM teams WHERE id = ?`, [id], function (err) {
+  const id = Number(req.params.id);
+  db.run(`DELETE FROM teams WHERE id = ?`, [id], async function (err) {
     if (err) return res.status(500).json({ error: err.message });
+
+    // Log + Snapshot
+    try {
+      await appendOp(db, 'team:del', { id });
+      await makeSnapshot(db);
+    } catch {}
+
     res.json({ success: true, deletedId: id });
   });
 });
 
 // Alle Teams löschen (+ Autoincrement zurücksetzen)
 router.delete('/', (req, res) => {
-  db.run(`DELETE FROM teams`, [], function (err) {
+  db.run(`DELETE FROM teams`, [], async function (err) {
     if (err) return res.status(500).json({ error: err.message });
 
-    db.run(`DELETE FROM sqlite_sequence WHERE name = 'teams'`, [], () => {
+    db.run(`DELETE FROM sqlite_sequence WHERE name = 'teams'`, [], async () => {
+      // Log + Snapshot
+      try {
+        await appendOp(db, 'team:delAll', {});
+        await makeSnapshot(db);
+      } catch {}
+
       res.json({ ok: true, deletedAll: true });
     });
   });

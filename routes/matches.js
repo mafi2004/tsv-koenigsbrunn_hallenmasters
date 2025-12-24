@@ -1,6 +1,7 @@
 
 const express = require('express');
 const db = require('../db');
+const { appendOp, makeSnapshot } = require('../utils/recovery');
 
 module.exports = (io) => {
   const router = express.Router();
@@ -41,7 +42,6 @@ module.exports = (io) => {
     const timeHHMM = schedule.timeHHMM;
     const dur = Number(schedule.dur);
     const brk = Number(schedule.brk);
-
     if (!timeHHMM || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
       return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM (HH:MM) im Schedule' });
     }
@@ -58,21 +58,20 @@ module.exports = (io) => {
           return res.status(400).json({ error: `Gruppe ${groupName} wurde bereits gestartet.` });
         }
 
-        // Alphabetische Gruppenliste aus TEAMS (damit B und C direkt einen Offset bekommen)
+        // Alphabetische Gruppenliste aus TEAMS
         db.all(
-          `SELECT DISTINCT UPPER(TRIM(groupName)) AS g
-             FROM teams
-            WHERE groupName IS NOT NULL AND TRIM(groupName) <> ''
-            ORDER BY g ASC`,
+          `
+          SELECT DISTINCT UPPER(TRIM(groupName)) AS g
+          FROM teams
+          WHERE groupName IS NOT NULL AND TRIM(groupName) <> ''
+          ORDER BY g ASC`,
           [],
           (eG, rowsG) => {
             if (eG) return res.status(500).json({ error: eG.message });
             const groups = rowsG.map(x => x.g);
             if (!groups.length) return res.status(400).json({ error: 'Keine Gruppen gefunden (Teams leer?)' });
-
             let gIndex = groups.indexOf(groupName);
             if (gIndex < 0) groups.push(groupName), gIndex = groups.length - 1;
-
             const plannedStart = addMinutesHHMM(timeHHMM, gIndex * slotLen);
 
             // Teams bestimmen (6 Stück)
@@ -81,16 +80,13 @@ module.exports = (io) => {
               if (!Array.isArray(teams) || teams.length < 6) {
                 return res.status(400).json({ error: 'Es müssen 6 Teams sein' });
               }
-
               const pairs = [
                 [teams[0].id, teams[1].id],
                 [teams[2].id, teams[3].id],
                 [teams[4].id, teams[5].id]
               ];
-
               db.run(`BEGIN IMMEDIATE`, (eBegin) => {
                 if (eBegin) return res.status(500).json({ error: 'Konnte Transaktion nicht starten: ' + eBegin.message });
-
                 let hadErr = false;
                 pairs.forEach((p, idx) => {
                   db.run(
@@ -105,20 +101,25 @@ module.exports = (io) => {
                     }
                   );
                 });
-
                 if (!hadErr) {
                   // group_state upsert: lastRound=1
                   db.run(
                     `INSERT INTO group_state (groupName, lastRound)
-                           VALUES (?, 1)
-                      ON CONFLICT(groupName) DO UPDATE SET lastRound = excluded.lastRound`,
+                     VALUES (?, 1)
+                     ON CONFLICT(groupName) DO UPDATE SET lastRound = excluded.lastRound`,
                     [groupName],
                     (eGS) => {
                       if (eGS) {
                         return db.run(`ROLLBACK`, () => res.status(500).json({ error: 'group_state Fehler: ' + eGS.message }));
                       }
-                      db.run(`COMMIT`, (eCommit) => {
+                      db.run(`COMMIT`, async (eCommit) => {
                         if (eCommit) return res.status(500).json({ error: 'Commit Fehler: ' + eCommit.message });
+
+                        // Log + Snapshot
+                        try {
+                          await appendOp(db, 'matches:start', { groupName, schedule });
+                          await makeSnapshot(db);
+                        } catch {}
 
                         io.emit('group:started', { groupName, plannedStart });
                         io.emit('resultUpdate', { type: 'startGroup', groupName });
@@ -135,19 +136,43 @@ module.exports = (io) => {
     });
   });
 
-  // Reset
+  // DELETE /matches/reset
+  // Spielplan vollständig zurücksetzen: matches, group_state und (NEU) match_history löschen.
   router.delete('/reset', (req, res) => {
-    db.run(`DELETE FROM matches`, [], (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      db.run(`DELETE FROM group_state`, [], (err2) => {
-        if (err2) return res.status(500).json({ error: err2.message });
-        io.emit('matches:reset');
-        io.emit('resultUpdate', { type: 'reset' });
-        res.json({ success: true });
+    db.run(`BEGIN IMMEDIATE`, (beginErr) => {
+      if (beginErr) return res.status(500).json({ error: 'Transaktion fehlgeschlagen: ' + beginErr.message });
+
+      db.run(`DELETE FROM matches`, [], (err1) => {
+        if (err1) return db.run(`ROLLBACK`, () => res.status(500).json({ error: err1.message }));
+
+        db.run(`DELETE FROM group_state`, [], (err2) => {
+          if (err2) return db.run(`ROLLBACK`, () => res.status(500).json({ error: err2.message }));
+
+          // NEU: History leeren
+          db.run(`DELETE FROM match_history`, [], (err3) => {
+            if (err3) return db.run(`ROLLBACK`, () => res.status(500).json({ error: err3.message }));
+
+            db.run(`COMMIT`, async (commitErr) => {
+              if (commitErr) return res.status(500).json({ error: 'Commit fehlgeschlagen: ' + commitErr.message });
+
+              // Log + Snapshot
+              try {
+                await appendOp(db, 'funino:reset', { wipe: ['matches','group_state','match_history'] });
+                await makeSnapshot(db);
+              } catch {}
+
+              // Broadcasts
+              io.emit('matches:reset');
+              io.emit('history:reset');    // <<<<<< wichtig für die UIs
+              io.emit('resultUpdate', { type: 'reset' });
+
+              res.json({ success: true, wiped: ['matches','group_state','match_history'] });
+            });
+          });
+        });
       });
     });
   });
 
   return router;
 };
-``

@@ -11,7 +11,7 @@ const server = http.createServer(app);
 // Socket.io einrichten
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 
-// io im app-Objekt verfügbar machen
+// io im app-Objekt verfügbar machen, z.B. für Broadcasts
 app.set('io', io);
 
 app.use(cors());
@@ -21,29 +21,30 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // DB laden (sqlite3 Handle aus db.js)
-const db = require('./db');
+const db = require('./db'); // <- sqlite3-Instanz
 
 // Routen importieren
-const teamsRouter = require('./routes/teams');
-const matchesRouter = require('./routes/matches')(io);
-const resultsRouter = require('./routes/results')(io);
-const funinoRouter = require('./routes/funino')(io);
-const scheduleRouter = require('./routes/schedule');
-const reseedRouterFactory = require('./routes/reseedGroups');
-const historyRouter = require('./routes/history')(io); // <— NEU
+const teamsRouter        = require('./routes/teams');
+const matchesRouter      = require('./routes/matches')(io);
+const resultsRouter      = require('./routes/results')(io);
+const funinoRouter       = require('./routes/funino')(io);
+const scheduleRouter     = require('./routes/schedule');
+const reseedRouterFactory= require('./routes/reseedGroups');
+const adminOpsRouter     = require('./routes/adminOps')(io);
+const historyRouter       = require('./routes/history')(io);
 
 // Routen registrieren
-app.use('/api/teams', teamsRouter);
-app.use('/api/matches', matchesRouter);
-app.use('/api/results', resultsRouter);
-app.use('/api/funino', funinoRouter);
-app.use('/api/schedule', scheduleRouter);
-app.use('/api/funino', reseedRouterFactory(db, io));
-app.use('/api/history', historyRouter); // <— NEU
+app.use('/api/teams',     teamsRouter);
+app.use('/api/matches',   matchesRouter);
+app.use('/api/results',   resultsRouter);
+app.use('/api/funino',    funinoRouter);
+app.use('/api/schedule',  scheduleRouter);
+app.use('/api/funino',    reseedRouterFactory(db, io));
+app.use('/api/adminOps',  adminOpsRouter);
+app.use('/api/history',  historyRouter);
 
 // Server starten
 const PORT = 3001;
 server.listen(PORT, () => {
   console.log(`Backend läuft auf Port ${PORT}`);
 });
-``
