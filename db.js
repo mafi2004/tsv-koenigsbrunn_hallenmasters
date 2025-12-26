@@ -1,7 +1,6 @@
 
 // server/db.js
 const sqlite3 = require('sqlite3').verbose();
-
 // Datenbankdatei anlegen/öffnen (relativ zum Prozess-Working-Dir)
 const db = new sqlite3.Database('./tournament.db');
 
@@ -23,7 +22,7 @@ db.serialize(() => {
     )
   `);
 
-  // Matches (mit Migration auf Ziel-Schema inkl. plannedStart)
+  // Matches (Migration auf Ziel-Schema inkl. plannedStart)
   db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='matches'`, (err, row) => {
     if (err) {
       console.error('Fehler beim Prüfen der Tabelle matches:', err.message);
@@ -54,21 +53,19 @@ db.serialize(() => {
         console.error('PRAGMA table_info(matches) fehlgeschlagen:', e.message);
         return;
       }
-      const upper = (s) => String(s || '').trim().toUpperCase();
+      const upper = (s) => String(s ?? '').trim().toUpperCase();
       const t = (name) => {
         const c = cols.find(x => x.name === name);
         return c ? upper(c.type) : '';
       };
       const has = (name) => cols.some(c => c.name === name);
       const needsWinnerInt = t('winner') !== 'INTEGER';
-      const needsFieldInt  = t('field')  !== 'INTEGER';
-      const needsRoundInt  = t('round')  !== 'INTEGER';
-      const needsPlanned   = !has('plannedStart');
-
+      const needsFieldInt = t('field') !== 'INTEGER';
+      const needsRoundInt = t('round') !== 'INTEGER';
+      const needsPlanned = !has('plannedStart');
       if (!needsWinnerInt && !needsFieldInt && !needsRoundInt && !needsPlanned) {
         return; // Schema passt bereits
       }
-
       console.log('Migration matches: winner/field/round -> INTEGER, plannedStart TEXT hinzufügen …');
       const selectPlanned = has('plannedStart') ? `plannedStart` : `NULL AS plannedStart`;
       db.run(`BEGIN IMMEDIATE`, (beginErr) => {
@@ -101,8 +98,8 @@ db.serialize(() => {
               teamA,
               teamB,
               groupName,
-              CASE WHEN round  IS NULL THEN NULL ELSE CAST(round  AS INTEGER) END,
-              CASE WHEN field  IS NULL THEN NULL ELSE CAST(field  AS INTEGER) END,
+              CASE WHEN round IS NULL THEN NULL ELSE CAST(round AS INTEGER) END,
+              CASE WHEN field IS NULL THEN NULL ELSE CAST(field AS INTEGER) END,
               scoreA,
               scoreB,
               CASE WHEN winner IS NULL THEN NULL ELSE CAST(winner AS INTEGER) END,
@@ -173,6 +170,33 @@ db.serialize(() => {
       path TEXT NOT NULL
     )
   `);
+
+  // *** NEU: Turnier-Meta (Jahrgangs-Label + globaler Zeitplan) ***
+  db.run(`
+    CREATE TABLE IF NOT EXISTS tournament_meta (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      yearLabel TEXT,
+      timeHHMM TEXT,
+      dur INTEGER,
+      brk INTEGER,
+      updatedAt TEXT
+    )
+  `, (err) => {
+    if (err) {
+      console.error('Fehler beim Anlegen tournament_meta:', err.message);
+      return;
+    }
+    // Sicherstellen, dass es genau eine Zeile gibt (id=1)
+    db.get(`SELECT id FROM tournament_meta WHERE id = 1`, (e, row) => {
+      if (e) return console.error('Fehler beim Prüfen tournament_meta:', e.message);
+      if (!row) {
+        db.run(`
+          INSERT INTO tournament_meta (id, yearLabel, timeHHMM, dur, brk, updatedAt)
+          VALUES (1, NULL, NULL, NULL, NULL, datetime('now'))
+        `);
+      }
+    });
+  });
 });
 
 module.exports = db;

@@ -1,0 +1,239 @@
+{
+  "ts": "2025-12-26T17:08:42.207Z",
+  "teams": [
+    {
+      "id": 1,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 2,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 3,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 4,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 5,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 6,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 7,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 8,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 9,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 10,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 11,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 12,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 13,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 14,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 15,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 16,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 17,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 18,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 19,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 20,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 21,
+      "name": "b5",
+      "groupName": "B"
+    },
+    {
+      "id": 22,
+      "name": "b5",
+      "groupName": "B"
+    }
+  ],
+  "matches": [
+    {
+      "id": 1,
+      "teamA": 1,
+      "teamB": 2,
+      "groupName": "A",
+      "round": 1,
+      "field": 1,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 2,
+      "teamA": 3,
+      "teamB": 4,
+      "groupName": "A",
+      "round": 1,
+      "field": 2,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 3,
+      "teamA": 5,
+      "teamB": 6,
+      "groupName": "A",
+      "round": 1,
+      "field": 3,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 4,
+      "teamA": 7,
+      "teamB": 8,
+      "groupName": "B",
+      "round": 1,
+      "field": 1,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:10"
+    },
+    {
+      "id": 5,
+      "teamA": 9,
+      "teamB": 10,
+      "groupName": "B",
+      "round": 1,
+      "field": 2,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:10"
+    },
+    {
+      "id": 6,
+      "teamA": 11,
+      "teamB": 12,
+      "groupName": "B",
+      "round": 1,
+      "field": 3,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:10"
+    },
+    {
+      "id": 7,
+      "teamA": 13,
+      "teamB": 14,
+      "groupName": "C",
+      "round": 1,
+      "field": 1,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:20"
+    },
+    {
+      "id": 8,
+      "teamA": 17,
+      "teamB": 18,
+      "groupName": "C",
+      "round": 1,
+      "field": 3,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:20"
+    },
+    {
+      "id": 9,
+      "teamA": 15,
+      "teamB": 16,
+      "groupName": "C",
+      "round": 1,
+      "field": 2,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:20"
+    }
+  ],
+  "group_state": [
+    {
+      "groupName": "A",
+      "lastRound": 1
+    },
+    {
+      "groupName": "B",
+      "lastRound": 1
+    },
+    {
+      "groupName": "C",
+      "lastRound": 1
+    }
+  ]
+}

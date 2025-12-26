@@ -101,7 +101,11 @@
         <div class="titleWrap">
           <img class="clubLogo" id="clubLogo" alt="Vereinslogo" />
           <div style="display:flex; flex-direction:column; gap:.25rem;">
-            <h1>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</h1>
+            <h1>
+              Admin – 3. Königsbrunner Mini-Fußball Hallenmasters
+              <!-- kleine Kopf-Pill für Label -->
+              <span id="adminYearLabelHead" class="pill" style="margin-left:.5rem; display:none;">Jahrgang: –</span>
+            </h1>
             <div class="logoPath">
               Logo-Pfad: <code id="logoPathText">–</code>
               <span id="logoError" class="logoError">Logo konnte nicht geladen werden. Datei unter <code>public/assets/…</code> ablegen und Pfad prüfen.</span>
@@ -129,7 +133,11 @@
     <!-- Teams -->
     <section id="teamsSection">
       <header>
-        <h2>Teams</h2>
+        <h2>
+          Teams
+          <!-- große Pill hinter „Teams“ -->
+          <span id="adminYearLabel" class="pill" style="margin-left:.5rem; display:none;">Jahrgang: –</span>
+        </h2>
         <div class="row">
           <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
           <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
@@ -139,6 +147,7 @@
       <div class="teams-grid" id="teamsGrid"></div>
 
       <div class="row" style="padding:1rem">
+        <!-- Manuelle Team-Erfassung wie gehabt -->
         <div class="row" style="flex:1 1 100%">
           <input id="teamName" class="input" placeholder="Teamname" />
           <select id="teamGroup" class="input">
@@ -150,10 +159,20 @@
           <span id="teamsMsg" class="pill" style="display:none"></span>
         </div>
 
+        <!-- NEU: Jahrgangs-Bezeichner konfigurieren -->
         <div class="row" style="flex:1 1 100%">
-          <input id="teamsFile" type="file" accept=".csv,.json" class="input" />
-          <button id="btnImportTeams" type="button" class="btn btn-primary">Teams aus Datei importieren</button>
-          <span id="importMsg" class="pill" style="display:none"></span>
+          <label for="yearLabelInput" class="pill" title="Bezeichner für die Turnierdatei und Anzeige im Viewer">Jahrgangs‑Label:</label>
+          <input id="yearLabelInput" type="text" class="input" style="min-width:260px;" placeholder="z. B. U10 Samstag" />
+          <button id="btnSaveYearLabel" type="button" class="btn btn-primary" title="Label speichern (optional serverseitig)">Speichern</button>
+          <span id="yearLabelMsg" class="pill" style="display:none"></span>
+        </div>
+
+        <!-- Turnierdatei Import/Export (Label + Zeitplan + Teams) -->
+        <div class="row" style="flex:1 1 100%">
+          <input id="tournamentFile" type="file" accept=".json" class="input" />
+          <button id="btnImportTournament" type="button" class="btn btn-primary" title="Label + Zeitplan + Teams importieren">Turnierdatei importieren</button>
+          <button id="btnExportTournament" type="button" class="btn btn-muted"  title="Label + Zeitplan + Teams exportieren">Turnierdatei exportieren</button>
+          <span id="tournamentMsg" class="pill" style="display:none"></span>
         </div>
       </div>
     </section>
@@ -268,7 +287,6 @@
         </div>
       </header>
 
-      <!-- Op-Details (kompakt) -->
       <div class="row" style="padding:1rem">
         <div class="card" style="flex:1 1 100%">
           <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Ausgewählte Operation (Details)</h3>
@@ -300,7 +318,7 @@
     function initHeader(){ setLogo(); }
   </script>
 
-  <!-- API / State / Helpers -->
+  <!-- APIs / State / Helpers -->
   <script>
     const API_BASE = window.location.origin + '/api';
 
@@ -360,6 +378,11 @@
     const apiRecoverLatest = () => safeFetch('/adminOps/recover', { method:'POST' });
     const apiRecoverById   = (id) => safeFetch('/adminOps/recover/' + encodeURIComponent(id), { method:'POST' });
 
+    /* NEU: Meta-APIs (Label + Zeitplan serverseitig speichern/lesen) */
+    const apiMetaGet = () => safeFetch('/meta', { method:'GET' });
+    const apiMetaSet = (yearLabel, schedule) =>
+      safeFetch('/meta', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ yearLabel, schedule }) });
+
     /* Aliases */
     const loadTeams      = apiTeamsList;
     const deleteAllTeams = apiTeamsDeleteAll;
@@ -389,6 +412,7 @@
     let HISTORY = { groupName:null, round:null, batchId:null, items:[] };
     let SNAPSHOTS = [];
     let OPS = [];
+    let YEAR_LABEL = null;
 
     /* Helpers */
     function groupClass(g){
@@ -403,14 +427,18 @@
       clearTimeout(el._t); el._t = setTimeout(() => { el.style.display='none'; }, 3500);
     }
     function fmtTs(ts){ try { return new Date(ts).toLocaleString(); } catch { return ts; } }
-
-    /* NEW: History leeren */
-    function clearHistoryUI(){
-      HISTORY = { groupName: (document.getElementById('hist-group')?.value || '').toUpperCase(), round:null, batchId:null, items:[] };
-      renderHistory();  
-	  // Optional: kurze Info
-      const el = document.getElementById('histMsg');
-      if (el) { el.style.display = 'inline-block'; el.textContent = 'History zurückgesetzt.'; setTimeout(() => el.style.display='none', 2000); }
+    function setAdminYearLabel(label){
+      YEAR_LABEL = (label ?? '').trim() || null;
+      const text = YEAR_LABEL ? ('Jahrgang: ' + YEAR_LABEL) : 'Jahrgang: –';
+      const el = document.getElementById('adminYearLabel');
+      const el2 = document.getElementById('adminYearLabelHead');
+      if (el)  { el.style.display='inline-block';  el.textContent = text; }
+      if (el2) { el2.style.display='inline-block'; el2.textContent = text; }
+      // zusätzlich: Feld befüllen, falls nötig
+      const fld = document.getElementById('yearLabelInput');
+      if (fld && fld.value.trim() !== (YEAR_LABEL ?? '')) {
+        fld.value = YEAR_LABEL ?? '';
+      }
     }
   </script>
 
@@ -448,13 +476,18 @@
         const schedule = { timeHHMM, dur, brk };
         saveSchedule(schedule);
         showMsg('#timeMsg', 'Zeitplan gespeichert. Berechne Zeiten ...');
-        try { await apiScheduleRecalc(schedule); await refreshMatches(); showMsg('#timeMsg', 'Zeiten aktualisiert.'); }
+        try {
+          await apiMetaSet(YEAR_LABEL, schedule); // Label + Plan serverseitig sichern (falls Route vorhanden)
+          await apiScheduleRecalc(schedule);      // Zeiten neu berechnen
+          await refreshMatches();
+          showMsg('#timeMsg', 'Zeiten aktualisiert.');
+        }
         catch(e) { showMsg('#timeMsg', 'Recalc-Fehler: ' + e.message, true); }
       });
     }
   </script>
 
-  <!-- Teams -->
+  <!-- Teams (Render/Refresh) -->
   <script>
     function buildTeamsGrid(groups){
       const grid = document.getElementById('teamsGrid');
@@ -520,7 +553,7 @@
         const taId=m?.teamA_id??null, tbId=m?.teamB_id??null;
         const taName=m?.teamA ?? (taId!=null?String(taId):''), tbName=m?.teamB ?? (tbId!=null?String(tbId):'');
         const planned=m?.plannedStart??'–'; const w=m && typeof m.winner!=='undefined' ? m.winner : null; const hasW = w!==null && w!==undefined;
-        const td = (t)=>{ const el=document.createElement('td'); el.textContent=t; return el; };
+        const td =(t)=>{ const el=document.createElement('td'); el.textContent=t; return el; };
         const tdGroup=document.createElement('td'); const badge=document.createElement('span'); badge.className='pill '+groupClass(g); badge.textContent=g; tdGroup.appendChild(badge);
         const tdA=document.createElement('td'); const wrapA=document.createElement('span'); wrapA.className='teamNameWrap';
         const winA=hasW && Number(w)===Number(taId); if(winA){ const ico=document.createElement('span'); ico.className='winIcon'; ico.textContent='🏆'; ico.setAttribute('aria-label','Sieger'); const txt=document.createElement('span'); txt.className='winnerText'; txt.textContent=taName; wrapA.append(ico,txt);} else { const txt=document.createElement('span'); txt.className='loserText'; txt.textContent=taName; wrapA.append(txt);} tdA.replaceChildren(wrapA);
@@ -585,6 +618,14 @@
       const g = (document.getElementById('hist-group').value || '').trim().toUpperCase();
       try { HISTORY = await loadHistoryLatest(g); renderHistory(); }
       catch(e){ showMsg('#histMsg', 'History-Fehler: ' + e.message, true); }
+    }
+
+    /* NEW: History leeren */
+    function clearHistoryUI(){
+      HISTORY = { groupName: (document.getElementById('hist-group')?.value || '').toUpperCase(), round:null, batchId:null, items:[] };
+      renderHistory();  
+      const el = document.getElementById('histMsg');
+      if (el) { el.style.display = 'inline-block'; el.textContent = 'History zurückgesetzt.'; setTimeout(() => el.style.display='none', 2000); }
     }
   </script>
 
@@ -666,6 +707,9 @@
         await refreshSnapshots();
         showMsg('#recMsg', 'Wiederherstellung abgeschlossen.');
       });
+
+      // Label live (falls Meta-Route vorhanden)
+      s.on('meta:updated', (p) => { setAdminYearLabel(p?.yearLabel ?? YEAR_LABEL); });
     }
 
     function wireUI(){
@@ -683,30 +727,23 @@
         try { await addTeam(name, groupName); showMsg('#teamsMsg','Team hinzugefügt.'); document.getElementById('teamName').value=''; await refreshTeams(); }
         catch (err) { showMsg('#teamsMsg', 'Fehler: ' + err.message, true); }
       });
-      document.getElementById('btnImportTeams')?.addEventListener('click', async () => {
-        const inp = document.getElementById('teamsFile');
-        if (!inp || !inp.files || !inp.files[0]) { showMsg('#importMsg','Bitte CSV/JSON Datei auswählen.', true); return; }
-        try {
-          const text = await inp.files[0].text(); let entries = [];
-          if (inp.files[0].name.toLowerCase().endsWith('.json')) {
-            const obj = JSON.parse(text); entries = Array.isArray(obj) ? obj : (Array.isArray(obj.teams) ? obj.teams : []);
-          } else {
-            entries = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
-              const [name, groupName] = l.split(',').map(x => x?.trim());
-              return { name, groupName };
-            });
-          }
-          let ok=0, fail=0;
-          for (const e of entries) {
-            const n = (e.name || '').trim();
-            const g = e.groupName ? String(e.groupName).trim().toUpperCase() : null;
-            if (!n) { fail++; continue; }
-            try { await addTeam(n, g); ok++; } catch { fail++; }
-          }
-          await refreshTeams();
-          showMsg('#importMsg', `Import: ${ok}/${entries.length} erfolgreich, ${fail} fehlgeschlagen.`);
-        } catch (err) { showMsg('#importMsg','Import‑Fehler: ' + err.message, true); }
+
+      // NEU: Jahrgangs-Label speichern
+      document.getElementById('btnSaveYearLabel')?.addEventListener('click', async () => {
+        const val = (document.getElementById('yearLabelInput').value || '').trim();
+        setAdminYearLabel(val);
+        showMsg('#yearLabelMsg', 'Label gespeichert.');
+        // optional serverseitig persistieren (ohne Zeitplan-Änderung)
+        try { await apiMetaSet(val || null, getSchedule() || null); } catch {}
       });
+
+      // Turnierdatei Import / Export
+      document.getElementById('btnImportTournament')?.addEventListener('click', async () => {
+        const f = document.getElementById('tournamentFile')?.files?.[0];
+        await importTournamentFile(f);
+        document.getElementById('tournamentFile').value='';
+      });
+      document.getElementById('btnExportTournament')?.addEventListener('click', exportTournamentFile);
 
       // Matches
       document.getElementById('btnLoadMatches')?.addEventListener('click', refreshMatches);
@@ -715,7 +752,7 @@
         try {
           await resetMatches();
           await refreshMatches();
-          clearHistoryUI(); // <<<<< UI sofort leeren nach Reset
+          clearHistoryUI();
         } catch (err) { alert('Fehler beim Reset: ' + err.message); }
       });
 
@@ -755,7 +792,7 @@
           const r = await recoverLatest();
           showMsg('#recMsg', `Snapshot #${r.snapshotId} wiederhergestellt.`);
           await refreshMatches();
-          await loadHistoryUI();   // <<<<< nach Recovery History anpassen
+          await loadHistoryUI();
           await refreshSnapshots();
         } catch (e) { showMsg('#recMsg', 'Recovery-Fehler: ' + e.message, true); }
       });
@@ -768,7 +805,7 @@
           await recoverById(id);
           showMsg('#recMsg', `Snapshot #${id} wiederhergestellt.`);
           await refreshMatches();
-          await loadHistoryUI();   // <<<<< nach Recovery History anpassen
+          await loadHistoryUI();
           await refreshSnapshots();
         } catch (e) { showMsg('#recMsg', 'Recovery-Fehler: ' + e.message, true); }
       });
@@ -789,35 +826,109 @@ Status: ${status}
 Payload:
 ${payloadText}`;
       });
-      document.getElementById('btnShowOp')?.addEventListener('click', () => {
-        const sel = document.getElementById('opsSelect'); if (!sel?.value) { showMsg('#recMsg', 'Bitte eine Operation wählen.', true); return; }
-        alert(document.getElementById('opDetails').textContent || '–');
-      });
 
-      // Reseed (D/E/F)
-      document.getElementById('btnReseedGroups')?.addEventListener('click', async () => {
-        const msgEl = document.getElementById('reseedMsg');
-        const schedule = getSchedule();
-        try {
-          const r = await apiReseedGroups(schedule || {});
-          const d = r?.result?.matchesCreated?.D ?? 0;
-          const e = r?.result?.matchesCreated?.E ?? 0;
-          const f = r?.result?.matchesCreated?.F ?? 0;
-          showMsg(msgEl, (r?.msg || 'Gruppen neu zusammengestellt.') + ` (D:${d}, E:${e}, F:${f})`);
-          await refreshTeams();
-          await refreshMatches();
-        } catch (e) { showMsg(msgEl, 'Reseed-Fehler: ' + (e?.message || e), true); }
-      });
-
-      // Zeitplan
+      // Zeitplan UI
       wireScheduleUI();
       fillScheduleUI();
+    }
+
+    // Turnierdatei Import
+    async function importTournamentFile(file){
+      if (!file) { showMsg('#tournamentMsg','Bitte Turnierdatei wählen.',true); return; }
+      try {
+        const text = await file.text();
+        const obj = JSON.parse(text);
+        if (!obj || typeof obj !== 'object') throw new Error('Ungültige JSON-Struktur.');
+        const yearLabel = String(obj?.meta?.yearLabel ?? '').trim() || null;
+        const s = obj?.meta?.schedule;
+        if (!s || !/^\d{2}:\d{2}$/.test(s.timeHHMM) || !Number.isFinite(Number(s.dur)) || Number(s.dur) <= 0 || !Number.isFinite(Number(s.brk)) || Number(s.brk) < 0) {
+          throw new Error('Schedule fehlt/ungültig (timeHHMM, dur>0, brk>=0).');
+        }
+        const teamsArr = Array.isArray(obj?.teams) ? obj.teams : [];
+
+        // Label anzeigen + Feld setzen
+        setAdminYearLabel(yearLabel);
+        const fld = document.getElementById('yearLabelInput'); if (fld) fld.value = yearLabel ?? '';
+
+        const schedule = { timeHHMM: s.timeHHMM, dur: Number(s.dur), brk: Number(s.brk) };
+        saveSchedule(schedule);
+        try { await apiMetaSet(yearLabel, schedule); } catch {}
+        await apiScheduleRecalc(schedule);
+
+        let added = 0;
+        for (const t of teamsArr) {
+          const name = String(t?.name ?? '').trim();
+          const grp  = String(t?.groupName ?? '').trim().toUpperCase();
+          if (!name || !grp) continue;
+          try { await addTeam(name, grp); added++; } catch {}
+        }
+
+        showMsg('#tournamentMsg', `Turnierdatei importiert. Label: ${yearLabel ?? '–'} | Teams: ${added}/${teamsArr.length}`);
+        await refreshTeams();
+        await refreshMatches();
+      } catch (e) {
+        showMsg('#tournamentMsg','Import-Fehler: ' + e.message, true);
+      }
+    }
+
+    // Turnierdatei Export
+    async function exportTournamentFile(){
+      try {
+        const teams = await loadTeams();
+        const schedLocal = loadSchedule();
+        let meta = null; try { meta = await apiMetaGet(); } catch {}
+        const schedule = {
+          timeHHMM: schedLocal?.timeHHMM ?? meta?.schedule?.timeHHMM ?? null,
+          dur:      schedLocal?.dur      ?? meta?.schedule?.dur      ?? null,
+          brk:      schedLocal?.brk      ?? meta?.schedule?.brk      ?? null
+        };
+        const fld = document.getElementById('yearLabelInput');
+        const labelFromUI = (fld?.value || '').trim() || null;
+        const payload = {
+          meta: { yearLabel: labelFromUI ?? YEAR_LABEL ?? meta?.yearLabel ?? null, schedule },
+          teams: (teams || []).map(t => ({ name: t.name, groupName: t.groupName ?? null }))
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        const ts = new Date();
+        const YYYY = ts.getFullYear();
+        const MM = String(ts.getMonth()+1).padStart(2,'0');
+        const DD = String(ts.getDate()).padStart(2,'0');
+        const hh = String(ts.getHours()).padStart(2,'0');
+        const mm = String(ts.getMinutes()).padStart(2,'0');
+        const fn = `tournament_${(payload.meta.yearLabel||'label')}_${YYYY}${MM}${DD}_${hh}${mm}.json`.replace(/\s+/g,'_');
+        a.href = URL.createObjectURL(blob);
+        a.download = fn;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showMsg('#tournamentMsg', 'Turnierdatei exportiert: ' + fn);
+      } catch (e) {
+        showMsg('#tournamentMsg', 'Export-Fehler: ' + e.message, true);
+      }
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
       initHeader();
       wireUI();
       initSocket();
+
+      // Meta beim Start laden (falls Route existiert)
+      try {
+        const m = await apiMetaGet();
+        setAdminYearLabel(m?.yearLabel ?? null);
+        const fld = document.getElementById('yearLabelInput'); if (fld) fld.value = (m?.yearLabel ?? '');
+        const local = loadSchedule();
+        const s = m?.schedule;
+        if (!local && s?.timeHHMM && Number.isFinite(Number(s?.dur)) && Number.isFinite(Number(s?.brk))) {
+          saveSchedule({ timeHHMM: s.timeHHMM, dur: Number(s.dur), brk: Number(s.brk) });
+          fillScheduleUI();
+        } else {
+          fillScheduleUI();
+        }
+      } catch {
+        fillScheduleUI();
+      }
+
       await refreshTeams();
       await refreshMatches();
       await loadHistoryUI();

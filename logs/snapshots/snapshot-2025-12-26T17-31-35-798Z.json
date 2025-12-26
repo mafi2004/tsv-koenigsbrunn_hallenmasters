@@ -1,0 +1,574 @@
+{
+  "ts": "2025-12-26T17:31:35.798Z",
+  "teams": [
+    {
+      "id": 1,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 2,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 3,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 4,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 5,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 6,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 7,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 8,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 9,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 10,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 11,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 12,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 13,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 14,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 15,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 16,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 17,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 18,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 19,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 20,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 21,
+      "name": "b5",
+      "groupName": "B"
+    },
+    {
+      "id": 22,
+      "name": "b5",
+      "groupName": "B"
+    },
+    {
+      "id": 23,
+      "name": "b6",
+      "groupName": "B"
+    },
+    {
+      "id": 24,
+      "name": "b6",
+      "groupName": "B"
+    },
+    {
+      "id": 25,
+      "name": "c1",
+      "groupName": "C"
+    },
+    {
+      "id": 26,
+      "name": "c1",
+      "groupName": "C"
+    },
+    {
+      "id": 27,
+      "name": "c2",
+      "groupName": "C"
+    },
+    {
+      "id": 28,
+      "name": "c2",
+      "groupName": "C"
+    },
+    {
+      "id": 29,
+      "name": "c3",
+      "groupName": "C"
+    },
+    {
+      "id": 30,
+      "name": "c3",
+      "groupName": "C"
+    },
+    {
+      "id": 31,
+      "name": "c4",
+      "groupName": "C"
+    },
+    {
+      "id": 32,
+      "name": "c4",
+      "groupName": "C"
+    },
+    {
+      "id": 33,
+      "name": "c5",
+      "groupName": "C"
+    },
+    {
+      "id": 34,
+      "name": "c5",
+      "groupName": "C"
+    },
+    {
+      "id": 35,
+      "name": "c6",
+      "groupName": "C"
+    },
+    {
+      "id": 36,
+      "name": "c6",
+      "groupName": "C"
+    },
+    {
+      "id": 37,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 38,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 39,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 40,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 41,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 42,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 43,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 44,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 45,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 46,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 47,
+      "name": "b5",
+      "groupName": "B"
+    },
+    {
+      "id": 48,
+      "name": "b6",
+      "groupName": "B"
+    },
+    {
+      "id": 49,
+      "name": "c1",
+      "groupName": "C"
+    },
+    {
+      "id": 50,
+      "name": "c2",
+      "groupName": "C"
+    },
+    {
+      "id": 51,
+      "name": "c3",
+      "groupName": "C"
+    },
+    {
+      "id": 52,
+      "name": "c4",
+      "groupName": "C"
+    },
+    {
+      "id": 53,
+      "name": "c5",
+      "groupName": "C"
+    },
+    {
+      "id": 54,
+      "name": "c6",
+      "groupName": "C"
+    },
+    {
+      "id": 55,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 56,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 57,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 58,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 59,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 60,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 61,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 62,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 63,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 64,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 65,
+      "name": "b5",
+      "groupName": "B"
+    },
+    {
+      "id": 66,
+      "name": "b6",
+      "groupName": "B"
+    },
+    {
+      "id": 67,
+      "name": "c1",
+      "groupName": "C"
+    },
+    {
+      "id": 68,
+      "name": "c2",
+      "groupName": "C"
+    },
+    {
+      "id": 69,
+      "name": "c3",
+      "groupName": "C"
+    },
+    {
+      "id": 70,
+      "name": "c4",
+      "groupName": "C"
+    },
+    {
+      "id": 71,
+      "name": "c5",
+      "groupName": "C"
+    },
+    {
+      "id": 72,
+      "name": "c6",
+      "groupName": "C"
+    },
+    {
+      "id": 73,
+      "name": "a1",
+      "groupName": "A"
+    },
+    {
+      "id": 74,
+      "name": "a2",
+      "groupName": "A"
+    },
+    {
+      "id": 75,
+      "name": "a3",
+      "groupName": "A"
+    },
+    {
+      "id": 76,
+      "name": "a4",
+      "groupName": "A"
+    },
+    {
+      "id": 77,
+      "name": "a5",
+      "groupName": "A"
+    },
+    {
+      "id": 78,
+      "name": "a6",
+      "groupName": "A"
+    },
+    {
+      "id": 79,
+      "name": "b1",
+      "groupName": "B"
+    },
+    {
+      "id": 80,
+      "name": "b2",
+      "groupName": "B"
+    },
+    {
+      "id": 81,
+      "name": "b3",
+      "groupName": "B"
+    },
+    {
+      "id": 82,
+      "name": "b4",
+      "groupName": "B"
+    },
+    {
+      "id": 83,
+      "name": "b5",
+      "groupName": "B"
+    },
+    {
+      "id": 84,
+      "name": "b6",
+      "groupName": "B"
+    },
+    {
+      "id": 85,
+      "name": "c1",
+      "groupName": "C"
+    },
+    {
+      "id": 86,
+      "name": "c2",
+      "groupName": "C"
+    },
+    {
+      "id": 87,
+      "name": "c3",
+      "groupName": "C"
+    },
+    {
+      "id": 88,
+      "name": "c4",
+      "groupName": "C"
+    },
+    {
+      "id": 89,
+      "name": "c5",
+      "groupName": "C"
+    }
+  ],
+  "matches": [
+    {
+      "id": 1,
+      "teamA": 1,
+      "teamB": 2,
+      "groupName": "A",
+      "round": 1,
+      "field": 1,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 2,
+      "teamA": 3,
+      "teamB": 4,
+      "groupName": "A",
+      "round": 1,
+      "field": 2,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 3,
+      "teamA": 5,
+      "teamB": 6,
+      "groupName": "A",
+      "round": 1,
+      "field": 3,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:00"
+    },
+    {
+      "id": 4,
+      "teamA": 7,
+      "teamB": 8,
+      "groupName": "B",
+      "round": 1,
+      "field": 1,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:10"
+    },
+    {
+      "id": 5,
+      "teamA": 9,
+      "teamB": 10,
+      "groupName": "B",
+      "round": 1,
+      "field": 2,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:10"
+    },
+    {
+      "id": 6,
+      "teamA": 11,
+      "teamB": 12,
+      "groupName": "B",
+      "round": 1,
+      "field": 3,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:10"
+    },
+    {
+      "id": 7,
+      "teamA": 13,
+      "teamB": 14,
+      "groupName": "C",
+      "round": 1,
+      "field": 1,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:20"
+    },
+    {
+      "id": 8,
+      "teamA": 17,
+      "teamB": 18,
+      "groupName": "C",
+      "round": 1,
+      "field": 3,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:20"
+    },
+    {
+      "id": 9,
+      "teamA": 15,
+      "teamB": 16,
+      "groupName": "C",
+      "round": 1,
+      "field": 2,
+      "scoreA": 0,
+      "scoreB": 0,
+      "winner": null,
+      "plannedStart": "09:20"
+    }
+  ],
+  "group_state": [
+    {
+      "groupName": "A",
+      "lastRound": 1
+    },
+    {
+      "groupName": "B",
+      "lastRound": 1
+    },
+    {
+      "groupName": "C",
+      "lastRound": 1
+    }
+  ]
+}
