@@ -1,0 +1,738 @@
+
+<!doctype ht+ml>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Viewer – 3. Königsbrunner Mini‑Fußball Hallenmasters</title>
+
+  <style>
+    :root{
+      --bg:#0f172a; --card:#111827; --fg:#e5e7eb; --muted:#9ca3af;
+      --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --border:#1f2937;
+
+      /* Sticky-Offsets (werden per JS gesetzt) */
+      --sticky-offset: 64px;  /* Höhe Haupt-Header */
+      --sticky-sec: 42px;     /* Höhe Abschnitt-Header */
+
+      /* Zeitspaltenbreite + Gap (Tiles) */
+      --time-col-w: 102px;    /* 90px .slotTime + 12px Gap */
+
+      /* Höhe des Feld-Kopfes über den Tiles (per JS gesetzt) */
+      --tiles-head-h: 0px;
+    }
+
+    html,body{height:100%;}
+    body{
+      margin:0; background:var(--bg); color:var(--fg);
+      font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+    }
+
+    /* ===== STICKY: Hauptheader (Logo/Status) ===== */
+    body > header{
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--card);
+      border-bottom:1px solid var(--border);
+      box-shadow: 0 2px 0 rgba(0,0,0,.15);
+    }
+    .bar{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem;}
+    .leftWrap{display:flex; align-items:center; gap:.75rem;}
+    .clubLogo{width:48px; height:48px; object-fit:contain; border-radius:6px; background:#0b1020; border:1px solid var(--border);}
+    h1{margin:0; font-size:1.15rem;}
+    .meta{display:flex; gap:.75rem; align-items:center; color:#9ca3af; font-size:.9rem;}
+    .pill{display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.85rem;}
+    .pill.ok{color:#d1fae5; border-color:#065f46; background:#064e3b;}
+    .pill.err{color:#fee2e2; border-color:#7f1d1d; background:#1b0f0a;}
+
+    main{max-width:1200px; margin:0 auto; padding:1rem;}
+
+    /* ===== STICKY: Abschnitt-Header („Spielübersicht“ + Umschalter) ===== */
+    section{background:var(--card); border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;}
+    section > header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.75rem 1rem; border-bottom:1px solid var(--border);
+      position: sticky; top: var(--sticky-offset); z-index: 900;
+      background: var(--card);
+      box-shadow: 0 2px 0 rgba(0,0,0,.15);
+    }
+    .viewToggle{display:flex; gap:.35rem; flex-wrap:wrap;}
+    .btn{
+      cursor:pointer; border:1px solid var(--border); background:#0b1020; color:#e5e7eb;
+      padding:.35rem .6rem; border-radius:6px; font-weight:600; font-size:.85rem;
+    }
+    .btn-active{background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe;}
+
+    /* ===== Tabellenansicht ===== */
+    .tableWrap{padding:1rem; overflow:auto;}
+    table{
+      width:100%;
+      border-collapse: separate; /* kein collapse bei sticky */
+      table-layout: fixed;       /* identische Spaltenbreiten */
+    }
+    th,td{
+      padding:.5rem; border-bottom:1px solid var(--border); text-align:left;
+      box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .tableWrap thead{
+      position: sticky; top: 0; z-index: 800; background:#0b1020;
+    }
+    .tableWrap tbody::before{
+      content:''; display:block; height: var(--thead-spacer, 0px);
+    }
+
+    /* Zeilenfärbung je Gruppe A–F */
+    tr.grpA td{ background:rgba(29,78,216,.08); }
+    tr.grpB td{ background:rgba(220,38,38,.08); }
+    tr.grpC td{ background:rgba(22,163,74,.08); }
+    tr.grpD td{ background:rgba(245,158,11,.12); }
+    tr.grpE td{ background:rgba(139,92,246,.12); }
+    tr.grpF td{ background:rgba(20,184,166,.12); }
+
+    .grpBadge{display:inline-block; padding:.1rem .4rem; border-radius:999px; font-size:.75rem; border:1px solid var(--border);}
+    .grpBadge.A{color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8;}
+    .grpBadge.B{color:#fecaca; background:#2b0c0c; border-color:#7f1d1d;}
+    .grpBadge.C{color:#86efac; background:#052e1b; border-color:#166534;}
+    .grpBadge.D{color:#fde68a; background:#1f2937; border-color:#f59e0b;}
+    .grpBadge.E{color:#ddd6fe; background:#1f2937; border-color:#8b5cf6;}
+    .grpBadge.F{color:#a7f3d0; background:#0f3b3a; border-color:#14b8a6;}
+
+    .winIcon{font-size:1rem; margin-right:.3rem; vertical-align:middle;}
+    .winnerText{color:var(--ok); font-weight:600;}
+    .loserText{color:var(--muted);}
+    .note{color:#9ca3af; font-size:.85rem; padding:0 1rem 1rem;}
+
+    /* ===== Kachelansicht (Zeit-Slots × Felder) ===== */
+    .tilesWrap{padding:1rem;}
+    .slotRow{display:flex; align-items:flex-start; gap:12px; margin-bottom:14px;}
+    .slotTime{min-width:90px; flex:0 0 90px; text-align:right; padding-top:.35rem;}
+    .slotTime .timeBadge{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.2rem .5rem; font-weight:700; color:#cbd5e1; background:#0b1020;}
+
+    .tilesHeadGlobal{display:grid; gap:12px; margin:8px 0 10px;}
+    .fieldHead{display:flex; justify-content:center;}
+    .fieldHeadBadge{display:inline-block; border:1px solid var(--border); border-radius:10px; padding:.25rem .6rem; font-weight:700; font-size:.95rem; color:#cbd5e1; background:#0b1020;}
+    .tilesGrid{display:grid; gap:12px; flex:1;}
+    @media (max-width: 680px){
+      .slotTime{display:none;}
+      .tilesHeadGlobal{display:none;}
+      :root{ --time-col-w: 0px; }
+    }
+
+    .tile{
+      background-color: #111827;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:.6rem .8rem;
+      display:flex; flex-direction:column; gap:.4rem;
+    }
+    .tile.grpA{ background-color: #0b1b3a; border-color: #1d4ed8; }
+    .tile.grpB{ background-color: #2b0c0c; border-color: #7f1d1d; }
+    .tile.grpC{ background-color: #052e1b; border-color: #166534; }
+    .tile.grpD{ background-color: #1f2937; border-color: #f59e0b; }
+    .tile.grpE{ background-color: #1f2937; border-color: #8b5cf6; }
+    .tile.grpF{ background-color: #0f3b3a; border-color: #14b8a6; }
+
+    .tileTop{display:flex; justify-content:space-between; align-items:center;}
+    .tileTopLeft{display:flex; gap:.4rem; align-items:center; flex-wrap:wrap;}
+    .tileTag{display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .5rem; font-size:.85rem; color:#cbd5e1;}
+    .tileMain{display:flex; justify-content:space-between; gap:.75rem; align-items:center;}
+    .teamText{display:inline-flex; align-items:center; gap:.35rem;}
+    .emptyMsg{color:#9ca3af; padding:1rem;}
+    .idTag{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.1rem .45rem; font-size:.8rem; color:#cbd5e1; background:#0b1020; margin-left:.4rem;}
+    .roundBadge{display:inline-block; margin-top:.35rem; border:1px solid var(--border); border-radius:8px; padding:.12rem .5rem; font-weight:700; font-size:.9rem; color:#e5e7eb; background:#0b1020;}
+
+    /* ===== Hinweis-Großkachel (farbig je Gruppe) ===== */
+    .bigNotice{
+      grid-column: 1 / -1;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      display:flex; flex-direction:column; gap:.5rem;
+    }
+    .bigNoticeTitle{ font-weight:800; font-size:1.1rem; }
+    .bigNoticeHint{ color:#cbd5e1; font-size:.95rem; }
+
+    /* Farbliche Varianten für A–F (passend zu Tiles) */
+    .bigNotice.A{ background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe; }
+    .bigNotice.B{ background:#2b0c0c; border-color:#7f1d1d; color:#fecaca; }
+    .bigNotice.C{ background:#052e1b; border-color:#166534; color:#86efac; }
+    .bigNotice.D{ background:#1f2937; border-color:#f59e0b; color:#fde68a; }
+    .bigNotice.E{ background:#1f2937; border-color:#8b5cf6; color:#ddd6fe; }
+    .bigNotice.F{ background:#0f3b3a; border-color:#14b8a6; color:#a7f3d0; }
+
+    /* Hinweis-Zeile in der Tabelle (farbig je Gruppe, volle Breite) */
+    .tableNotice {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: .6rem .8rem;
+      font-weight:700;
+    }
+    .tableNotice.A{ background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe; }
+    .tableNotice.B{ background:#2b0c0c; border-color:#7f1d1d; color:#fecaca; }
+    .tableNotice.C{ background:#052e1b; border-color:#166534; color:#86efac; }
+    .tableNotice.D{ background:#1f2937; border-color:#f59e0b; color:#fde68a; }
+    .tableNotice.E{ background:#1f2937; border-color:#8b5cf6; color:#ddd6fe; }
+    .tableNotice.F{ background:#0f3b3a; border-color:#14b8a6; color:#a7f3d0; }
+
+    /* ===== 3. View: Hallenlayout (nur Bild) ===== */
+    .hallWrap{
+      padding: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 40vh;
+    }
+    .hallWrap .hall-img{
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 18px rgba(0,0,0,.25);
+      background: #0b1020;
+    }
+
+    /* ===== Teams-View ===== */
+    .teamsWrap{ padding:1rem; }
+    .teamsGrid{ display:grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 16px; }
+    @media (max-width: 980px){ .teamsGrid{ grid-template-columns: repeat(2, minmax(260px, 1fr)); } }
+    @media (max-width: 680px){ .teamsGrid{ grid-template-columns: 1fr; } }
+    .teamCard{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px; }
+    .teamCard.grpA{ border-color:#1d4ed8; }
+    .teamCard.grpB{ border-color:#7f1d1d; }
+    .teamCard.grpC{ border-color:#166534; }
+    .teamCard.grpD{ border-color:#f59e0b; }
+    .teamCard.grpE{ border-color:#8b5cf6; }
+    .teamCard.grpF{ border-color:#14b8a6; }
+
+    .teamCardHeader{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem; }
+    .teamBadge{ display:inline-block; border:1px solid var(--border); border-radius:10px; padding:.2rem .5rem; font-weight:700; font-size:.9rem; color:#cbd5e1; background:#0b1020; }
+    .teamBadge.A{ color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8; }
+    .teamBadge.B{ color:#fecaca; background:#2b0c0c; border-color:#7f1d1d; }
+    .teamBadge.C{ color:#86efac; background:#052e1b; border-color:#166534; }
+    .teamBadge.D{ color:#fde68a; background:#1f2937; border-color:#f59e0b; }
+    .teamBadge.E{ color:#ddd6fe; background:#1f2937; border-color:#8b5cf6; }
+    .teamBadge.F{ color:#a7f3d0; background:#0f3b3a; border-color:#14b8a6; }
+
+    .teamList{ list-style:none; margin:0; padding:0; }
+    .teamItem{ padding:.35rem .5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.5rem; }
+    .teamEmpty{ color:#9ca3af; font-style:italic; }
+    .teamCount{ color:#9ca3af; font-size:.85rem; }
+
+    /* kleiner Farbpunk vor Namen */
+    .teamDot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .teamDot.A{ background:#1d4ed8; }  /* Blau */
+    .teamDot.B{ background:#7f1d1d; }  /* Rotbraun */
+    .teamDot.C{ background:#166534; }  /* Grün */
+    .teamDot.D{ background:#f59e0b; }  /* Orange */
+    .teamDot.E{ background:#8b5cf6; }  /* Violett */
+    .teamDot.F{ background:#14b8a6; }  /* Teal */
+
+    /* ===== View-Umschaltung ===== */
+    #tableView, #tilesView, #hallView, #teamsView{ display:none; }
+    .view-table #tableView{ display:block; }
+    .view-tiles #tilesView{ display:block; }
+    .view-hall  #hallView { display:block; }
+    .view-teams #teamsView{ display:block; }
+
+    /* ===== Info-/Werbe-Kachel unter allen Views ===== */
+    .adWrap{ padding: 1rem; }
+    .adTile { border:1px solid var(--border); border-radius:10px; padding:.8rem 1rem; background:#0b3640; color:#c0fafe; }
+    .adTileHeader{
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 12px; cursor:pointer;
+    }
+    .adTitle{ margin:0; font-size:1.2rem; font-weight:700; }
+    .adHeaderImg{
+      height: 48px; max-height: 48px; width: auto;
+      border-radius:6px; border:1px solid var(--border); background:#0b1020;
+      box-shadow:0 2px 8px rgba(0,0,0,.25);
+    }
+    .adToggleIcon{ display:inline-block; margin-left:.5rem; transition: transform .18s ease; }
+    .adBody{
+      margin-top:.6rem; line-height:1.55; white-space:pre-wrap;
+      max-height: 0; overflow: hidden;
+      transition: max-height .22s ease, opacity .22s ease, margin-top .22s ease;
+      opacity: 0; font-size: 0.95rem;
+    }
+    .adTile[aria-expanded="true"] .adBody{ max-height: 500px; opacity: 1; margin-top: .6rem; }
+    .adTileHeader:focus{ outline: 2px solid #14b8a6; outline-offset: 2px; border-radius: 6px; }
+    @media (max-width: 560px){ .adTileHeader{ flex-wrap:wrap; } .adHeaderImg{ order: 2; margin-top:.35rem; } }
+  </style>
+</head>
+
+<body class="view-tiles">
+  <!-- ===== STICKY: Hauptheader ===== -->
+  <header>
+    <div class="bar">
+      <div class="leftWrap">
+        <img id="clubLogo" class="clubLogo" alt="Vereinslogo" />
+        <div>
+          <h1>3. Königsbrunner Mini‑Fußball Hallenmasters</h1>
+          <div class="meta">
+            <span>21./22.02.2026</span>
+            <span id="lastUpdate" class="pill err" title="Zuletzt geladene Daten">Letztes Update: –</span>
+          </div>
+        </div>
+      </div>
+      <div class="meta">
+        <span id="connStatus" class="pill err">Status: getrennt</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <header id="sectionHeader">
+        <div style="display:flex; align-items:center; gap:.75rem;">
+          <h2 id="sectionTitle" style="margin:0;">Spielübersicht</h2>
+          <!-- NEU: Jahrgang hinter „Spielübersicht“ -->
+          <span id="viewerYearLabel" class="pill" style="margin-left:.5rem;">Jahrgang: –</span>
+        </div>
+        <div class="viewToggle">
+          <button id="btnViewTable" class="btn"            type="button">Spielplan</button>
+          <button id="btnViewTiles" class="btn btn-active" type="button">Spielfeldbelegung</button>
+          <button id="btnViewHall"  class="btn"            type="button">Hallenlayout</button>
+          <button id="btnViewTeams" class="btn"            type="button">Teams</button>
+        </div>
+      </header>
+
+      <!-- 1) Tabellenansicht -->
+      <div id="tableView" class="tableWrap">
+        <table id="matchesTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Gruppe</th>
+              <th>Runde</th>
+              <th>Feld</th>
+              <th>Zeit</th>
+              <th>Team A</th>
+              <th>Team B</th>
+              <th>Sieger</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- 2) Kachelansicht -->
+      <div id="tilesView" class="tilesWrap">
+        <div id="tilesHeadGlobal" class="tilesHeadGlobal"></div>
+        <div id="tilesContainer"></div>
+        <div id="tilesEmpty" class="emptyMsg" style="display:none">Noch keine Spiele geplant.</div>
+      </div>
+
+      <!-- 3) Hallenlayout -->
+      <div id="hallView" class="hallWrap">
+        <img id="hallImage" class="hall-img" alt="Hallenlayout" />
+      </div>
+
+      <!-- Teams -->
+      <div id="teamsView" class="teamsWrap">
+        <div id="teamsGrid" class="teamsGrid"></div>
+        <div id="teamsEmpty" class="emptyMsg" style="display:none">Es wurden noch keine Teams eingetragen.</div>
+      </div>
+
+      <!-- ===== Werbe-Infobox (klappbar) ===== -->
+      <div class="adWrap">
+        <div id="adTile" class="tile grpF adTile" aria-label="Werbung" aria-expanded="false">
+          <!-- Header: Titel + Bild + optionales Toggle-Icon -->
+          <div id="adHeader" class="adTileHeader" role="button" tabindex="0" aria-controls="adBody">
+            <h3 class="adTitle">2. Königsbrunner Mini-Fußball Sommerfestival
+              <span class="adToggleIcon">›</span>
+            </h3>
+            /assets/save_the_date.jpg
+          </div>
+          <!-- Body: Text (vollbreit, collapsible) -->
+          <div id="adBody" class="adBody">
+Der TSV Königsbrunn veranstaltet am 04. und 05. Juli 2026 im Rahmen des 100-jährigen Vereinsjubiläums ein Minifußball Sommerfestival für die Jahrgänge 2015-2020.
+
+Hierzu laden wir euch mit euren Teams recht herzlich ein!
+  2019/20: Samstag, 04.07.26 Minifußball
+  2018: Samstag, 04.07.26 Minifußball
+  2017: Sonntag, 05.07.26 Minifußball
+  2015/16: Sonntag, 05.07.26 Minifußball
+  ...
+
+Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird für jeden etwas dabei sein. Für das leibliche Wohl wird vor Ort ausreichend gesorgt sein.
+          </div>
+        </div>
+      </div>
+      <!-- ===== Ende Werbe-Infobox ===== -->
+    </section>
+  </main>
+
+  <!-- Socket.IO Client -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    // === Assets
+    var HALL_IMG_PATH = '/assets/bg_hallenmasters_Gym.jpg';
+    (function setLogo(){ var img=document.getElementById('clubLogo'); if(!img) return; var url='/assets/Fussballwappen_logo.png?_v='+Date.now(); img.onerror=function(){img.style.display='none';}; img.src=url; })();
+    (function setHallImage(){ var img=document.getElementById('hallImage'); if(!img) return; var url=HALL_IMG_PATH+'?_v='+Date.now(); img.onerror=function(){img.style.display='none';}; img.onload=function(){img.style.display='block';}; img.src=url; })();
+
+    // === Helpers
+    function groupClass(g){ var x=String(g||'').trim().toUpperCase(); switch(x){ case 'A':return 'grpA'; case 'B':return 'grpB'; case 'C':return 'grpC'; case 'D':return 'grpD'; case 'E':return 'grpE'; case 'F':return 'grpF'; default:return null; } }
+    function addClassSafe(el, cls){ if (el && cls) el.classList.add(cls); }
+    function setStatus(ok){ var el=document.getElementById('connStatus'); if(!el) return; if(ok){ el.textContent='Status: verbunden'; el.className='pill ok'; } else { el.textContent='Status: getrennt'; el.className='pill err'; } }
+    function setLastUpdate(){ var el=document.getElementById('lastUpdate'); if(!el) return; var now=new Date(); var hh=String(now.getHours()).padStart(2,'0'); var mm=String(now.getMinutes()).padStart(2,'0'); var ss=String(now.getSeconds()).padStart(2,'0'); el.textContent='Letztes Update: '+hh+':'+mm+':'+ss; el.className='pill ok'; }
+
+    // === API
+    var API_BASE = window.location.origin + '/api';
+    function safeFetch(path, init){ return fetch(API_BASE + path, init).then(function(res){ if(!res.ok){ return res.text().then(function(txt){ throw new Error('HTTP '+res.status+' '+res.statusText+(txt?': '+txt:'')); }); } return res.json(); }); }
+    function loadMatches(){ return safeFetch('/matches', { method:'GET' }); }
+    function loadTeams(){ return safeFetch('/teams', { method:'GET' }); }
+    function loadMeta(){ return safeFetch('/meta', { method:'GET' }); } // Jahrgang vom Server (optional)
+
+    // === Sortierung
+    function hhmmToNum(hhmm){ var m=/^(\d{2}):(\d{2})$/.exec(String(hhmm||'')); if(!m) return Number.POSITIVE_INFINITY; return Number(m[1])*60+Number(m[2]); }
+    function sortMatches(rows){ return [].concat(rows||[]).sort(function(a,b){ var ta=hhmmToNum(a && a.plannedStart), tb=hhmmToNum(b && b.plannedStart); if(ta!==tb) return ta-tb; var fa=Number(a && a.field || 0), fb=Number(b && b.field || 0); if(fa!==fb) return fa-fb; return Number(a && a.id || 0) - Number(b && b.id || 0); }); }
+
+    // ===== Regel-Erkennung: A/B/C @ Runde==4, D/E/F @ Runde==7 =====
+    function computeCompletedByRules(rows){
+      var seen = {A:false,B:false,C:false,D:false,E:false,F:false};
+      (rows||[]).forEach(function(m){
+        var g = String(m.groupName||'').trim().toUpperCase();
+        var r = Number(m.round||0);
+        if ((g==='A'||g==='B'||g==='C') && r === 4) seen[g] = true;
+        if ((g==='D'||g==='E'||g==='F') && r === 7) seen[g] = true;
+      });
+      return seen;
+    }
+    function isABC(g){ return g==='A'||g==='B'||g==='C'; }
+    function isDEF(g){ return g==='D'||g==='E'||g==='F'; }
+
+    // ===== Tabellen-Rendering (Regel angewendet) =====
+    function updateTheadSpacer(){ var tw=document.querySelector('.tableWrap'); var thead=tw?tw.querySelector('thead'):null; if(!thead||!tw) return; var h=Math.ceil(thead.getBoundingClientRect().height)||0; tw.style.setProperty('--thead-spacer', h+'px'); }
+    function renderTable(rows){
+      var tbody=document.querySelector('#matchesTable tbody');
+      if(!tbody) return;
+      tbody.innerHTML='';
+      rows=sortMatches(rows);
+      if(!Array.isArray(rows)||!rows.length){
+        var tr0=document.createElement('tr'); var td0=document.createElement('td'); td0.colSpan=8; td0.textContent='Noch keine Spiele geplant.'; td0.style.color='#9ca3af'; tr0.appendChild(td0); tbody.appendChild(tr0);
+        updateTheadSpacer(); return;
+      }
+
+      var completed = computeCompletedByRules(rows); // {A..F}
+      for(var i=0;i<rows.length;i++){
+        var m=rows[i];
+        var g=String(m.groupName||'').trim().toUpperCase();
+        var r=Number(m.round||0);
+
+        // Regel: A/B/C @ 4, D/E/F @ 7 -> keine normale Zeile
+        if ( (isABC(g) && r===4) || (isDEF(g) && r===7) ) continue;
+
+        var tr=document.createElement('tr'); addClassSafe(tr, groupClass(g));
+        var id=(m && m.id!=null)?m.id:''; var field=(m && m.field!=null)?m.field:'';
+        var teamAId=(m&&(m.teamA_id!=null||m.teamA!=null))?(m.teamA_id!=null?m.teamA_id:m.teamA):null;
+        var teamBId=(m&&(m.teamB_id!=null||m.teamB!=null))?(m.teamB_id!=null?m.teamB_id:m.teamB):null;
+        var teamAName=(m&&m.teamA&&typeof m.teamA==='string'&&m.teamA.trim())?m.teamA:(teamAId!=null?('Team #'+teamAId):'—');
+        var teamBName=(m&&m.teamB&&typeof m.teamB==='string'&&m.teamB.trim())?m.teamB:(teamBId!=null?('Team #'+teamBId):'—');
+        var planned=(m && m.plannedStart) ? m.plannedStart : '–';
+        var winnerVal=(typeof m?.winner!=='undefined' && m.winner!==null)?Number(m.winner):NaN;
+        var hasWinner=!isNaN(winnerVal);
+
+        var tdId=document.createElement('td'); tdId.textContent=id;
+        var tdGroup=document.createElement('td'); var badge=document.createElement('span'); badge.className='grpBadge '+g; badge.textContent=g; tdGroup.appendChild(badge);
+        var tdRound=document.createElement('td'); tdRound.textContent=r;
+        var tdField=document.createElement('td'); tdField.textContent=field;
+        var tdTime=document.createElement('td'); tdTime.textContent=planned;
+
+        var tdA=document.createElement('td');
+        var wA=document.createElement('span'); wA.className=hasWinner && Number(winnerVal)===Number(teamAId)?'winnerText':'loserText'; wA.textContent=teamAName;
+        if(hasWinner && Number(winnerVal)===Number(teamAId)){ var icoA=document.createElement('span'); icoA.className='winIcon'; icoA.textContent='🏆'; icoA.setAttribute('role','img'); icoA.title='Sieger'; tdA.appendChild(icoA); }
+        tdA.appendChild(wA);
+
+        var tdB=document.createElement('td');
+        var wB=document.createElement('span'); wB.className=hasWinner && Number(winnerVal)===Number(teamBId)?'winnerText':'loserText'; wB.textContent=teamBName;
+        if(hasWinner && Number(winnerVal)===Number(teamBId)){ var icoB=document.createElement('span'); icoB.className='winIcon'; icoB.textContent='🏆'; icoB.setAttribute('role','img'); icoB.title='Sieger'; tdB.appendChild(icoB); }
+        tdB.appendChild(wB);
+
+        var tdWinner=document.createElement('td'); tdWinner.textContent=hasWinner ? ((Number(winnerVal)===Number(teamAId)) ? teamAName : teamBName) : '–';
+
+        tr.append(tdId, tdGroup, tdRound, tdField, tdTime, tdA, tdB, tdWinner);
+        tbody.appendChild(tr);
+      }
+
+      /* Hinweis-Zeilen je betroffene Gruppe (A–C mit Zusatz, D–F ohne) */
+      ['A','B','C','D','E','F'].forEach(function(g){
+        if (completed[g]){
+          var tr = document.createElement('tr'); addClassSafe(tr, groupClass(g));
+          var td = document.createElement('td'); td.colSpan = 8;
+          var box = document.createElement('div'); box.className = 'tableNotice '+g;
+          box.textContent = isABC(g)
+            ? ('Spiele Gruppe '+g+' beendet, Update des Spielplans erfolgt in Kürze')
+            : ('Spiele Gruppe '+g+' beendet');
+          td.appendChild(box); tr.appendChild(td);
+          tbody.appendChild(tr);
+        }
+      });
+
+      updateTheadSpacer();
+    }
+
+    // ===== Tiles-Rendering (Regel angewendet) =====
+    function uniqueSortedFields(rows){ var set={}; for(var i=0;i<rows.length;i++){ var f=(rows[i] && rows[i].field!=null)?rows[i].field:null; if(f!=null) set[String(f)]=true; } var arr=Object.keys(set); arr.sort(function(a,b){return Number(a)-Number(b);}); return arr.map(Number); }
+    function uniqueSortedTimes(rows){ var set=new Set(); for(var i=0;i<rows.length;i++){ var t=(rows[i] && rows[i].plannedStart) ? rows[i].plannedStart : '–'; set.add(t); } var arr=Array.from(set); arr.sort(function(a,b){ return hhmmToNum(a)-hhmmToNum(b); }); return arr; }
+    function updateTilesHeadHeight(){ var head=document.getElementById('tilesHeadGlobal'); if(!head) return; var h=Math.ceil(head.getBoundingClientRect().height)||0; document.documentElement.style.setProperty('--tiles-head-h', h+'px'); }
+
+    function bigNoticeTile(group){
+      var div = document.createElement('div');
+      div.className = 'bigNotice '+group; /* farbig: A–F */
+
+      var title = document.createElement('div');
+      title.className = 'bigNoticeTitle';
+      title.textContent = 'Spiele Gruppe ' + group + ' beendet';
+      div.appendChild(title);
+
+      // Nur für A/B/C den Zusatztext anzeigen
+      if (isABC(group)) {
+        var hint = document.createElement('div');
+        hint.className = 'bigNoticeHint';
+        hint.textContent = 'Update des Spielplans erfolgt in Kürze';
+        div.appendChild(hint);
+      }
+      return div;
+    }
+
+    function tileNodeForMatch(m){
+      var grp = String((m && m.groupName)||'').trim().toUpperCase();
+      var teamAId=(m && m.teamA_id!=null)?Number(m.teamA_id):(m && m.teamA!=null?Number(m.teamA):NaN);
+      var teamBId=(m && m.teamB_id!=null)?Number(m.teamB_id):(m && m.teamB!=null?Number(m.teamB):NaN);
+      var winnerVal=(m && typeof m.winner!=='undefined' && m.winner!==null)?Number(m.winner):NaN;
+
+      var tile=document.createElement('div'); addClassSafe(tile,'tile'); addClassSafe(tile,groupClass(grp));
+
+      var top=document.createElement('div'); top.className='tileTop';
+      var topLeft=document.createElement('div'); topLeft.className='tileTopLeft';
+      var tag=document.createElement('span'); tag.className='tileTag'; tag.textContent='Gruppe '+(grp||'–');
+      var idTag=document.createElement('span'); idTag.className='idTag'; idTag.textContent='ID '+((m && m.id!=null)?m.id:'–');
+      topLeft.append(tag,idTag);
+
+      var topRight=document.createElement('div');
+      var roundSpan=document.createElement('span'); roundSpan.className='roundBadge'; roundSpan.textContent='Runde '+((m && m.round!=null)?m.round:'-');
+      topRight.appendChild(roundSpan);
+
+      top.append(topLeft, topRight); tile.appendChild(top);
+
+      var main=document.createElement('div'); main.className='tileMain';
+      var aWrap=document.createElement('span'); aWrap.className='teamText';
+      var aName=(m && m.teamA && typeof m.teamA==='string' && m.teamA.trim()) ? m.teamA : (isFinite(teamAId)?('Team #'+teamAId):'—');
+      var aTxt=document.createElement('span'); aTxt.textContent=aName; aTxt.className=(!isNaN(winnerVal) && winnerVal===teamAId)?'winnerText':'loserText';
+      if(!isNaN(winnerVal) && winnerVal===teamAId){ var aIco=document.createElement('span'); aIco.className='winIcon'; aIco.textContent='🏆'; aIco.setAttribute('role','img'); aIco.title='Sieger'; aWrap.appendChild(aIco); }
+      aWrap.appendChild(aTxt);
+
+      var bWrap=document.createElement('span'); bWrap.className='teamText';
+      var bName=(m && m.teamB && typeof m.teamB==='string' && m.teamB.trim()) ? m.teamB : (isFinite(teamBId)?('Team #'+teamBId):'—');
+      var bTxt=document.createElement('span'); bTxt.textContent=bName; bTxt.className=(!isNaN(winnerVal) && winnerVal===teamBId)?'winnerText':'loserText';
+      if(!isNaN(winnerVal) && winnerVal===teamBId){ var bIco=document.createElement('span'); bIco.className='winIcon'; bIco.textContent='🏆'; bIco.setAttribute('role','img'); bIco.title='Sieger'; bWrap.appendChild(bIco); }
+      bWrap.appendChild(bTxt);
+
+      main.append(aWrap, bWrap); tile.appendChild(main);
+      return tile;
+    }
+
+    function renderTiles(rows){
+      var head=document.getElementById('tilesHeadGlobal');
+      var cont=document.getElementById('tilesContainer');
+      var empty=document.getElementById('tilesEmpty');
+      if(!head||!cont||!empty) return;
+      head.innerHTML=''; cont.innerHTML='';
+
+      var all = Array.isArray(rows) ? sortMatches(rows) : [];
+      if(!all.length){
+        empty.style.display='block';
+        updateTilesHeadHeight();
+        return;
+      }
+      empty.style.display='none';
+
+      var completed = computeCompletedByRules(all); // {A..F}
+
+      // Aktive = alle außer (A/B/C @ 4) und (D/E/F @ 7)
+      var activeRows = all.filter(function(m){
+        var g = String(m.groupName||'').trim().toUpperCase();
+        var r = Number(m.round||0);
+        if (isABC(g) && r===4) return false;
+        if (isDEF(g) && r===7) return false;
+        return true;
+      });
+
+      var fields = uniqueSortedFields(activeRows.length ? activeRows : all); if(!fields.length) fields=[1,2,3];
+      head.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
+      for (var h=0; h<fields.length; h++){
+        var fh=document.createElement('div'); fh.className='fieldHead';
+        var fb=document.createElement('span'); fb.className='fieldHeadBadge'; fb.textContent='Feld '+fields[h];
+        fh.appendChild(fb); head.appendChild(fh);
+      }
+
+      var times = uniqueSortedTimes(activeRows.length ? activeRows : all); if(!times.length) times=['–'];
+
+      for (var ti=0; ti<times.length; ti++){
+        var timeKey = times[ti];
+        var slot=document.createElement('div'); slot.className='slotRow';
+
+        // Zeitspalte
+        var timeCol=document.createElement('div'); timeCol.className='slotTime';
+        var timeBadge=document.createElement('span'); timeBadge.className='timeBadge'; timeBadge.textContent=timeKey;
+        timeCol.appendChild(timeBadge);
+
+        // Grid
+        var grid=document.createElement('div'); grid.className='tilesGrid';
+        grid.style.gridTemplateColumns='repeat('+fields.length+', minmax(260px, 1fr))';
+
+        // Pro Feld: passendes Match suchen
+        for (var fIdx=0; fIdx<fields.length; fIdx++){
+          var f = fields[fIdx];
+          var match=null;
+          for (var i=0; i<activeRows.length; i++){
+            var m=activeRows[i];
+            var t=(m && m.plannedStart)?m.plannedStart:'–';
+            var fld=(m && m.field!=null)?Number(m.field):null;
+            if (t===timeKey && fld===Number(f)){ match=m; break; }
+          }
+          if (match) {
+            grid.appendChild(tileNodeForMatch(match));
+          } else {
+            var placeholder=document.createElement('div'); addClassSafe(placeholder,'tile'); var tag=document.createElement('span'); tag.className='tileTag'; tag.textContent='—'; placeholder.appendChild(tag); grid.appendChild(placeholder);
+          }
+        }
+
+        slot.append(timeCol, grid);
+        cont.appendChild(slot);
+      }
+
+      // Hinweis-Großkacheln für betroffene Gruppen
+      ['A','B','C','D','E','F'].forEach(function(g){
+        if (completed[g]){
+          cont.appendChild(bigNoticeTile(g));
+        }
+      });
+
+      updateTilesHeadHeight();
+    }
+
+    // ===== Teams =====
+    function renderTeamsGrid(teams){
+      var grid=document.getElementById('teamsGrid'), empty=document.getElementById('teamsEmpty');
+      if(!grid||!empty) return;
+      grid.innerHTML='';
+      if(!Array.isArray(teams)||teams.length===0){ empty.style.display='block'; return; }
+      empty.style.display='none';
+      var groups=['A','B','C','D','E','F'];
+      groups.forEach(function(g){
+        var list=teams.filter(function(t){ return String(t.groupName||'').trim().toUpperCase()===g; })
+                      .sort(function(a,b){ return String(a.name||'').localeCompare(String(b.name||'')); });
+        var card=document.createElement('div'); card.className='teamCard'; addClassSafe(card, groupClass(g));
+        var head=document.createElement('div'); head.className='teamCardHeader';
+        var badge=document.createElement('span'); badge.className='teamBadge '+g; badge.textContent='Gruppe '+g;
+        var count=document.createElement('span'); count.className='teamCount'; count.textContent=list.length+' Team(s)';
+        head.append(badge, count); card.appendChild(head);
+        var ul=document.createElement('ul'); ul.className='teamList';
+        if(list.length===0){ var li=document.createElement('li'); li.className='teamItem teamEmpty'; li.textContent='– keine Teams –'; ul.appendChild(li); }
+        else { list.forEach(function(t){ var li=document.createElement('li'); li.className='teamItem'; var dot=document.createElement('span'); dot.className='teamDot '+g; var name=document.createElement('span'); name.textContent=t.name; li.append(dot,name); ul.appendChild(li); }); }
+        card.appendChild(ul); grid.appendChild(card);
+      });
+    }
+
+    // ===== View-Umschaltung & Init =====
+    function updateSectionTitle(mode){ var h2=document.getElementById('sectionTitle'); if(!h2) return; if(mode==='hall') h2.textContent='Halle'; else if(mode==='teams') h2.textContent='Gruppeneinteilung'; else h2.textContent='Spielübersicht'; }
+    function updateStickyOffsets(){ var topHdr=document.querySelector('body > header'); var secHdr=document.getElementById('sectionHeader'); var topH=topHdr?Math.ceil(topHdr.getBoundingClientRect().height):0; var secH=secHdr?Math.ceil(secHdr.getBoundingClientRect().height):0; document.documentElement.style.setProperty('--sticky-offset', topH+'px'); document.documentElement.style.setProperty('--sticky-sec',  secH+'px'); }
+    window.addEventListener('load', updateStickyOffsets); window.addEventListener('resize', updateStickyOffsets); setTimeout(updateStickyOffsets, 350);
+    window.addEventListener('load', updateTheadSpacer); window.addEventListener('resize', updateTheadSpacer);
+    window.addEventListener('load', updateTilesHeadHeight); window.addEventListener('resize', updateTilesHeadHeight);
+
+    function setView(mode){
+      var body=document.body;
+      var btnT=document.getElementById('btnViewTable');
+      var btnK=document.getElementById('btnViewTiles');
+      var btnH=document.getElementById('btnViewHall');
+      var btnTe=document.getElementById('btnViewTeams');
+
+      body.classList.remove('view-table','view-tiles','view-hall','view-teams');
+      if (mode==='table') body.classList.add('view-table');
+      else if (mode==='hall') body.classList.add('view-hall');
+      else if (mode==='teams') body.classList.add('view-teams');
+      else body.classList.add('view-tiles');
+
+      [btnT,btnK,btnH,btnTe].forEach(function(b){ b&&b.classList.remove('btn-active'); });
+      if (mode==='table') btnT&&btnT.classList.add('btn-active');
+      else if (mode==='hall') btnH&&btnH.classList.add('btn-active');
+      else if (mode==='teams') btnTe&&btnTe.classList.add('btn-active');
+      else btnK&&btnK.classList.add('btn-active');
+
+      updateSectionTitle(mode);
+      updateStickyOffsets();
+      updateTheadSpacer();
+      updateTilesHeadHeight();
+
+      if (mode==='teams'){
+        loadTeams().then(renderTeamsGrid).catch(function(e){ console.warn('Teams laden fehlgeschlagen:', e); });
+      }
+    }
+    document.getElementById('btnViewTable').addEventListener('click', function(){ setView('table'); });
+    document.getElementById('btnViewTiles').addEventListener('click', function(){ setView('tiles'); });
+    document.getElementById('btnViewHall').addEventListener('click',  function(){ setView('hall'); });
+    document.getElementById('btnViewTeams').addEventListener('click', function(){ setView('teams'); });
+
+    function refresh(){
+      return loadMatches()
+        .then(function(rows){ renderTable(rows); renderTiles(rows); setLastUpdate(); })
+        .catch(function(e){ console.error('Laden fehlgeschlagen:', e); var el=document.getElementById('lastUpdate'); if(el){ el.textContent='Letztes Update: Fehler'; el.className='pill err'; } setStatus(false); });
+    }
+
+    (function initSocket(){
+      if (typeof io !== 'function'){
+        console.error('Socket.IO Client nicht geladen – prüfe /socket.io/socket.io.js');
+        setStatus(false);
+        return;
+      }
+      var base=window.location.origin;
+      var s=io(base, { path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000 });
+
+      s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTheadSpacer(); updateTilesHeadHeight(); });
+      s.on('disconnect', function(){ setStatus(false); });
+
+      var t; function triggerDebounced(){ clearTimeout(t); t=setTimeout(function(){ refresh(); }, 250); }
+
+      s.on('resultUpdate',           triggerDebounced);
+      s.on('results:updated',        triggerDebounced);
+      s.on('group:started',          triggerDebounced);
+      s.on('round:advanced',         triggerDebounced);
+      s.on('matches:reset',          triggerDebounced);
+      s.on('groups:reseeded',        triggerDebounced);
+      s.on('schedule:recalculated',  triggerDebounced);
+
+      // Jahrgang live (falls Meta-Route vorhanden)
+      s.on('meta:updated', function(p){
+        var lbl = (p && typeof p.yearLabel==='string') ? p.yearLabel : null;
+        var el = document.getElementById('viewerYearLabel');
+        if (el) el.textContent = 'Jahrgang: ' + (lbl || '–');
+      });
+    })();
+
+    document.addEventListener('DOMContentLoaded', function(){
+      setView('tiles');
+      updateSectionTitle('tiles');
+
+      refresh();
+      setInterval(refresh, 30000);
+
+      // Info-/Werbe-Kachel Toggle
+      var adTile=document.getElementById('adTile'); var adHeader=document.getElementById('adHeader');
+      function toggleAd(){ if(!adTile) return; var expanded=adTile.getAttribute('aria-expanded')==='true'; adTile.setAttribute('aria-expanded', expanded?'false':'true'); }
+      if (adHeader){
+        adHeader.addEventListener('click', toggleAd);
+        adHeader.addEventListener('keydown', function(ev){
+          if(ev.key==='Enter'||ev.key===' '||ev.keyCode===13||ev.keyCode===32){ ev.preventDefault(); toggleAd(); }
+        });
+      }
+
+      // Jahrgang laden (falls Meta-Route vorhanden)
+      loadMeta().then(function(m){
+        var lbl = (m && typeof m.yearLabel==='string') ? m.yearLabel : null;
+        var el = document.getElementById('viewerYearLabel');
+        if (el) el.textContent = 'Jahrgang: ' + (lbl || '–');
+      }).catch(function(){ /* still */ });
+    });
+  </script>
+</body>
+</html>

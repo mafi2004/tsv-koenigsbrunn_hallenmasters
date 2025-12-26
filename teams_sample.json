@@ -1,0 +1,74 @@
+[
+  {
+    "name": "a1",
+    "groupName": "A"
+  },
+  {
+    "name": "a2",
+    "groupName": "A"
+  },
+  {
+    "name": "a3",
+    "groupName": "A"
+  },
+  {
+    "name": "a4",
+    "groupName": "A"
+  },
+  {
+    "name": "a5",
+    "groupName": "A"
+  },
+  {
+    "name": "a6",
+    "groupName": "A"
+  },
+  {
+    "name": "b1",
+    "groupName": "B"
+  },
+  {
+    "name": "b2",
+    "groupName": "B"
+  },
+  {
+    "name": "b3",
+    "groupName": "B"
+  },
+  {
+    "name": "b4",
+    "groupName": "B"
+  },
+  {
+    "name": "b5",
+    "groupName": "B"
+  },
+  {
+    "name": "b6",
+    "groupName": "B"
+  },
+  {
+    "name": "c1",
+    "groupName": "C"
+  },
+  {
+    "name": "c2",
+    "groupName": "C"
+  },
+  {
+    "name": "c3",
+    "groupName": "C"
+  },
+  {
+    "name": "c4",
+    "groupName": "C"
+  },
+  {
+    "name": "c5",
+    "groupName": "C"
+  },
+  {
+    "name": "c6",
+    "groupName": "C"
+  }
+]
