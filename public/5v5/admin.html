@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</title>
+
+  <!-- Gemeinsamer Style wie 3vs3 -->
+  <link rel="stylesheet" href="minis5_styles.css" />
+</head>
+
+<body>
+
+<div id="pwOverlay">
+  <div class="pwBox">
+    <h2>Admin Login</h2>
+    <input id="pwInput" type="password" placeholder="Passwort" />
+    <button id="pwBtn">Login</button>
+    <div id="pwError">Falsches Passwort</div>
+  </div>
+</div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="bar">
+      <div class="leftWrap">
+        <div class="titleWrap">
+          <img src="/assets/Fussballwappen_logo.png" class="clubLogo" id="clubLogo" alt="Vereinslogo" />
+          <div style="display:flex; flex-direction:column; gap:.25rem;">
+            <h1>
+              Admin – 3. Königsbrunner Mini-Fußball Hallenmasters
+              <span class="pill" style="margin-left:.5rem;">Modus: 5v5</span>
+            </h1>
+            <div class="logoPath">
+              Logo-Pfad: <code id="logoPathText">–</code>
+              <span id="logoError" class="logoError">
+                Logo konnte nicht geladen werden. Datei unter <code>/public/assets/…</code> ablegen.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR / Viewer -->
+        <div class="row" style="gap:.5rem;">
+          <label for="qrBase" class="pill">Viewer‑Basis:</label>
+          <input id="qrBase" type="text" class="input" style="min-width:260px;" placeholder="192.168.0.25" />
+          <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
+          <a id="viewerLink" class="viewerLink" target="_blank" rel="noopener">Viewer öffnen</a>
+        </div>
+      </div>
+
+      <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
+        <div class="container">
+          <img src="" id="qr-img" alt="QR-Code zum Viewer">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- TEAMS -->
+    <section id="teamsSection">
+      <header>
+        <h2>Teams (5v5)</h2>
+        <div class="row">
+          <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
+          <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
+        </div>
+      </header>
+
+      <div class="teams-grid" id="teamsGrid"></div>
+
+      <div class="row" style="padding:1rem">
+        <div class="row" style="flex:1 1 100%">
+          <input id="teamName" class="input" placeholder="Teamname" />
+          <select id="teamGroup" class="input">
+            <option value="A">Gruppe A</option>
+            <option value="B">Gruppe B</option>
+          </select>
+          <button id="btnAddTeam" type="button" class="btn btn-success">Hinzufügen</button>
+          <span id="teamsMsg" class="pill" style="display:none"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPIELPLAN -->
+    <section id="matchesSection">
+      <header>
+        <h2>Spielplan (A+B)</h2>
+        <div class="row">
+          <button id="btnLoadMatches" type="button" class="btn btn-muted">Spiele laden</button>
+          <button id="btnReset" type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
+        </div>
+      </header>
+
+      <div class="row" style="padding:1rem">
+        <div class="card" style="flex:1 1 100%">
+          <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Zeitmanagement</h3>
+          <div class="tm-row">
+            <label for="sched-time">Start:</label>
+            <input id="sched-time" type="time" class="input" step="60" />
+
+            <label for="sched-dur">Dauer (min):</label>
+            <input id="sched-dur" type="number" min="1" step="1" value="15" class="input" style="width:90px" />
+
+            <label for="sched-break">Pause (min):</label>
+            <input id="sched-break" type="number" min="0" step="1" value="3" class="input" style="width:90px" />
+
+            <button id="sched-generate" class="btn btn-primary">Spielplan (A+B) erzeugen</button>
+            <span id="timeMsg" class="pill" style="display:none; margin-left:auto;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tableWrap" style="padding:1rem">
+        <table id="matchesTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Gruppe</th>
+              <th>Zeit</th>
+              <th>Feld</th>
+              <th>Team A</th>
+              <th>Team B</th>
+              <th>Sieger</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/qr_script.js"></script>
+  <script src="minis5_admin.js"></script>
+  <script src="/admin_password.js"></script>
+
+</body>
+</html>

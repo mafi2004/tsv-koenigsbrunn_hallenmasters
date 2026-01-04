@@ -25,14 +25,17 @@ const db = require('./db'); // <- sqlite3-Instanz
 
 // Routen importieren
 const teamsRouter = require('./routes/teams');
-const matchesRouter = require('./routes/matches')(io);
+const matchesRouter = require('./routes/matches');
 const resultsRouter = require('./routes/results')(io);
 const funinoRouter = require('./routes/funino')(io);
 const scheduleRouter = require('./routes/schedule');
 const reseedRouterFactory = require('./routes/reseedGroups');
 const adminOpsRouter = require('./routes/adminOps')(io);
 const historyRouter = require('./routes/history')(io);
-const metaRouter = require('./routes/meta')(io); // <<<< NEU
+const metaRouter = require('./routes/meta')(io);
+
+// minis5
+const minis5Router = require('./routes/minis5');
 
 // Routen registrieren
 app.use('/api/teams', teamsRouter);
@@ -43,7 +46,10 @@ app.use('/api/schedule', scheduleRouter);
 app.use('/api/funino', reseedRouterFactory(db, io));
 app.use('/api/adminOps', adminOpsRouter);
 app.use('/api/history', historyRouter);
-app.use('/api/meta', metaRouter); // <<<< NEU
+app.use('/api/meta', metaRouter);
+
+// minis5
+app.use('/api/minis5', minis5Router);
 
 // Server starten
 const PORT = 3001;

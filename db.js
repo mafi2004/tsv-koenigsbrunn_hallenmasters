@@ -10,7 +10,8 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS teams (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      groupName TEXT
+      groupName TEXT,
+	  mode TEXT NOT NULL
     )
   `);
 
@@ -39,7 +40,10 @@ db.serialize(() => {
         scoreA INTEGER,
         scoreB INTEGER,
         winner INTEGER,
-        plannedStart TEXT
+        plannedStart TEXT,
+		mode TEXT NOT NULL,
+		FOREIGN KEY(teamA) REFERENCES teams(id),
+		FOREIGN KEY(teamB) REFERENCES teams(id)
       )
     `;
     if (!row) {

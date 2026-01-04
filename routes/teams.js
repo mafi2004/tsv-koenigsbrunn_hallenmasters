@@ -6,7 +6,7 @@ const { appendOp, makeSnapshot } = require('../utils/recovery');
 
 // Alle Teams abrufen
 router.get('/', (req, res) => {
-  db.all(`SELECT * FROM teams`, [], (err, rows) => {
+  db.all(`SELECT * FROM teams WHERE mode = '3v3'`, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
   const grp = groupName ? String(groupName).trim().toUpperCase() : null;
 
   db.run(
-    `INSERT INTO teams (name, groupName) VALUES (?, ?)`,
+    `INSERT INTO teams (name, groupName, mode) VALUES (?, ?, '3v3')`,
     [name, grp],
     async function (err) {
       if (err) return res.status(500).json({ error: err.message });
@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
 // Team löschen
 router.delete('/:id', (req, res) => {
   const id = Number(req.params.id);
-  db.run(`DELETE FROM teams WHERE id = ?`, [id], async function (err) {
+  db.run(`DELETE FROM teams WHERE id = ? AND mode = '3v3'`, [id], async function (err) {
     if (err) return res.status(500).json({ error: err.message });
 
     // Log + Snapshot

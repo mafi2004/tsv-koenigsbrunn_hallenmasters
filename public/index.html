@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3. Königsbrunner Hallenmasters – Turnierauswahl</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #111827;
+      border-bottom: 1px solid #1f2937;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+    }
+
+    .titleBlock h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: #e5e7eb;
+    }
+
+    .titleBlock span {
+      color: #9ca3af;
+      font-size: .9rem;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .twoCols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .colTitle {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #e5e7eb;
+      font-size: 1.4rem;
+      letter-spacing: .5px;
+    }
+
+    .card {
+      aspect-ratio: 1 / 1;
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform .15s ease, border-color .15s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .adminCard {
+      border-color: #1d4ed8;
+      background: rgba(29, 78, 216, 0.15);
+    }
+
+    .adminCard:hover {
+      border-color: #3b82f6;
+    }
+
+    .viewerCard {
+      border-color: #16a34a;
+      background: rgba(22, 163, 74, 0.15);
+    }
+
+    .viewerCard:hover {
+      border-color: #22c55e;
+    }
+
+    .card h3 {
+      margin: 0 0 .5rem;
+      font-size: 1.4rem;
+      color: #e5e7eb;
+    }
+
+    .card p {
+      margin: 0;
+      color: #9ca3af;
+      font-size: .95rem;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #6b7280;
+      font-size: .85rem;
+    }
+
+    @media (max-width: 700px) {
+      .twoCols {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <img src="/assets/Fussballwappen_logo.png" class="logo" alt="Vereinslogo" />
+    <div class="titleBlock">
+      <h1>3. Königsbrunner Hallenmasters</h1>
+      <span>Turnierplattform</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="twoCols">
+
+      <div class="col">
+        <h2 class="colTitle">3vs3 Funino</h2>
+
+        <a href="/admin.html">
+          <div class="card adminCard">
+            <h3>Admin</h3>
+            <p>Teams, Spielplan & Ergebnisse</p>
+          </div>
+        </a>
+
+        <a href="/viewer.html">
+          <div class="card viewerCard">
+            <h3>Viewer</h3>
+            <p>Live‑Ansicht für Zuschauer</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="col">
+        <h2 class="colTitle">5v5 Hallenmasters</h2>
+
+        <a href="/5v5/admin.html">
+          <div class="card adminCard">
+            <h3>Admin</h3>
+            <p>Teams, Spielplan & Ergebnisse</p>
+          </div>
+        </a>
+
+        <a href="/5v5/viewer.html">
+          <div class="card viewerCard">
+            <h3>Viewer</h3>
+            <p>Live‑Ansicht für Zuschauer</p>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    © Markus Finke - TSV Königsbrunn
+  </footer>
+
+</body>
+</html>

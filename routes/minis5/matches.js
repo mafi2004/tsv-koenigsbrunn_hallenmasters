@@ -1,7 +1,13 @@
-// server/routes/matches.js (3vs3)
+// server/routes/minis5/matches.js (5v5)
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../../db');
+
+const {
+  generateRoundRobin,
+  interleaveGroups,
+  assignFieldsAndTimesInterleaved
+} = require('./generator');
 
 // Socket helper
 function getIO(req) {
@@ -9,7 +15,7 @@ function getIO(req) {
 }
 
 /* -------------------------------------------------------
-   GET /api/matches  (nur 3vs3)
+   GET /api/minis5/matches  (nur 5v5)
 ------------------------------------------------------- */
 router.get('/', (req, res) => {
   db.all(`
@@ -19,7 +25,7 @@ router.get('/', (req, res) => {
     FROM matches m
     LEFT JOIN teams t1 ON t1.id = m.teamA
     LEFT JOIN teams t2 ON t2.id = m.teamB
-    WHERE m.mode = '3v3'
+    WHERE m.mode = '5v5'
     ORDER BY m.plannedStart ASC, m.field ASC, m.id ASC
   `, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -28,73 +34,63 @@ router.get('/', (req, res) => {
 });
 
 /* -------------------------------------------------------
-   POST /api/matches/generate
-   (3vs3 Round-Robin)
+   POST /api/minis5/matches/generateAll
 ------------------------------------------------------- */
-router.post('/generate', (req, res) => {
+router.post('/generateAll', (req, res) => {
   const schedule = req.body.schedule;
 
   if (!schedule || !/^\d{2}:\d{2}$/.test(schedule.timeHHMM)) {
     return res.status(400).json({ error: 'Ungültiger Schedule (Startzeit HH:MM)' });
   }
 
-  db.all(`SELECT id FROM teams WHERE mode = '3v3' ORDER BY id ASC`, [], (err, teams) => {
+  db.all(`
+    SELECT id, groupName 
+    FROM teams 
+    WHERE mode = '5v5'
+    ORDER BY id ASC
+  `, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
 
-    if (teams.length < 2) {
-      return res.status(400).json({ error: 'Mindestens 2 Teams erforderlich.' });
+    const groupA = rows.filter(r => r.groupName === 'A').map(r => r.id);
+    const groupB = rows.filter(r => r.groupName === 'B').map(r => r.id);
+
+    if (groupA.length !== 6 || groupB.length !== 6) {
+      return res.status(400).json({
+        error: 'Für Gruppen A und B müssen jeweils genau 6 Teams vorhanden sein.'
+      });
     }
 
-    // Round-Robin erzeugen
-    const games = [];
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        games.push([teams[i].id, teams[j].id]);
-      }
-    }
-
-    // Zeitberechnung
-    function addMinutes(hhmm, minutes) {
-      const [h, m] = hhmm.split(':').map(Number);
-      const total = h * 60 + m + minutes;
-      const hh = String(Math.floor(total / 60)).padStart(2, '0');
-      const mm = String(total % 60).padStart(2, '0');
-      return `${hh}:${mm}`;
-    }
-
-    const dur = Number(schedule.dur);
-    const brk = Number(schedule.brk);
-    const slotLen = dur + brk;
-    const base = schedule.timeHHMM;
-
-    const planned = games.map((g, idx) => ({
-      teamA: g[0],
-      teamB: g[1],
-      field: (idx % 2) + 1,
-      plannedStart: addMinutes(base, Math.floor(idx / 2) * slotLen)
-    }));
+    const gamesA = generateRoundRobin(groupA);
+    const gamesB = generateRoundRobin(groupB);
+    const interleaved = interleaveGroups(gamesA, gamesB);
+    const planned = assignFieldsAndTimesInterleaved(interleaved, schedule);
 
     db.run(`BEGIN IMMEDIATE`, (eBegin) => {
       if (eBegin) return res.status(500).json({ error: eBegin.message });
 
-      db.run(`DELETE FROM matches WHERE mode = '3v3'`, [], (eDel) => {
+      db.run(`DELETE FROM matches WHERE mode = '5v5'`, [], (eDel) => {
         if (eDel) return db.run(`ROLLBACK`, () => res.status(500).json({ error: eDel.message }));
 
         const stmt = db.prepare(`
           INSERT INTO matches 
             (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
-          VALUES (?, ?, 'A', 1, ?, NULL, NULL, NULL, ?, '3v3')
+          VALUES (?, ?, ?, 1, ?, NULL, NULL, NULL, ?, '5v5')
         `);
 
         let hadErr = false;
 
         for (const m of planned) {
-          stmt.run([m.teamA, m.teamB, m.field, m.plannedStart], (eIns) => {
-            if (eIns && !hadErr) {
-              hadErr = true;
-              db.run(`ROLLBACK`, () => res.status(500).json({ error: eIns.message }));
+          stmt.run(
+            [m.teamA, m.teamB, m.group, m.field, m.plannedStart],
+            (eIns) => {
+              if (eIns && !hadErr) {
+                hadErr = true;
+                db.run(`ROLLBACK`, () =>
+                  res.status(500).json({ error: eIns.message })
+                );
+              }
             }
-          });
+          );
         }
 
         stmt.finalize((eFin) => {
@@ -114,12 +110,12 @@ router.post('/generate', (req, res) => {
 });
 
 /* -------------------------------------------------------
-   POST /api/matches/winner
+   POST /api/minis5/matches/winner
 ------------------------------------------------------- */
 router.post('/winner', (req, res) => {
   const { matchId, winner } = req.body;
 
-  db.get(`SELECT teamA, teamB FROM matches WHERE id = ? AND mode = '3v3'`,
+  db.get(`SELECT teamA, teamB FROM matches WHERE id = ? AND mode = '5v5'`,
     [matchId],
     (eSel, row) => {
       if (eSel) return res.status(500).json({ error: eSel.message });
@@ -129,7 +125,7 @@ router.post('/winner', (req, res) => {
         return res.status(400).json({ error: 'Sieger gehört nicht zu diesem Spiel' });
       }
 
-      db.run(`UPDATE matches SET winner = ? WHERE id = ? AND mode = '3v3'`,
+      db.run(`UPDATE matches SET winner = ? WHERE id = ? AND mode = '5v5'`,
         [winner, matchId],
         (eUp) => {
           if (eUp) return res.status(500).json({ error: eUp.message });
@@ -141,10 +137,10 @@ router.post('/winner', (req, res) => {
 });
 
 /* -------------------------------------------------------
-   DELETE /api/matches/reset
+   DELETE /api/minis5/matches/reset
 ------------------------------------------------------- */
 router.delete('/reset', (req, res) => {
-  db.run(`DELETE FROM matches WHERE mode = '3v3'`, [], (err) => {
+  db.run(`DELETE FROM matches WHERE mode = '5v5'`, [], (err) => {
     if (err) return res.status(500).json({ error: err.message });
 
     getIO(req)?.emit('matches:updated');

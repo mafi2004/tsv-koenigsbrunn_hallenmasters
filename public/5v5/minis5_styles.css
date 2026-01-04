@@ -1,0 +1,407 @@
+/* -------------------------------------------------------
+   Root Colors (identisch zu deinem 3vs3-System)
+------------------------------------------------------- */
+:root {
+  --bg: #0f172a;
+  --fg: #e5e7eb;
+  --muted: #9ca3af;
+  --accent: #22c55e;
+  --danger: #ef4444;
+  --card: #111827;
+  --border: #1f2937;
+
+  /* Gruppenfarben A/B */
+  --grpA-bg: #0b1b3a;
+  --grpA-fg: #bfdbfe;
+  --grpA-br: #1d4ed8;
+
+  --grpB-bg: #2b0c0c;
+  --grpB-fg: #fecaca;
+  --grpB-br: #7f1d1d;
+}
+
+/* -------------------------------------------------------
+   Base Layout
+------------------------------------------------------- */
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* -------------------------------------------------------
+   Sticky Header
+------------------------------------------------------- */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: var(--card);
+}
+
+header .bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.clubLogo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.pill {
+  display: inline-block;
+  padding: .2rem .6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: .8rem;
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------
+   Navigation Tabs
+------------------------------------------------------- */
+.viewerNav {
+  display: flex;
+  gap: .5rem;
+  background: #020617;
+  border-bottom: 1px solid var(--border);
+  padding: .5rem 1rem;
+}
+
+.navBtn {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: #020617;
+  color: var(--muted);
+  padding: .3rem .7rem;
+  border-radius: 999px;
+  font-size: .85rem;
+}
+
+.navBtn-active {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+/* -------------------------------------------------------
+   Pages
+------------------------------------------------------- */
+.page {
+  display: none;
+  padding: 1rem;
+}
+
+.page-active {
+  display: block;
+}
+
+/* -------------------------------------------------------
+   Buttons
+------------------------------------------------------- */
+.btn {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: #0b1020;
+  color: var(--fg);
+  padding: .4rem .7rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+.btn-primary {
+  border-color: #1d4ed8;
+  background: #0b1b3a;
+  color: #bfdbfe;
+}
+
+.btn-success {
+  border-color: #166534;
+  background: #052e16;
+  color: #bbf7d0;
+}
+
+.btn-danger {
+  border-color: #7f1d1d;
+  background: #2b0c0c;
+  color: #fecaca;
+}
+
+.btn-muted {
+  border-color: var(--border);
+  background: #0b1020;
+  color: var(--muted);
+}
+
+/* -------------------------------------------------------
+   Inputs
+------------------------------------------------------- */
+.input {
+  background: #0b1020;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .4rem .6rem;
+  min-height: 2rem;
+}
+
+/* -------------------------------------------------------
+   Cards
+------------------------------------------------------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+/* -------------------------------------------------------
+   Tables
+------------------------------------------------------- */
+.tableWrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: .45rem .5rem;
+  border-bottom: 1px solid var(--border);
+  font-size: .9rem;
+  text-align: left;
+}
+
+th {
+  background: #0b1020;
+  color: #cbd5e1;
+}
+
+/* -------------------------------------------------------
+   Teams Grid
+------------------------------------------------------- */
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.teamCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem;
+}
+
+.teamCardHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: .5rem;
+}
+
+.teamBadge {
+  padding: .2rem .5rem;
+  border-radius: 999px;
+  font-size: .8rem;
+  border: 1px solid var(--border);
+}
+
+.teamList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.teamItem {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .25rem 0;
+}
+
+.teamDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* -------------------------------------------------------
+   Group Colors
+------------------------------------------------------- */
+.grpA {
+  background: var(--grpA-bg) !important;
+  color: var(--grpA-fg) !important;
+  border-color: var(--grpA-br) !important;
+}
+
+.grpB {
+  background: var(--grpB-bg) !important;
+  color: var(--grpB-fg) !important;
+  border-color: var(--grpB-br) !important;
+}
+
+.teamDot.grpA { background: var(--grpA-br); }
+.teamDot.grpB { background: var(--grpB-br); }
+
+/* -------------------------------------------------------
+   Tiles View (2 Felder)
+------------------------------------------------------- */
+.tilesRow {
+  display: flex;
+  gap: .75rem;
+  margin-bottom: .75rem;
+}
+
+.timeCol {
+  min-width: 80px;
+  text-align: right;
+  padding-top: .45rem;
+  color: var(--muted);
+}
+
+.grid2 {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: .75rem;
+}
+
+.tile {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .6rem .8rem;
+}
+
+.tileTop {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: .4rem;
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+.tileMain {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------
+   Hallenlayout
+------------------------------------------------------- */
+.hallWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hallImg {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* -------------------------------------------------------
+   QR Code
+------------------------------------------------------- */
+#headerQR .container {
+  width: 110px;
+  height: 110px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#qr-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* -------------------------------------------------------
+   Misc
+------------------------------------------------------- */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+}
+
+.logoError {
+  display: none;
+  color: var(--danger);
+  font-size: .8rem;
+}
+
+#pwOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.pwBox {
+  background: #111827;
+  border: 1px solid #1f2937;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  width: 300px;
+}
+
+#pwInput {
+  width: 100%;
+  padding: .6rem;
+  margin-top: 1rem;
+  border-radius: 6px;
+  border: 1px solid #1f2937;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+#pwBtn {
+  margin-top: 1rem;
+  width: 100%;
+  padding: .6rem;
+  border-radius: 6px;
+  border: 1px solid #22c55e;
+  background: #052e16;
+  color: #bbf7d0;
+  cursor: pointer;
+}
+
+#pwError {
+  margin-top: .5rem;
+  color: #ef4444;
+  display: none;
+}

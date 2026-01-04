@@ -92,9 +92,66 @@
     @media (max-width: 720px)  { .teams-grid { grid-template-columns: 1fr; } }
     .table-wrap { overflow:auto; }
     .table-wrap thead th { background:#0b1020; }
+	
+	#pwOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.pwBox {
+  background: #111827;
+  border: 1px solid #1f2937;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  width: 300px;
+}
+
+#pwInput {
+  width: 100%;
+  padding: .6rem;
+  margin-top: 1rem;
+  border-radius: 6px;
+  border: 1px solid #1f2937;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+#pwBtn {
+  margin-top: 1rem;
+  width: 100%;
+  padding: .6rem;
+  border-radius: 6px;
+  border: 1px solid #22c55e;
+  background: #052e16;
+  color: #bbf7d0;
+  cursor: pointer;
+}
+
+#pwError {
+  margin-top: .5rem;
+  color: #ef4444;
+  display: none;
+}
+
   </style>
 </head>
 <body>
+<div id="pwOverlay">
+  <div class="pwBox">
+    <h2>Admin Login</h2>
+    <input id="pwInput" type="password" placeholder="Passwort" />
+    <button id="pwBtn">Login</button>
+    <div id="pwError">Falsches Passwort</div>
+  </div>
+</div>
+
+
   <header>
     <div class="bar">
       <div class="leftWrap">
@@ -299,6 +356,7 @@
   <!-- Skripte -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/qr_script.js"></script>
+  <script src="/admin_password.js"></script>
 
   <!-- Logo -->
   <script>
@@ -906,6 +964,40 @@ ${payloadText}`;
         showMsg('#tournamentMsg', 'Export-Fehler: ' + e.message, true);
       }
     }
+
+// Passwortschutz
+document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("pwOverlay");
+  const input = document.getElementById("pwInput");
+  const btn = document.getElementById("pwBtn");
+  const err = document.getElementById("pwError");
+
+  // Auto-Fokus
+  input.focus();
+
+  // Enter-Taste
+  input.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") btn.click();
+  });
+
+  // Prüfen, ob Passwort schon gespeichert wurde
+	if (localStorage.getItem("admin_pw_ok") === "1") {
+	  overlay.style.display = "none";
+	}
+
+	// Beim erfolgreichen Login speichern
+	btn.addEventListener("click", () => {
+	  if (input.value === window.ADMIN_PASSWORD) {
+		localStorage.setItem("admin_pw_ok", "1");
+		overlay.style.display = "none";
+	  } else {
+		err.style.display = "block";
+		setTimeout(() => err.style.display = "none", 2000);
+	  }
+	});
+
+});
+
 
     document.addEventListener('DOMContentLoaded', async () => {
       initHeader();

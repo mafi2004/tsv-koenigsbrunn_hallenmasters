@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Viewer – Mini-Fußball 5v5</title>
+
+  <!-- Gemeinsamer Style wie 3vs3 -->
+  <link rel="stylesheet" href="minis5_styles.css" />
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="bar">
+      <div class="leftWrap">
+        <div class="titleWrap">
+          <img src="/assets/Fussballwappen_logo.png" class="clubLogo" id="clubLogo" alt="Vereinslogo" />
+          <div style="display:flex; flex-direction:column; gap:.25rem;">
+            <h1>
+              Mini-Fußball Hallenmasters
+              <span class="pill" style="margin-left:.5rem;">Modus: 5v5</span>
+            </h1>
+            <div class="logoPath">
+              Logo-Pfad: <code id="logoPathText">–</code>
+              <span id="logoError" class="logoError">
+                Logo konnte nicht geladen werden. Datei unter <code>/public/assets/…</code> ablegen.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+		<div id="connStatus" style="
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			padding: 6px 12px;
+			border-radius: 6px;
+			background: #1f2937;
+			color: #9ca3af;
+			font-size: 0.85rem;
+			border: 1px solid #374151;
+		">
+			Status: <span id="connState">…</span>
+		</div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav class="viewerNav">
+      <button class="navBtn navBtn-active" data-page="tiles">Aktuelle Spiele</button>
+      <button class="navBtn" data-page="list">Spielplan</button>
+      <button class="navBtn" data-page="teams">Teams</button>
+      <button class="navBtn" data-page="hall">Hallenlayout</button>
+    </nav>
+  </header>
+
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- PAGE: TILES -->
+    <section id="page-tiles" class="page page-active">
+      <header><h2>Spiele (Tiles)</h2></header>
+      <div id="tilesContainer"></div>
+    </section>
+
+    <!-- PAGE: LIST -->
+    <section id="page-list" class="page">
+      <header><h2>Spielplan (Liste)</h2></header>
+      <div class="tableWrap">
+        <table id="matchesTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Gruppe</th>
+              <th>Zeit</th>
+              <th>Feld</th>
+              <th>Team A</th>
+              <th>Team B</th>
+              <th>Sieger</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAGE: TEAMS -->
+    <section id="page-teams" class="page">
+      <header><h2>Teams</h2></header>
+      <div class="teams-grid" id="teamsGrid"></div>
+    </section>
+
+    <!-- PAGE: HALLENLAYOUT -->
+    <section id="page-hall" class="page">
+      <header><h2>Hallenlayout</h2></header>
+      <div class="hallWrap">
+        <img src="/assets/bg_hallenmasters.jpg" alt="Hallenlayout" class="hallImg" />
+      </div>
+    </section>
+
+  </main>
+
+  <!-- SCRIPTS -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/qr_script.js"></script>
+  <script src="minis5_viewer.js"></script>
+
+</body>
+</html>
