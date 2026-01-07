@@ -1,155 +1,196 @@
-// server/routes/matches.js (3vs3)
+
 const express = require('express');
-const router = express.Router();
 const db = require('../db');
+const { appendOp, makeSnapshot } = require('../utils/recovery');
 
-// Socket helper
-function getIO(req) {
-  try { return req.app.get('io'); } catch { return null; }
-}
+module.exports = (io) => {
+  const router = express.Router();
 
-/* -------------------------------------------------------
-   GET /api/matches  (nur 3vs3)
-------------------------------------------------------- */
-router.get('/', (req, res) => {
-  db.all(`
-    SELECT m.*, 
-           t1.name AS teamA_name,
-           t2.name AS teamB_name
-    FROM matches m
-    LEFT JOIN teams t1 ON t1.id = m.teamA
-    LEFT JOIN teams t2 ON t2.id = m.teamB
-    WHERE m.mode = '3v3'
-    ORDER BY m.plannedStart ASC, m.field ASC, m.id ASC
-  `, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows || []);
-  });
-});
-
-/* -------------------------------------------------------
-   POST /api/matches/generate
-   (3vs3 Round-Robin)
-------------------------------------------------------- */
-router.post('/generate', (req, res) => {
-  const schedule = req.body.schedule;
-
-  if (!schedule || !/^\d{2}:\d{2}$/.test(schedule.timeHHMM)) {
-    return res.status(400).json({ error: 'Ungültiger Schedule (Startzeit HH:MM)' });
+  function addMinutesHHMM(hhmm, minutes) {
+    const [h, m] = String(hhmm).split(':').map(Number);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return hhmm;
+    const DAY = 24 * 60;
+    let total = (h * 60 + m + minutes) % DAY;
+    if (total < 0) total += DAY;
+    const nh = Math.floor(total / 60), nm = total % 60;
+    return String(nh).padStart(2, '0') + ':' + String(nm).padStart(2, '0');
   }
 
-  db.all(`SELECT id FROM teams WHERE mode = '3v3' ORDER BY id ASC`, [], (err, teams) => {
-    if (err) return res.status(500).json({ error: err.message });
+  // GET alle Matches (inkl. plannedStart)
+  router.get('/', (req, res) => {
+    const sql = `
+      SELECT m.id, m.groupName, m.round, m.field, m.plannedStart,
+             t1.name AS teamA, t2.name AS teamB,
+             m.teamA AS teamA_id, m.teamB AS teamB_id,
+             m.scoreA, m.scoreB, m.winner
+      FROM matches m
+      LEFT JOIN teams t1 ON m.teamA = t1.id
+      LEFT JOIN teams t2 ON m.teamB = t2.id
+      ORDER BY m.id ASC
+    `;
+    db.all(sql, [], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  });
 
-    if (teams.length < 2) {
-      return res.status(400).json({ error: 'Mindestens 2 Teams erforderlich.' });
-    }
+  // POST /matches/start/:groupName
+  // Body: { schedule: { timeHHMM, dur, brk } }
+  router.post('/start/:groupName', (req, res) => {
+  const groupName = String(req.params.groupName || '').trim().toUpperCase();
+  const schedule = req.body?.schedule || {};
+  const timeHHMM = schedule.timeHHMM;
+  const dur = Number(schedule.dur);
+  const brk = Number(schedule.brk);
 
-    // Round-Robin erzeugen
-    const games = [];
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        games.push([teams[i].id, teams[j].id]);
+  if (!timeHHMM || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
+    return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM (HH:MM)' });
+  }
+  if (!Number.isFinite(dur) || dur <= 0 || !Number.isFinite(brk) || brk < 0) {
+    return res.status(400).json({ error: 'Ungültige Dauer/Pause im Schedule' });
+  }
+
+  const slotLen = dur + brk;
+
+  db.serialize(() => {
+  db.get(
+    `SELECT COUNT(*) AS cnt FROM matches WHERE UPPER(groupName)=?`,
+    [groupName],
+    (e1, r1) => {
+      if (e1) return res.status(500).json({ error: e1.message });
+      if ((r1?.cnt || 0) > 0) {
+        return res.status(400).json({ error: `Gruppe ${groupName} wurde bereits gestartet.` });
       }
-    }
 
-    // Zeitberechnung
-    function addMinutes(hhmm, minutes) {
-      const [h, m] = hhmm.split(':').map(Number);
-      const total = h * 60 + m + minutes;
-      const hh = String(Math.floor(total / 60)).padStart(2, '0');
-      const mm = String(total % 60).padStart(2, '0');
-      return `${hh}:${mm}`;
-    }
+      // 1) Alphabetische Gruppenliste aus TEAMS
+      db.all(
+        `
+        SELECT DISTINCT UPPER(TRIM(groupName)) AS g
+        FROM teams
+        WHERE groupName IS NOT NULL AND TRIM(groupName) <> ''
+        ORDER BY g ASC
+        `,
+        [],
+        (eG, rowsG) => {
+          if (eG) return res.status(500).json({ error: eG.message });
 
-    const dur = Number(schedule.dur);
-    const brk = Number(schedule.brk);
-    const slotLen = dur + brk;
-    const base = schedule.timeHHMM;
+          const groups = rowsG.map(x => x.g);
+          if (!groups.length) {
+            return res.status(400).json({ error: 'Keine Gruppen gefunden (Teams leer?)' });
+          }
 
-    const planned = games.map((g, idx) => ({
-      teamA: g[0],
-      teamB: g[1],
-      field: (idx % 2) + 1,
-      plannedStart: addMinutes(base, Math.floor(idx / 2) * slotLen)
-    }));
+          let gIndex = groups.indexOf(groupName);
+          if (gIndex < 0) {
+            groups.push(groupName);
+            gIndex = groups.length - 1;
+          }
 
-    db.run(`BEGIN IMMEDIATE`, (eBegin) => {
-      if (eBegin) return res.status(500).json({ error: eBegin.message });
+          const slotLen = dur + brk;
+          const plannedStart = addMinutesHHMM(timeHHMM, gIndex * slotLen);
 
-      db.run(`DELETE FROM matches WHERE mode = '3v3'`, [], (eDel) => {
-        if (eDel) return db.run(`ROLLBACK`, () => res.status(500).json({ error: eDel.message }));
+          // 2) Teams der Gruppe bestimmen (6 Stück)
+          db.all(
+            `SELECT * FROM teams WHERE UPPER(groupName)=? ORDER BY id ASC`,
+            [groupName],
+            (eT, teams) => {
+              if (eT) return res.status(500).json({ error: eT.message });
+              if (!teams || teams.length < 6) {
+                return res.status(400).json({ error: 'Es müssen 6 Teams sein' });
+              }
 
-        const stmt = db.prepare(`
-          INSERT INTO matches 
-            (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
-          VALUES (?, ?, 'A', 1, ?, NULL, NULL, NULL, ?, '3v3')
-        `);
+              const pairs = [
+                [teams[0].id, teams[1].id],
+                [teams[2].id, teams[3].id],
+                [teams[4].id, teams[5].id]
+              ];
 
-        let hadErr = false;
+              db.run(`BEGIN IMMEDIATE`, async (eBegin) => {
+                if (eBegin) return res.status(500).json({ error: eBegin.message });
 
-        for (const m of planned) {
-          stmt.run([m.teamA, m.teamB, m.field, m.plannedStart], (eIns) => {
-            if (eIns && !hadErr) {
-              hadErr = true;
-              db.run(`ROLLBACK`, () => res.status(500).json({ error: eIns.message }));
+                try {
+                  // 3) Inserts nacheinander, mit mode = '3v3'
+                  for (let i = 0; i < pairs.length; i++) {
+                    const p = pairs[i];
+                    await new Promise((resolve, reject) => {
+                      db.run(
+                        `INSERT INTO matches
+                          (teamA, teamB, groupName, round, field,
+                           scoreA, scoreB, winner, plannedStart, mode)
+                         VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')`,
+                        [p[0], p[1], groupName, 1, i + 1, plannedStart],
+                        (err) => (err ? reject(err) : resolve())
+                      );
+                    });
+                  }
+
+                  // 4) group_state updaten
+                  await new Promise((resolve, reject) => {
+                    db.run(
+                      `INSERT INTO group_state (groupName, lastRound)
+                       VALUES (?, 1)
+                       ON CONFLICT(groupName) DO UPDATE SET lastRound = 1`,
+                      [groupName],
+                      (err) => (err ? reject(err) : resolve())
+                    );
+                  });
+
+                  db.run(`COMMIT`, () => {
+                    io.emit('group:started', { groupName, plannedStart });
+                    io.emit('resultUpdate', { type: 'startGroup', groupName });
+                    res.json({ success: true, groupName, created: pairs.length, plannedStart });
+                  });
+                } catch (err) {
+                  db.run(`ROLLBACK`, () => {
+                    res.status(500).json({ error: err.message });
+                  });
+                }
+              });
             }
-          });
+          );
         }
+      );
+    }
+  );
+});
+});
 
-        stmt.finalize((eFin) => {
-          if (hadErr) return;
-          if (eFin) return db.run(`ROLLBACK`, () => res.status(500).json({ error: eFin.message }));
+  // DELETE /matches/reset
+  // Spielplan vollständig zurücksetzen: matches, group_state und (NEU) match_history löschen.
+  router.delete('/reset', (req, res) => {
+    db.run(`BEGIN IMMEDIATE`, (beginErr) => {
+      if (beginErr) return res.status(500).json({ error: 'Transaktion fehlgeschlagen: ' + beginErr.message });
 
-          db.run(`COMMIT`, (eCom) => {
-            if (eCom) return res.status(500).json({ error: eCom.message });
+      db.run(`DELETE FROM matches`, [], (err1) => {
+        if (err1) return db.run(`ROLLBACK`, () => res.status(500).json({ error: err1.message }));
 
-            getIO(req)?.emit('matches:updated');
-            res.json({ ok: true, created: planned.length });
+        db.run(`DELETE FROM group_state`, [], (err2) => {
+          if (err2) return db.run(`ROLLBACK`, () => res.status(500).json({ error: err2.message }));
+
+          // NEU: History leeren
+          db.run(`DELETE FROM match_history`, [], (err3) => {
+            if (err3) return db.run(`ROLLBACK`, () => res.status(500).json({ error: err3.message }));
+
+            db.run(`COMMIT`, async (commitErr) => {
+              if (commitErr) return res.status(500).json({ error: 'Commit fehlgeschlagen: ' + commitErr.message });
+
+              // Log + Snapshot
+              try {
+                await appendOp(db, 'funino:reset', { wipe: ['matches','group_state','match_history'] });
+                await makeSnapshot(db);
+              } catch {}
+
+              // Broadcasts
+              io.emit('matches:reset');
+              io.emit('history:reset');    // <<<<<< wichtig für die UIs
+              io.emit('resultUpdate', { type: 'reset' });
+
+              res.json({ success: true, wiped: ['matches','group_state','match_history'] });
+            });
           });
         });
       });
     });
   });
-});
 
-/* -------------------------------------------------------
-   POST /api/matches/winner
-------------------------------------------------------- */
-router.post('/winner', (req, res) => {
-  const { matchId, winner } = req.body;
-
-  db.get(`SELECT teamA, teamB FROM matches WHERE id = ? AND mode = '3v3'`,
-    [matchId],
-    (eSel, row) => {
-      if (eSel) return res.status(500).json({ error: eSel.message });
-      if (!row) return res.status(404).json({ error: 'Match nicht gefunden' });
-
-      if (![row.teamA, row.teamB].includes(winner)) {
-        return res.status(400).json({ error: 'Sieger gehört nicht zu diesem Spiel' });
-      }
-
-      db.run(`UPDATE matches SET winner = ? WHERE id = ? AND mode = '3v3'`,
-        [winner, matchId],
-        (eUp) => {
-          if (eUp) return res.status(500).json({ error: eUp.message });
-
-          getIO(req)?.emit('winner:updated');
-          res.json({ ok: true });
-        });
-    });
-});
-
-/* -------------------------------------------------------
-   DELETE /api/matches/reset
-------------------------------------------------------- */
-router.delete('/reset', (req, res) => {
-  db.run(`DELETE FROM matches WHERE mode = '3v3'`, [], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    getIO(req)?.emit('matches:updated');
-    res.json({ ok: true });
-  });
-});
-
-module.exports = router;
+  return router;
+};

@@ -884,8 +884,29 @@ Status: ${status}
 Payload:
 ${payloadText}`;
       });
+      document.getElementById('btnShowOp')?.addEventListener('click', () => {
+        const sel = document.getElementById('opsSelect'); if (!sel?.value) { showMsg('#recMsg', 'Bitte eine Operation wählen.', true); return; }
+        alert(document.getElementById('opDetails').textContent || '–');
+      });
 
-      // Zeitplan UI
+      // Reseed (D/E/F)
+	  const btn = document.getElementById('btnReseedGroups');
+	  if (!btn) console.warn("btnReseedGroups fehlt im DOM!");
+	  btn?.addEventListener('click', async () => {
+        const msgEl = document.getElementById('reseedMsg');
+        const schedule = getSchedule();
+        try {
+          const r = await apiReseedGroups(schedule || {});
+          const d = r?.result?.matchesCreated?.D ?? 0;
+          const e = r?.result?.matchesCreated?.E ?? 0;
+          const f = r?.result?.matchesCreated?.F ?? 0;
+          showMsg(msgEl, (r?.msg || 'Gruppen neu zusammengestellt.') + ` (D:${d}, E:${e}, F:${f})`);
+          await refreshTeams();
+          await refreshMatches();
+        } catch (e) { showMsg(msgEl, 'Reseed-Fehler: ' + (e?.message || e), true); }
+      });
+
+      // Zeitplan
       wireScheduleUI();
       fillScheduleUI();
     }

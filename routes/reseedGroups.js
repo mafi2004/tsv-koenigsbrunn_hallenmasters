@@ -1,24 +1,4 @@
-
 // server/routes/reseedGroups.js
-// ----------------------------------------------------------------------------------------------
-// Re-Seeding nach 3 gespielten Runden in A/B/C:
-//
-// 1) Teams -> neue Gruppen D/E/F (Bildung anhand "nächstes Feld" 1/2/3)
-// 2) SPIELPLAN LEEREN (DELETE FROM matches)
-// 3) SOFORT neue Matches für D/E/F anlegen
-//    - Runde = 4 (fix; ab hier zählt ihr weiter 5, 6, …)
-//    - Feldbelegung BLOCKWEISE: D(1,2,3) → E(1,2,3) → F(1,2,3) → …,
-//      bis alle Paarungen verbraucht sind (je Block max. 3 Paarungen / Felder 1..3)
-//    - Zeitplanung: nach letztem Plan weiter,
-//      Start = (letzte geplante Zeit + dur + 5 Minuten Pause),
-//      pro Block Zeit + (dur + brk)
-//
-// Zusätzlich:
-// - group_state.lastRound für D/E/F auf 4 setzen (Upsert)
-// - Socket-Events: matches:reset, groups:reseeded, round:advanced (D/E/F), results:updated
-// - Alles atomar in einer Transaktion (BEGIN IMMEDIATE … COMMIT)
-//
-// Factory-Export: module.exports = (sqliteDb, io) => router
 // ----------------------------------------------------------------------------------------------
 const express = require('express');
 const router = express.Router();
@@ -34,7 +14,7 @@ function run(db, sql, params = []) {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
       if (err) reject(err);
-      else resolve(this); // this.changes, lastID …
+      else resolve(this);
     });
   });
 }
@@ -82,38 +62,6 @@ async function upsertGroupState(dbHandle, groupName, lastRound) {
   );
 }
 
-/* ------------------------------ Turnier-Logik ------------------------------ */
-function maxRoundPlayed(matches) {
-  let max = 0;
-  for (const m of matches || []) {
-    if (Number.isFinite(Number(m.round))) {
-      max = Math.max(max, Number(m.round));
-    }
-  }
-  return max;
-}
-function lastFieldForTeam(teamId, matches) {
-  const ms = (matches || [])
-    .filter((m) =>
-      Number(m.teamA_id) === Number(teamId) ||
-      Number(m.teamB_id) === Number(teamId)
-    )
-    .sort((a, b) => Number(b.round) - Number(a.round)); // absteigend nach Runde
-  for (const m of ms) {
-    if (m.field != null) return Number(m.field);
-  }
-  return NaN;
-}
-function nextFieldFromLastField(last) {
-  const lf = Number(last);
-  if (!Number.isFinite(lf) || lf < 1 || lf > 3) return NaN;
-  return (lf % 3) + 1; // 1->2->3->1
-}
-function computeNextFieldForTeam(teamId, matchesUpToR3) {
-  const lf = lastFieldForTeam(teamId, matchesUpToR3);
-  return nextFieldFromLastField(lf); // kann NaN sein (keine Historie)
-}
-
 /* ------------------------------- Zeit-Utils ------------------------------- */
 function hhmmToMin(hhmm) {
   if (!/^\d{2}:\d{2}$/.test(hhmm)) return NaN;
@@ -137,10 +85,34 @@ function makePairs(teamIds) {
   for (let i = 0; i + 1 < teamIds.length; i += 2) {
     pairs.push([teamIds[i], teamIds[i + 1]]);
   }
-  return pairs; // BYE: letztes Team bleibt ohne Paarung
+  return pairs;
 }
 
-/* ----------- letzte geplante Zeit über A/B/C (min oder max?) -------------- */
+/* ------------------------------ Feldlogik -------------------------------- */
+function lastFieldForTeam(teamId, matches) {
+  const ms = (matches || [])
+    .filter((m) =>
+      Number(m.teamA_id) === Number(teamId) ||
+      Number(m.teamB_id) === Number(teamId)
+    )
+    .sort((a, b) => Number(b.round) - Number(a.round));
+
+  for (const m of ms) {
+    if (m.field != null) return Number(m.field);
+  }
+  return NaN;
+}
+function nextFieldFromLastField(last) {
+  const lf = Number(last);
+  if (!Number.isFinite(lf) || lf < 1 || lf > 3) return NaN;
+  return (lf % 3) + 1;
+}
+function computeNextFieldForTeam(teamId, matchesUpToR3) {
+  const lf = lastFieldForTeam(teamId, matchesUpToR3);
+  return nextFieldFromLastField(lf);
+}
+
+/* --------------------------- letzte geplante Zeit -------------------------- */
 function minPlannedHHMMAcrossABC(matchesByG) {
   let last = null;
   ['A', 'B', 'C'].forEach((g) => {
@@ -151,61 +123,65 @@ function minPlannedHHMMAcrossABC(matchesByG) {
         else {
           const cur = hhmmToMin(ps);
           const prev = hhmmToMin(last);
-          if (Number.isFinite(cur) && Number.isFinite(prev) && cur < prev) last = ps;
+          if (cur < prev) last = ps;
         }
       }
     }
   });
-  return last; // HH:MM oder null
+  return last;
 }
 
 /* ----------------------- BLOCKWEISE Einfügen (D/E/F) ---------------------- */
-/**
- * Blockweise Felder:
- * Block: Gruppe X (D/E/F) auf Feldern 1, 2, 3 mit bis zu 3 Paarungen gleichzeitig
- * Reihenfolge der Blöcke: D -> E -> F -> D -> E -> F … bis alle Paarungen verbraucht sind.
- *
- * Zeit:
- * currentHHMM initial:
- * - wenn lastPlannedHHMM vorhanden und schedule.dur: lastPlannedHHMM (+0, hier bewusst ohne +dur+5, UI/Anforderung kann variieren)
- * - sonst: schedule.timeHHMM + 5 (falls vorhanden)
- * nach jedem Block: currentHHMM += (dur + brk)
- */
 async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNumber, schedule, lastPlannedHHMM) {
-  const dur = schedule && Number.isFinite(Number(schedule.dur)) ? Number(schedule.dur) : null;
-  const brk = schedule && Number.isFinite(Number(schedule.brk)) ? Number(schedule.brk) : null;
+  const dur = schedule && Number(schedule.dur);
+  const brk = schedule && Number(schedule.brk);
   const slotMin = (dur && brk) ? (dur + brk) : null;
+
   let currentHHMM = null;
+
   if (lastPlannedHHMM && dur) {
-    currentHHMM = addMinutesHHMM(lastPlannedHHMM, 0);
-    if (!currentHHMM && schedule && schedule.timeHHMM) currentHHMM = addMinutesHHMM(schedule.timeHHMM, 5);
+    currentHHMM = addMinutesHHMM(lastPlannedHHMM, dur + 5);
   } else if (schedule && schedule.timeHHMM) {
     currentHHMM = addMinutesHHMM(schedule.timeHHMM, 5);
   }
+
   let iD = 0, iE = 0, iF = 0;
   const hasLeft = () => (iD < pairsD.length) || (iE < pairsE.length) || (iF < pairsF.length);
+
   async function insertGroupBlock(groupName, pairs, idxRef) {
     const startIdx = idxRef.idx;
     const countHere = Math.min(3, pairs.length - startIdx);
     if (countHere <= 0) return false;
-    // Felder 1,2,3
+
     for (let k = 0; k < countHere; k++) {
       const [teamA, teamB] = pairs[startIdx + k];
       const field = k + 1;
+
       await run(
         sqliteDb,
-        `INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
-         VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, ?)`,
-        [Number(teamA), Number(teamB), String(groupName).toUpperCase(), Number(roundNumber), Number(field), currentHHMM]
+        `INSERT INTO matches
+          (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
+         VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, ?, '3v3')`,
+        [
+          Number(teamA),
+          Number(teamB),
+          String(groupName).toUpperCase(),
+          Number(roundNumber),
+          Number(field),
+          currentHHMM
+        ]
       );
     }
+
     idxRef.idx = startIdx + countHere;
-    // Zeit nach dem Block weiterzählen
+
     if (currentHHMM && Number.isFinite(Number(slotMin))) {
       currentHHMM = addMinutesHHMM(currentHHMM, Number(slotMin));
     }
+
     return true;
   }
+
   while (hasLeft()) {
     await insertGroupBlock('D', pairsD, { get idx(){return iD;}, set idx(v){iD=v;} });
     await insertGroupBlock('E', pairsE, { get idx(){return iE;}, set idx(v){iE=v;} });
@@ -214,30 +190,32 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
 }
 
 /* --------------------- Route: POST /reseedGroups -------------------------- */
-module.exports = (sqliteDb, io /* optional */) => {
+module.exports = (sqliteDb, io) => {
   router.post('/reseedGroups', async (req, res) => {
     try {
-      const schedule = req.body && req.body.schedule ? req.body.schedule : null;
+      const schedule = req.body?.schedule ?? null;
 
-      // 1) Daten für A/B/C laden
       const groupsABC = ['A', 'B', 'C'];
       const matchesByG = {};
       const teamsByG = {};
+
       for (const g of groupsABC) {
         teamsByG[g] = await getTeamsByGroup(sqliteDb, g);
         matchesByG[g] = await getMatchesByGroup(sqliteDb, g);
       }
 
-      // 2) Jede Gruppe muss >= 3 Runden haben
-      const okAll = groupsABC.every((g) => maxRoundPlayed(matchesByG[g]) >= 3);
+      const okAll = groupsABC.every((g) =>
+        (matchesByG[g] || []).some(m => Number(m.round) >= 3)
+      );
+
       if (!okAll) {
         return res.status(400).json({ ok:false, msg:'Nicht alle Gruppen haben mindestens 3 Runden gespielt.' });
       }
 
-      // 3) Buckets D/E/F nach "nächstem Feld"
-      const bucketD = []; const bucketE = []; const bucketF = []; const bucketU = [];
+      const bucketD = [], bucketE = [], bucketF = [], bucketU = [];
+
       for (const g of groupsABC) {
-        const matchesUpToR3 = (matchesByG[g] || []).filter((m) => Number(m.round) <= 3);
+        const matchesUpToR3 = (matchesByG[g] || []).filter(m => Number(m.round) <= 3);
         for (const t of teamsByG[g] || []) {
           const nf = computeNextFieldForTeam(t.id, matchesUpToR3);
           if (nf === 1) bucketD.push(t);
@@ -246,7 +224,7 @@ module.exports = (sqliteDb, io /* optional */) => {
           else bucketU.push(t);
         }
       }
-      // Fallback gleichmäßig verteilen
+
       for (let i = 0; i < bucketU.length; i++) {
         const t = bucketU[i];
         const mod = i % 3;
@@ -255,55 +233,47 @@ module.exports = (sqliteDb, io /* optional */) => {
         else bucketF.push(t);
       }
 
-      // 4) letzte geplante Zeit (über alle A/B/C) – hier Minimum wie im Original
       const lastPlannedABC = minPlannedHHMMAcrossABC(matchesByG);
 
-      // --- Transaktion starten ---
       await run(sqliteDb, 'BEGIN IMMEDIATE');
       try {
-        // 5) Teams auf D/E/F setzen
         for (const t of bucketD) await updateTeamGroup(sqliteDb, t.id, 'D');
         for (const t of bucketE) await updateTeamGroup(sqliteDb, t.id, 'E');
         for (const t of bucketF) await updateTeamGroup(sqliteDb, t.id, 'F');
 
-        // 6) SPIELPLAN LEEREN
-        await run(sqliteDb, `DELETE FROM matches`, []);
+        await run(sqliteDb, `DELETE FROM matches`);
 
-        // 7) Paarungen bilden
-        const toIds   = (rows) => rows.map((t) => Number(t.id));
+        const toIds = rows => rows.map(t => Number(t.id));
+
         const gDTeams = await getTeamsByGroup(sqliteDb, 'D');
         const gETeams = await getTeamsByGroup(sqliteDb, 'E');
         const gFTeams = await getTeamsByGroup(sqliteDb, 'F');
-        const pairsD  = makePairs(toIds(gDTeams));
-        const pairsE  = makePairs(toIds(gETeams));
-        const pairsF  = makePairs(toIds(gFTeams));
 
-        // 8) BLOCKWEISE einfügen — Runde FIX = 4
+        const pairsD = makePairs(toIds(gDTeams));
+        const pairsE = makePairs(toIds(gETeams));
+        const pairsF = makePairs(toIds(gFTeams));
+
         await insertMatchesBlockwise(
           sqliteDb,
           pairsD, pairsE, pairsF,
-          /* roundNumber */ 4,
+          4,
           schedule,
-          /* lastPlannedHHMM */ lastPlannedABC
+          lastPlannedABC
         );
 
-        // 9) group_state.lastRound für D/E/F auf 4 setzen (Upsert)
         await upsertGroupState(sqliteDb, 'D', 4);
         await upsertGroupState(sqliteDb, 'E', 4);
         await upsertGroupState(sqliteDb, 'F', 4);
 
-        // --- Commit ---
         await run(sqliteDb, 'COMMIT');
 
-        // >>> Log + Snapshot
         try {
           await appendOp(sqliteDb, 'reseed:groups', { schedule });
           await makeSnapshot(sqliteDb);
         } catch {}
 
-        // 10) Events für Live-UI (erst NACH Commit)
         if (io && typeof io.emit === 'function') {
-          io.emit('matches:reset'); // Spielplan wurde geleert
+          io.emit('matches:reset');
           io.emit('groups:reseeded', {
             D: gDTeams.length, E: gETeams.length, F: gFTeams.length,
             created: { D: pairsD.length, E: pairsE.length, F: pairsF.length },
@@ -315,27 +285,27 @@ module.exports = (sqliteDb, io /* optional */) => {
           io.emit('results:updated');
         }
 
-        // 11) Antwort
         return res.json({
           ok: true,
-          msg: 'Gruppen neu zusammengestellt, Spielplan geleert, und Runde 4 für D/E/F BLOCKWEISE angelegt (Felder 1/2/3, Zeit fortlaufend).',
+          msg: 'Gruppen neu zusammengestellt und Runde 4 für D/E/F angelegt.',
           result: {
             round: 4,
-            D: gDTeams.map((t) => ({ id: t.id, name: t.name })),
-            E: gETeams.map((t) => ({ id: t.id, name: t.name })),
-            F: gFTeams.map((t) => ({ id: t.id, name: t.name })),
+            D: gDTeams.map(t => ({ id: t.id, name: t.name })),
+            E: gETeams.map(t => ({ id: t.id, name: t.name })),
+            F: gFTeams.map(t => ({ id: t.id, name: t.name })),
             matchesCreated: { D: pairsD.length, E: pairsE.length, F: pairsF.length },
             lastPlannedBeforeReseed: lastPlannedABC
           }
         });
+
       } catch (innerErr) {
-        // Rollback bei Fehlern in der Transaktion
         try { await run(sqliteDb, 'ROLLBACK'); } catch {}
         throw innerErr;
       }
+
     } catch (e) {
       console.error('reseedGroups Fehler:', e);
-      return res.status(500).json({ ok: false, msg: 'Interner Fehler: ' + e.message });
+      return res.status(500).json({ ok:false, msg:'Interner Fehler: ' + e.message });
     }
   });
 

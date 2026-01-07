@@ -25,7 +25,7 @@ const db = require('./db'); // <- sqlite3-Instanz
 
 // Routen importieren
 const teamsRouter = require('./routes/teams');
-const matchesRouter = require('./routes/matches');
+const matchesRouter = require('./routes/matches')(io);
 const resultsRouter = require('./routes/results')(io);
 const funinoRouter = require('./routes/funino')(io);
 const scheduleRouter = require('./routes/schedule');

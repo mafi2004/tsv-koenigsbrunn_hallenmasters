@@ -1,151 +1,175 @@
-// server/routes/minis5/matches.js (5v5)
+// routes/minis5/matches.js
+
 const express = require('express');
 const router = express.Router();
 const db = require('../../db');
 
+// Generator importieren
 const {
-  generateRoundRobin,
-  interleaveGroups,
-  assignFieldsAndTimesInterleaved
+  generateScheduleForGroups
 } = require('./generator');
 
-// Socket helper
-function getIO(req) {
-  try { return req.app.get('io'); } catch { return null; }
-}
-
 /* -------------------------------------------------------
-   GET /api/minis5/matches  (nur 5v5)
+   GET /api/minis5/matches
+   → Alle 5v5-Matches zurückgeben
 ------------------------------------------------------- */
-router.get('/', (req, res) => {
-  db.all(`
-    SELECT m.*, 
-           t1.name AS teamA_name,
-           t2.name AS teamB_name
-    FROM matches m
-    LEFT JOIN teams t1 ON t1.id = m.teamA
-    LEFT JOIN teams t2 ON t2.id = m.teamB
-    WHERE m.mode = '5v5'
-    ORDER BY m.plannedStart ASC, m.field ASC, m.id ASC
-  `, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows || []);
-  });
+router.get('/matches', (req, res) => {
+  db.all(
+    `SELECT m.*, 
+            ta.name AS teamA_name,
+            tb.name AS teamB_name
+     FROM matches m
+     LEFT JOIN teams ta ON ta.id = m.teamA
+     LEFT JOIN teams tb ON tb.id = m.teamB
+     WHERE m.mode='5v5'
+     ORDER BY m.plannedStart, m.field`,
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
 });
 
 /* -------------------------------------------------------
-   POST /api/minis5/matches/generateAll
+   GET /api/minis5/teams
+   → Alle 5v5-Teams zurückgeben
 ------------------------------------------------------- */
-router.post('/generateAll', (req, res) => {
-  const schedule = req.body.schedule;
+router.get('/teams', (req, res) => {
+  db.all(
+    `SELECT * FROM teams WHERE mode='5v5' ORDER BY groupName, id`,
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    }
+  );
+});
 
-  if (!schedule || !/^\d{2}:\d{2}$/.test(schedule.timeHHMM)) {
-    return res.status(400).json({ error: 'Ungültiger Schedule (Startzeit HH:MM)' });
+/* -------------------------------------------------------
+   DELETE /api/minis5/matches
+   → Alle 5v5-Matches löschen
+------------------------------------------------------- */
+router.delete('/matches', (req, res) => {
+  db.run(
+    `DELETE FROM matches WHERE mode='5v5'`,
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // Live-Update senden
+      req.app.get('io').emit('matches:updated');
+
+      res.json({ ok: true });
+    }
+  );
+});
+
+/* -------------------------------------------------------
+   POST /api/minis5/generate
+   → Spielplan erzeugen und in DB speichern
+------------------------------------------------------- */
+router.post('/generate', (req, res) => {
+  const { timeHHMM, dur, brk } = req.body;
+
+  if (!timeHHMM || !dur || !brk) {
+    return res.status(400).json({ error: "Missing schedule parameters" });
   }
 
-  db.all(`
-    SELECT id, groupName 
-    FROM teams 
-    WHERE mode = '5v5'
-    ORDER BY id ASC
-  `, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  // 5v5 Teams laden
+  db.all(
+    `SELECT * FROM teams WHERE mode='5v5' ORDER BY groupName, id`,
+    (err, teams) => {
+      if (err) return res.status(500).json({ error: err.message });
 
-    const groupA = rows.filter(r => r.groupName === 'A').map(r => r.id);
-    const groupB = rows.filter(r => r.groupName === 'B').map(r => r.id);
+      const groupA = teams.filter(t => t.groupName === 'A').map(t => t.id);
+      const groupB = teams.filter(t => t.groupName === 'B').map(t => t.id);
 
-    if (groupA.length !== 6 || groupB.length !== 6) {
-      return res.status(400).json({
-        error: 'Für Gruppen A und B müssen jeweils genau 6 Teams vorhanden sein.'
-      });
-    }
-
-    const gamesA = generateRoundRobin(groupA);
-    const gamesB = generateRoundRobin(groupB);
-    const interleaved = interleaveGroups(gamesA, gamesB);
-    const planned = assignFieldsAndTimesInterleaved(interleaved, schedule);
-
-    db.run(`BEGIN IMMEDIATE`, (eBegin) => {
-      if (eBegin) return res.status(500).json({ error: eBegin.message });
-
-      db.run(`DELETE FROM matches WHERE mode = '5v5'`, [], (eDel) => {
-        if (eDel) return db.run(`ROLLBACK`, () => res.status(500).json({ error: eDel.message }));
-
-        const stmt = db.prepare(`
-          INSERT INTO matches 
-            (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
-          VALUES (?, ?, ?, 1, ?, NULL, NULL, NULL, ?, '5v5')
-        `);
-
-        let hadErr = false;
-
-        for (const m of planned) {
-          stmt.run(
-            [m.teamA, m.teamB, m.group, m.field, m.plannedStart],
-            (eIns) => {
-              if (eIns && !hadErr) {
-                hadErr = true;
-                db.run(`ROLLBACK`, () =>
-                  res.status(500).json({ error: eIns.message })
-                );
-              }
-            }
-          );
-        }
-
-        stmt.finalize((eFin) => {
-          if (hadErr) return;
-          if (eFin) return db.run(`ROLLBACK`, () => res.status(500).json({ error: eFin.message }));
-
-          db.run(`COMMIT`, (eCom) => {
-            if (eCom) return res.status(500).json({ error: eCom.message });
-
-            getIO(req)?.emit('matches:updated');
-            res.json({ ok: true, created: planned.length });
-          });
+      if (groupA.length !== 6 || groupB.length !== 6) {
+        return res.status(400).json({
+          error: "Für 5v5 müssen beide Gruppen exakt 6 Teams enthalten."
         });
-      });
-    });
-  });
-});
-
-/* -------------------------------------------------------
-   POST /api/minis5/matches/winner
-------------------------------------------------------- */
-router.post('/winner', (req, res) => {
-  const { matchId, winner } = req.body;
-
-  db.get(`SELECT teamA, teamB FROM matches WHERE id = ? AND mode = '5v5'`,
-    [matchId],
-    (eSel, row) => {
-      if (eSel) return res.status(500).json({ error: eSel.message });
-      if (!row) return res.status(404).json({ error: 'Match nicht gefunden' });
-
-      if (![row.teamA, row.teamB].includes(winner)) {
-        return res.status(400).json({ error: 'Sieger gehört nicht zu diesem Spiel' });
       }
 
-      db.run(`UPDATE matches SET winner = ? WHERE id = ? AND mode = '5v5'`,
-        [winner, matchId],
-        (eUp) => {
-          if (eUp) return res.status(500).json({ error: eUp.message });
+      // Spielplan erzeugen
+      const schedule = { timeHHMM, dur, brk };
+      const matches = generateScheduleForGroups(groupA, groupB, schedule);
 
-          getIO(req)?.emit('winner:updated');
-          res.json({ ok: true });
+      // Alte 5v5-Matches löschen
+      db.run(`DELETE FROM matches WHERE mode='5v5'`, (delErr) => {
+        if (delErr) return res.status(500).json({ error: delErr.message });
+
+        // Neue Matches einfügen
+        const stmt = db.prepare(`
+          INSERT INTO matches
+          (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
+          VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, ?, '5v5')
+        `);
+
+        let roundCounterA = 1;
+        let roundCounterB = 1;
+
+        matches.forEach(m => {
+          const round =
+            m.group === 'A'
+              ? roundCounterA
+              : roundCounterB;
+
+          stmt.run(
+            m.teamA,
+            m.teamB,
+            m.group,
+            round,
+            m.field,
+            m.plannedStart
+          );
+
+          // Nach 3 Spielen Runde erhöhen
+          if (m.group === 'A') {
+            if (matches.filter(x => x.group === 'A' && x.round === round).length === 3) {
+              roundCounterA++;
+            }
+          } else {
+            if (matches.filter(x => x.group === 'B' && x.round === round).length === 3) {
+              roundCounterB++;
+            }
+          }
         });
-    });
+
+        stmt.finalize();
+
+        res.json({ ok: true, inserted: matches.length });
+      });
+    }
+  );
 });
 
 /* -------------------------------------------------------
-   DELETE /api/minis5/matches/reset
+   POST /api/minis5/updateResult
+   → Ergebnis eines Spiels speichern
 ------------------------------------------------------- */
-router.delete('/reset', (req, res) => {
-  db.run(`DELETE FROM matches WHERE mode = '5v5'`, [], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
+router.post('/updateResult', (req, res) => {
+  const { id, scoreA, scoreB } = req.body;
 
-    getIO(req)?.emit('matches:updated');
-    res.json({ ok: true });
-  });
+  if (!id) return res.status(400).json({ error: "Missing match id" });
+
+  let winner = null;
+  if (scoreA != null && scoreB != null) {
+    if (Number(scoreA) > Number(scoreB)) winner = 'A';
+    if (Number(scoreB) > Number(scoreA)) winner = 'B';
+  }
+
+  db.run(
+    `UPDATE matches
+     SET scoreA=?, scoreB=?, winner=?
+     WHERE id=? AND mode='5v5'`,
+    [scoreA, scoreB, winner, id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // Live-Update senden
+      req.app.get('io').emit('matches:updated');
+
+      res.json({ ok: true });
+    }
+  );
 });
 
 module.exports = router;
