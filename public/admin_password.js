@@ -1,1 +1,1 @@
-window.ADMIN_PASSWORD = "hm2025mf";
+window.ADMIN_PASSWORD = "hm2026mf";
