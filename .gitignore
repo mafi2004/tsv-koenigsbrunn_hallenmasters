@@ -1,2 +1,17 @@
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log
+.DS_Store
+
+# SQLite
+db/*.sqlite
+db/*.db
+db/*.sqlite-journal
+db/*.db-journal
+
+# Env
+.env
+
 /logs
-*.db

@@ -66,7 +66,7 @@ app.use('/api/meta', metaRouter);
 app.use('/api/minis5', minis5Router);
 
 // Server starten
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Backend läuft auf Port ${PORT}`);
 });
