@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "yearLabel": "JG_2019/20",
+    "schedule": {
+      "timeHHMM": "09:00",
+      "dur": 7,
+      "brk": 3
+    }
+  },
+  "teams": [
+    {
+      "name": "TSV Königsbrunn U6-1",
+      "groupName": "A"
+    },
+    {
+      "name": "TSV Königsbrunn U6-2",
+      "groupName": "B"
+    },
+    {
+      "name": "TSV Königsbrunn U6-3",
+      "groupName": "C"
+    },
+    {
+      "name": "TSV Königsbrunn U7-1",
+      "groupName": "A"
+    },
+    {
+      "name": "TSV Königsbrunn U7-2",
+      "groupName": "B"
+    },
+    {
+      "name": "FSV Großaitingen 1",
+      "groupName": "C"
+    },
+    {
+      "name": "FSV Großaitingen 2",
+      "groupName": "A"
+    },
+    {
+      "name": "TSV Diedorf 1",
+      "groupName": "B"
+    },
+    {
+      "name": "TSV Diedorf 2",
+      "groupName": "C"
+    },
+    {
+      "name": "TSV Haunstetten",
+      "groupName": "A"
+    },
+    {
+      "name": "TSV Bobingen 1",
+      "groupName": "B"
+    },
+    {
+      "name": "TSV Bobingen 2",
+      "groupName": "C"
+    },
+    {
+      "name": "SV Mering 1",
+      "groupName": "A"
+    },
+    {
+      "name": "SV Mering 2",
+      "groupName": "B"
+    },
+    {
+      "name": "JFG Lechfeld 1",
+      "groupName": "C"
+    },
+    {
+      "name": "JFG Lechfeld 2",
+      "groupName": "A"
+    },
+    {
+      "name": "FC Königsbrunn 1",
+      "groupName": "B"
+    },
+    {
+      "name": "FC Königsbrunn 2",
+      "groupName": "C"
+    }
+  ]
+}

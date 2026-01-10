@@ -5,6 +5,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</title>
+  <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
+  <link rel="icon" href="/assets/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
 
   <style>
     :root {
@@ -29,7 +32,15 @@
     body { margin:0; background:var(--bg); color:var(--fg);
            font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial; }
 
-    header { position: sticky; top: 0; z-index: 8; background: var(--card); border-bottom: 1px solid var(--border); }
+    /* --- Sticky Header (immer im Vordergrund) --- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2200; /* höher als Content, niedriger als Overlay */
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    }
     header .bar { display:flex; align-items:center; justify-content:space-between; padding: .75rem 1rem; gap: 1rem; }
     .leftWrap { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; min-height:56px; }
     .titleWrap { display:flex; align-items:center; gap:.75rem; }
@@ -92,9 +103,94 @@
     @media (max-width: 720px)  { .teams-grid { grid-template-columns: 1fr; } }
     .table-wrap { overflow:auto; }
     .table-wrap thead th { background:#0b1020; }
+
+    /* Passwort-Overlay immer über allem */
+    #pwOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+    .pwBox {
+      background: #111827;
+      border: 1px solid #1f2937;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      width: 300px;
+    }
+    #pwInput {
+      width: 100%;
+      padding: .6rem;
+      margin-top: 1rem;
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    #pwBtn {
+      margin-top: 1rem;
+      width: 100%;
+      padding: .6rem;
+      border-radius: 6px;
+      border: 1px solid #22c55e;
+      background: #052e16;
+      color: #bbf7d0;
+      cursor: pointer;
+    }
+    #pwError {
+      margin-top: .5rem;
+      color: #ef4444;
+      display: none;
+    }
+
+    /* --- Tabs --- */
+    .tabs-bar {
+      display:flex;
+      gap:.5rem;
+      padding: .5rem 0;
+      position: relative;
+      z-index: 1;
+    }
+    .tab-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #0b1020;
+      color: var(--fg);
+      padding: .5rem .9rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .tab-btn:hover {
+      filter: brightness(1.06);
+    }
+    .tab-btn[aria-selected="true"] {
+      background: #0e1a36;
+      border-color: #1d4ed8;
+      color: #bfdbfe;
+      box-shadow: inset 0 0 0 1px rgba(29,78,216,.25);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
   </style>
 </head>
 <body>
+<div id="pwOverlay">
+  <div class="pwBox">
+    <h2>Admin Login</h2>
+    <input id="pwInput" type="password" placeholder="Passwort" />
+    <button id="pwBtn">Login</button>
+    <div id="pwError">Falsches Passwort</div>
+  </div>
+</div>
+
+  <!-- Sticky Header (Logo + QR bleibt immer sichtbar) -->
   <header>
     <div class="bar">
       <div class="leftWrap">
@@ -130,175 +226,190 @@
   </header>
 
   <main>
-    <!-- Teams -->
-    <section id="teamsSection">
-      <header>
-        <h2>
-          Teams
-          <!-- große Pill hinter „Teams“ -->
-          <span id="adminYearLabel" class="pill" style="margin-left:.5rem; display:none;">Jahrgang: –</span>
-        </h2>
-        <div class="row">
-          <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
-          <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
-        </div>
-      </header>
+    <!-- Tabs -->
+    <nav class="tabs-bar" role="tablist" aria-label="Admin-Bereiche">
+      <button class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-teams" id="tab-teams">Teams</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-games" id="tab-games">Spiele + Historie</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-recovery" id="tab-recovery">Recovery & Snapshots</button>
+    </nav>
 
-      <div class="teams-grid" id="teamsGrid"></div>
-
-      <div class="row" style="padding:1rem">
-        <!-- Manuelle Team-Erfassung wie gehabt -->
-        <div class="row" style="flex:1 1 100%">
-          <input id="teamName" class="input" placeholder="Teamname" />
-          <select id="teamGroup" class="input">
-            <option value="A">Gruppe A</option>
-            <option value="B">Gruppe B</option>
-            <option value="C">Gruppe C</option>
-          </select>
-          <button id="btnAddTeam" type="button" class="btn btn-success">Hinzufügen</button>
-          <span id="teamsMsg" class="pill" style="display:none"></span>
-        </div>
-
-        <!-- NEU: Jahrgangs-Bezeichner konfigurieren -->
-        <div class="row" style="flex:1 1 100%">
-          <label for="yearLabelInput" class="pill" title="Bezeichner für die Turnierdatei und Anzeige im Viewer">Jahrgangs‑Label:</label>
-          <input id="yearLabelInput" type="text" class="input" style="min-width:260px;" placeholder="z. B. U10 Samstag" />
-          <button id="btnSaveYearLabel" type="button" class="btn btn-primary" title="Label speichern (optional serverseitig)">Speichern</button>
-          <span id="yearLabelMsg" class="pill" style="display:none"></span>
-        </div>
-
-        <!-- Turnierdatei Import/Export (Label + Zeitplan + Teams) -->
-        <div class="row" style="flex:1 1 100%">
-          <input id="tournamentFile" type="file" accept=".json" class="input" />
-          <button id="btnImportTournament" type="button" class="btn btn-primary" title="Label + Zeitplan + Teams importieren">Turnierdatei importieren</button>
-          <button id="btnExportTournament" type="button" class="btn btn-muted"  title="Label + Zeitplan + Teams exportieren">Turnierdatei exportieren</button>
-          <span id="tournamentMsg" class="pill" style="display:none"></span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Matches (Haupt-View) -->
-    <section id="matchesSection">
-      <header>
-        <h2>Spiele</h2>
-        <div class="row">
-          <button id="btnLoadMatches" type="button" class="btn btn-muted">Spiele laden</button>
-          <button id="btnStartA" type="button" class="btn grpA">Gruppe A starten</button>
-          <button id="btnStartB" type="button" class="btn grpB">Gruppe B starten</button>
-          <button id="btnStartC" type="button" class="btn grpC">Gruppe C starten</button>
-          <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
-          <span id="nextMsg" class="pill" style="display:none"></span>
-          <button id="btnReset"  type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
-          <button id="btnReseedGroups" type="button" class="btn btn-primary">Gruppen neu zusammenstellen (nach 3 Runden)</button>
-          <span id="reseedMsg" class="pill" style="display:none"></span>
-        </div>
-      </header>
-
-      <div class="row" style="padding:1rem">
-        <div class="card" style="flex:1 1 100%">
-          <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Zeitmanagement (global)</h3>
-          <div class="tm-row">
-            <label for="sched-time">Start:</label>
-            <input id="sched-time" type="time" class="input" step="60" />
-            <label for="sched-dur">Dauer (min):</label>
-            <input id="sched-dur" type="number" min="1" step="1" value="10" class="input" style="width:90px" />
-            <label for="sched-break">Pause (min):</label>
-            <input id="sched-break" type="number" min="0" step="1" value="2" class="input" style="width:90px" />
-            <button id="sched-save" class="btn btn-primary">Speichern</button>
-            <span id="timeMsg" class="pill" style="display:none; margin-left:auto;"></span>
+    <!-- Panel 1: Teams -->
+    <div id="panel-teams" class="tab-panel active" role="tabpanel" aria-labelledby="tab-teams">
+      <!-- Teams -->
+      <section id="teamsSection">
+        <header>
+          <h2>
+            Teams
+            <!-- große Pill hinter „Teams“ -->
+            <span id="adminYearLabel" class="pill" style="margin-left:.5rem; display:none;">Jahrgang: –</span>
+          </h2>
+          <div class="row">
+            <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
+            <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
           </div>
-          <div style="margin-top:.5rem; color:#9ca3af; font-size:.85rem;">
-            Raster: alphabetisch pro Slot (A → B → C). Runde&nbsp;2 von A bezieht sich zeitlich auf vorheriges C. Slot = <em>Dauer + Pause</em>.
+        </header>
+
+        <div class="teams-grid" id="teamsGrid"></div>
+
+        <div class="row" style="padding:1rem">
+          <!-- Manuelle Team-Erfassung wie gehabt -->
+          <div class="row" style="flex:1 1 100%">
+            <input id="teamName" class="input" placeholder="Teamname" />
+            <select id="teamGroup" class="input">
+              <option value="A">Gruppe A</option>
+              <option value="B">Gruppe B</option>
+              <option value="C">Gruppe C</option>
+            </select>
+            <button id="btnAddTeam" type="button" class="btn btn-success">Hinzufügen</button>
+            <span id="teamsMsg" class="pill" style="display:none"></span>
+          </div>
+
+          <!-- NEU: Jahrgangs-Bezeichner konfigurieren -->
+          <div class="row" style="flex:1 1 100%">
+            <label for="yearLabelInput" class="pill" title="Bezeichner für die Turnierdatei und Anzeige im Viewer">Jahrgangs‑Label:</label>
+            <input id="yearLabelInput" type="text" class="input" style="min-width:260px;" placeholder="z. B. U10 Samstag" />
+            <button id="btnSaveYearLabel" type="button" class="btn btn-primary" title="Label speichern (optional serverseitig)">Speichern</button>
+            <span id="yearLabelMsg" class="pill" style="display:none"></span>
+          </div>
+
+          <!-- Turnierdatei Import/Export (Label + Zeitplan + Teams) -->
+          <div class="row" style="flex:1 1 100%">
+            <input id="tournamentFile" type="file" accept=".json" class="input" />
+            <button id="btnImportTournament" type="button" class="btn btn-primary" title="Label + Zeitplan + Teams importieren">Turnierdatei importieren</button>
+            <button id="btnExportTournament" type="button" class="btn btn-muted"  title="Label + Zeitplan + Teams exportieren">Turnierdatei exportieren</button>
+            <span id="tournamentMsg" class="pill" style="display:none"></span>
           </div>
         </div>
-      </div>
+      </section>
+    </div>
 
-      <div class="tableWrap" style="padding:1rem">
-        <table id="matchesTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Gruppe</th>
-              <th>Runde</th>
-              <th>Feld</th>
-              <th>Zeit</th>
-              <th>Team A</th>
-              <th>Team B</th>
-              <th>Sieger</th>
-              <th>Aktion</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+    <!-- Panel 2: Spiele + Historie -->
+    <div id="panel-games" class="tab-panel" role="tabpanel" aria-labelledby="tab-games">
+      <!-- Matches (Haupt-View) -->
+      <section id="matchesSection">
+        <header>
+          <h2>Spiele</h2>
+          <div class="row">
+            <button id="btnLoadMatches" type="button" class="btn btn-muted">Spiele laden</button>
+            <button id="btnStartA" type="button" class="btn grpA">Gruppe A starten</button>
+            <button id="btnStartB" type="button" class="btn grpB">Gruppe B starten</button>
+            <button id="btnStartC" type="button" class="btn grpC">Gruppe C starten</button>
+            <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
+            <span id="nextMsg" class="pill" style="display:none"></span>
+            <button id="btnReset"  type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
+            <button id="btnReseedGroups" type="button" class="btn btn-primary">Gruppen neu zusammenstellen (nach 3 Runden)</button>
+            <span id="reseedMsg" class="pill" style="display:none"></span>
+          </div>
+        </header>
 
-    <!-- Historie -->
-    <section id="historySection">
-      <header>
-        <h2>Historie (letzte gespielte Runde)</h2>
-        <div class="row">
-          <label for="hist-group" class="pill">Gruppe:</label>
-          <select id="hist-group" class="input">
-            <option value="A">A</option><option value="B">B</option><option value="C">C</option>
-            <option value="D">D</option><option value="E">E</option><option value="F">F</option>
-          </select>
-          <button id="btnLoadHistory" type="button" class="btn btn-muted">History laden</button>
-          <button id="btnApplyHistory" type="button" class="btn btn-primary" title="Korrekturen anwenden und aktuellen 3er-Block im Haupt-View aktualisieren">Übernehmen & Haupt‑View aktualisieren</button>
-          <span id="histMsg" class="pill" style="display:none"></span>
+        <div class="row" style="padding:1rem">
+          <div class="card" style="flex:1 1 100%">
+            <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Zeitmanagement (global)</h3>
+            <div class="tm-row">
+              <label for="sched-time">Start:</label>
+              <input id="sched-time" type="time" class="input" step="60" />
+              <label for="sched-dur">Dauer (min):</label>
+              <input id="sched-dur" type="number" min="1" step="1" value="10" class="input" style="width:90px" />
+              <label for="sched-break">Pause (min):</label>
+              <input id="sched-break" type="number" min="0" step="1" value="2" class="input" style="width:90px" />
+              <button id="sched-save" class="btn btn-primary">Speichern</button>
+              <span id="timeMsg" class="pill" style="display:none; margin-left:auto;"></span>
+            </div>
+            <div style="margin-top:.5rem; color:#9ca3af; font-size:.85rem;">
+              Raster: alphabetisch pro Slot (A → B → C). Runde&nbsp;2 von A bezieht sich zeitlich auf vorheriges C. Slot = <em>Dauer + Pause</em>.
+            </div>
+          </div>
         </div>
-      </header>
 
-      <div class="tableWrap" style="padding:1rem">
-        <table id="historyTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Gruppe·Runde</th>
-              <th>Feld</th>
-              <th>Team A</th>
-              <th>Team B</th>
-              <th>Sieger</th>
-              <th>Aktion</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Recovery & Snapshots (Dropdown-only) -->
-    <section id="recoverySection">
-      <header>
-        <h2>Recovery & Snapshots</h2>
-        <div class="row">
-          <button id="btnMakeSnapshot" type="button" class="btn btn-success" title="Aktuellen Zustand als Snapshot sichern">Snapshot jetzt erstellen</button>
-          <button id="btnRecoverLatest" type="button" class="btn btn-danger" title="Neuesten Snapshot wiederherstellen">Neuesten Snapshot wiederherstellen</button>
-
-          <label for="snapshotSelect" class="pill">Snapshot wählen:</label>
-          <select id="snapshotSelect" class="input" style="min-width:320px;"></select>
-          <button id="btnRecoverSelected" type="button" class="btn btn-primary">Gewählten Snapshot wiederherstellen</button>
-
-          <label for="opsSelect" class="pill" style="margin-left:.5rem;">Letzte Admin‑Operation:</label>
-          <select id="opsSelect" class="input" style="min-width:320px;"></select>
-          <button id="btnShowOp" type="button" class="btn btn-muted">Details anzeigen</button>
-
-          <span id="recMsg" class="pill" style="display:none;"></span>
+        <div class="tableWrap" style="padding:1rem">
+          <table id="matchesTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Gruppe</th>
+                <th>Runde</th>
+                <th>Feld</th>
+                <th>Zeit</th>
+                <th>Team A</th>
+                <th>Team B</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-      </header>
+      </section>
 
-      <div class="row" style="padding:1rem">
-        <div class="card" style="flex:1 1 100%">
-          <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Ausgewählte Operation (Details)</h3>
-          <div id="opDetails" class="kvt" aria-live="polite">–</div>
+      <!-- Historie -->
+      <section id="historySection">
+        <header>
+          <h2>Historie (letzte gespielte Runde)</h2>
+          <div class="row">
+            <label for="hist-group" class="pill">Gruppe:</label>
+            <select id="hist-group" class="input">
+              <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+              <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+            </select>
+            <button id="btnLoadHistory" type="button" class="btn btn-muted">History laden</button>
+            <button id="btnApplyHistory" type="button" class="btn btn-primary" title="Korrekturen anwenden und aktuellen 3er-Block im Haupt-View aktualisieren">Übernehmen & Haupt‑View aktualisieren</button>
+            <span id="histMsg" class="pill" style="display:none"></span>
+          </div>
+        </header>
+
+        <div class="tableWrap" style="padding:1rem">
+          <table id="historyTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Gruppe·Runde</th>
+                <th>Feld</th>
+                <th>Team A</th>
+                <th>Team B</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
+
+    <!-- Panel 3: Recovery & Snapshots -->
+    <div id="panel-recovery" class="tab-panel" role="tabpanel" aria-labelledby="tab-recovery">
+      <!-- Recovery & Snapshots (Dropdown-only) -->
+      <section id="recoverySection">
+        <header>
+          <h2>Recovery & Snapshots</h2>
+          <div class="row">
+            <button id="btnMakeSnapshot" type="button" class="btn btn-success" title="Aktuellen Zustand als Snapshot sichern">Snapshot jetzt erstellen</button>
+            <button id="btnRecoverLatest" type="button" class="btn btn-danger" title="Neuesten Snapshot wiederherstellen">Neuesten Snapshot wiederherstellen</button>
+
+            <label for="snapshotSelect" class="pill">Snapshot wählen:</label>
+            <select id="snapshotSelect" class="input" style="min-width:320px;"></select>
+            <button id="btnRecoverSelected" type="button" class="btn btn-primary">Gewählten Snapshot wiederherstellen</button>
+
+            <label for="opsSelect" class="pill" style="margin-left:.5rem;">Letzte Admin‑Operation:</label>
+            <select id="opsSelect" class="input" style="min-width:320px;"></select>
+            <button id="btnShowOp" type="button" class="btn btn-muted">Details anzeigen</button>
+
+            <span id="recMsg" class="pill" style="display:none;"></span>
+          </div>
+        </header>
+
+        <div class="row" style="padding:1rem">
+          <div class="card" style="flex:1 1 100%">
+            <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Ausgewählte Operation (Details)</h3>
+            <div id="opDetails" class="kvt" aria-live="polite">–</div>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 
   <!-- Skripte -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/qr_script.js"></script>
+  <script src="/admin_password.js"></script>
 
   <!-- Logo -->
   <script>
@@ -564,7 +675,7 @@
         const btnA=document.createElement('button'); btnA.className='btn '+groupClass(g); btnA.type='button'; btnA.dataset.action='winA'; btnA.dataset.id=String(id); if(taId!=null) btnA.dataset.team=String(taId); btnA.textContent='Sieger: Team A';
         const btnB=document.createElement('button'); btnB.className='btn '+groupClass(g); btnB.type='button'; btnB.dataset.action='winB'; btnB.dataset.id=String(id); if(tbId!=null) btnB.dataset.team=String(tbId); btnB.textContent='Sieger: Team B';
         tdAct.append(btnA, btnB);
-        tr.append(td(id), tdGroup, td(r), td(f), td(planned), tdA, tdB, tdWinner, tdAct);
+        tr.append(td(id), tdGroup, td(r), td(f), td(planned), tdA, tdB, tdAct);
         tbody.appendChild(tr);
       });
       tbody.querySelectorAll('button[data-action]').forEach(btn => {
@@ -653,7 +764,7 @@
     async function refreshOps(){ try { OPS = await loadOps(200); renderOps(); } catch(e){ showMsg('#recMsg','Ops laden fehlgeschlagen: '+e.message, true);} }
   </script>
 
-  <!-- Next Round / Socket / UI -->
+  <!-- Next Round / Socket / UI + Tabs -->
   <script>
     function computeNextRoundPayloadFromTop3(){
       if (!Array.isArray(MATCHES)) throw new Error('Keine Spieldaten geladen.');
@@ -826,10 +937,51 @@ Status: ${status}
 Payload:
 ${payloadText}`;
       });
+      document.getElementById('btnShowOp')?.addEventListener('click', () => {
+        const sel = document.getElementById('opsSelect'); if (!sel?.value) { showMsg('#recMsg', 'Bitte eine Operation wählen.', true); return; }
+        alert(document.getElementById('opDetails').textContent || '–');
+      });
 
-      // Zeitplan UI
+      // Reseed (D/E/F)
+      const btn = document.getElementById('btnReseedGroups');
+      if (!btn) console.warn("btnReseedGroups fehlt im DOM!");
+      btn?.addEventListener('click', async () => {
+        const msgEl = document.getElementById('reseedMsg');
+        const schedule = getSchedule();
+        try {
+          const r = await apiReseedGroups(schedule || {});
+          const d = r?.result?.matchesCreated?.D ?? 0;
+          const e = r?.result?.matchesCreated?.E ?? 0;
+          const f = r?.result?.matchesCreated?.F ?? 0;
+          showMsg(msgEl, (r?.msg || 'Gruppen neu zusammengestellt.') + ` (D:${d}, E:${e}, F:${f})`);
+          await refreshTeams();
+          await refreshMatches();
+        } catch (e) { showMsg(msgEl, 'Reseed-Fehler: ' + (e?.message || e), true); }
+      });
+
+      // Zeitplan
       wireScheduleUI();
       fillScheduleUI();
+    }
+
+    // Tabs einrichten
+    function setupTabs(){
+      const tabs = [
+        { btn: document.getElementById('tab-teams'), panel: document.getElementById('panel-teams') },
+        { btn: document.getElementById('tab-games'), panel: document.getElementById('panel-games') },
+        { btn: document.getElementById('tab-recovery'), panel: document.getElementById('panel-recovery') },
+      ];
+      const activate = (idx) => {
+        tabs.forEach((t,i) => {
+          if(!t.btn || !t.panel) return;
+          const on = i===idx;
+          t.btn.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.panel.classList.toggle('active', on);
+        });
+      };
+      tabs.forEach((t, i) => t.btn?.addEventListener('click', () => activate(i)));
+      // Standard: Teams aktiv
+      activate(0);
     }
 
     // Turnierdatei Import
@@ -906,36 +1058,74 @@ ${payloadText}`;
         showMsg('#tournamentMsg', 'Export-Fehler: ' + e.message, true);
       }
     }
+  </script>
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      initHeader();
-      wireUI();
-      initSocket();
+  <!-- Passwortschutz -->
+  <script>
+  // Passwortschutz
+  document.addEventListener("DOMContentLoaded", () => {
+    const overlay = document.getElementById("pwOverlay");
+    const input = document.getElementById("pwInput");
+    const btn = document.getElementById("pwBtn");
+    const err = document.getElementById("pwError");
 
-      // Meta beim Start laden (falls Route existiert)
-      try {
-        const m = await apiMetaGet();
-        setAdminYearLabel(m?.yearLabel ?? null);
-        const fld = document.getElementById('yearLabelInput'); if (fld) fld.value = (m?.yearLabel ?? '');
-        const local = loadSchedule();
-        const s = m?.schedule;
-        if (!local && s?.timeHHMM && Number.isFinite(Number(s?.dur)) && Number.isFinite(Number(s?.brk))) {
-          saveSchedule({ timeHHMM: s.timeHHMM, dur: Number(s.dur), brk: Number(s.brk) });
-          fillScheduleUI();
-        } else {
-          fillScheduleUI();
-        }
-      } catch {
+    // Auto-Fokus
+    input.focus();
+
+    // Enter-Taste
+    input.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") btn.click();
+    });
+
+    // Prüfen, ob Passwort schon gespeichert wurde
+    if (localStorage.getItem("admin_pw_ok") === "1") {
+      overlay.style.display = "none";
+    }
+
+    // Beim erfolgreichen Login speichern
+    btn.addEventListener("click", () => {
+      if (input.value === window.ADMIN_PASSWORD) {
+        localStorage.setItem("admin_pw_ok", "1");
+        overlay.style.display = "none";
+      } else {
+        err.style.display = "block";
+        setTimeout(() => err.style.display = "none", 2000);
+      }
+    });
+
+  });
+
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    initHeader();
+    setupTabs();     // <<< Tabs initialisieren
+    wireUI();
+    initSocket();
+
+    // Meta beim Start laden (falls Route existiert)
+    try {
+      const m = await apiMetaGet();
+      setAdminYearLabel(m?.yearLabel ?? null);
+      const fld = document.getElementById('yearLabelInput'); if (fld) fld.value = (m?.yearLabel ?? '');
+      const local = loadSchedule();
+      const s = m?.schedule;
+      if (!local && s?.timeHHMM && Number.isFinite(Number(s?.dur)) && Number.isFinite(Number(s?.brk))) {
+        saveSchedule({ timeHHMM: s.timeHHMM, dur: Number(s.dur), brk: Number(s.brk) });
+        fillScheduleUI();
+      } else {
         fillScheduleUI();
       }
+    } catch {
+      fillScheduleUI();
+    }
 
-      await refreshTeams();
-      await refreshMatches();
-      await loadHistoryUI();
-      await refreshSnapshots();
-      await refreshOps();
-      setInterval(refreshMatches, 15000);
-    });
+    await refreshTeams();
+    await refreshMatches();
+    await loadHistoryUI();
+    await refreshSnapshots();
+    await refreshOps();
+    setInterval(refreshMatches, 15000);
+  });
   </script>
 </body>
 </html>

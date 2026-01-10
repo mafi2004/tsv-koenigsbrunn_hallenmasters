@@ -9,6 +9,20 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
+
+const fs = require('fs');
+
+// … deine existierenden app.use('/api/…') Routen …
+
+// "Pretty URLs" für Admin/Viewer (ohne .html)
+app.get('/3v3/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '3v3', 'admin.html'));
+});
+app.get('/3v3/viewer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '3v3', 'viewer.html'));
+});
+
+
 // Socket.io einrichten
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 // io im app-Objekt verfügbar machen, z.B. für Broadcasts
@@ -32,7 +46,10 @@ const scheduleRouter = require('./routes/schedule');
 const reseedRouterFactory = require('./routes/reseedGroups');
 const adminOpsRouter = require('./routes/adminOps')(io);
 const historyRouter = require('./routes/history')(io);
-const metaRouter = require('./routes/meta')(io); // <<<< NEU
+const metaRouter = require('./routes/meta')(io);
+
+// minis5
+const minis5Router = require('./routes/minis5');
 
 // Routen registrieren
 app.use('/api/teams', teamsRouter);
@@ -43,10 +60,13 @@ app.use('/api/schedule', scheduleRouter);
 app.use('/api/funino', reseedRouterFactory(db, io));
 app.use('/api/adminOps', adminOpsRouter);
 app.use('/api/history', historyRouter);
-app.use('/api/meta', metaRouter); // <<<< NEU
+app.use('/api/meta', metaRouter);
+
+// minis5
+app.use('/api/minis5', minis5Router);
 
 // Server starten
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Backend läuft auf Port ${PORT}`);
 });

@@ -37,104 +37,122 @@ module.exports = (io) => {
   // POST /matches/start/:groupName
   // Body: { schedule: { timeHHMM, dur, brk } }
   router.post('/start/:groupName', (req, res) => {
-    const groupName = String(req.params.groupName || '').trim().toUpperCase();
-    const schedule = req.body?.schedule || {};
-    const timeHHMM = schedule.timeHHMM;
-    const dur = Number(schedule.dur);
-    const brk = Number(schedule.brk);
-    if (!timeHHMM || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
-      return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM (HH:MM) im Schedule' });
-    }
-    if (!Number.isFinite(dur) || dur <= 0 || !Number.isFinite(brk) || brk < 0) {
-      return res.status(400).json({ error: 'Ungültige Dauer/Pause im Schedule' });
-    }
-    const slotLen = dur + brk;
+  const groupName = String(req.params.groupName || '').trim().toUpperCase();
+  const schedule = req.body?.schedule || {};
+  const timeHHMM = schedule.timeHHMM;
+  const dur = Number(schedule.dur);
+  const brk = Number(schedule.brk);
 
-    db.serialize(() => {
-      // Gruppe darf noch nicht gestartet sein
-      db.get(`SELECT COUNT(*) AS cnt FROM matches WHERE UPPER(groupName) = ?`, [groupName], (e1, r1) => {
-        if (e1) return res.status(500).json({ error: e1.message });
-        if ((r1?.cnt || 0) > 0) {
-          return res.status(400).json({ error: `Gruppe ${groupName} wurde bereits gestartet.` });
-        }
+  if (!timeHHMM || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
+    return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM (HH:MM)' });
+  }
+  if (!Number.isFinite(dur) || dur <= 0 || !Number.isFinite(brk) || brk < 0) {
+    return res.status(400).json({ error: 'Ungültige Dauer/Pause im Schedule' });
+  }
 
-        // Alphabetische Gruppenliste aus TEAMS
-        db.all(
-          `
-          SELECT DISTINCT UPPER(TRIM(groupName)) AS g
-          FROM teams
-          WHERE groupName IS NOT NULL AND TRIM(groupName) <> ''
-          ORDER BY g ASC`,
-          [],
-          (eG, rowsG) => {
-            if (eG) return res.status(500).json({ error: eG.message });
-            const groups = rowsG.map(x => x.g);
-            if (!groups.length) return res.status(400).json({ error: 'Keine Gruppen gefunden (Teams leer?)' });
-            let gIndex = groups.indexOf(groupName);
-            if (gIndex < 0) groups.push(groupName), gIndex = groups.length - 1;
-            const plannedStart = addMinutesHHMM(timeHHMM, gIndex * slotLen);
+  const slotLen = dur + brk;
 
-            // Teams bestimmen (6 Stück)
-            db.all(`SELECT * FROM teams WHERE UPPER(groupName) = ? ORDER BY id ASC`, [groupName], (eT, teams) => {
+  db.serialize(() => {
+  db.get(
+    `SELECT COUNT(*) AS cnt FROM matches WHERE UPPER(groupName)=?`,
+    [groupName],
+    (e1, r1) => {
+      if (e1) return res.status(500).json({ error: e1.message });
+      if ((r1?.cnt || 0) > 0) {
+        return res.status(400).json({ error: `Gruppe ${groupName} wurde bereits gestartet.` });
+      }
+
+      // 1) Alphabetische Gruppenliste aus TEAMS
+      db.all(
+        `
+        SELECT DISTINCT UPPER(TRIM(groupName)) AS g
+        FROM teams
+        WHERE groupName IS NOT NULL AND TRIM(groupName) <> ''
+        ORDER BY g ASC
+        `,
+        [],
+        (eG, rowsG) => {
+          if (eG) return res.status(500).json({ error: eG.message });
+
+          const groups = rowsG.map(x => x.g);
+          if (!groups.length) {
+            return res.status(400).json({ error: 'Keine Gruppen gefunden (Teams leer?)' });
+          }
+
+          let gIndex = groups.indexOf(groupName);
+          if (gIndex < 0) {
+            groups.push(groupName);
+            gIndex = groups.length - 1;
+          }
+
+          const slotLen = dur + brk;
+          const plannedStart = addMinutesHHMM(timeHHMM, gIndex * slotLen);
+
+          // 2) Teams der Gruppe bestimmen (6 Stück)
+          db.all(
+            `SELECT * FROM teams WHERE UPPER(groupName)=? ORDER BY id ASC`,
+            [groupName],
+            (eT, teams) => {
               if (eT) return res.status(500).json({ error: eT.message });
-              if (!Array.isArray(teams) || teams.length < 6) {
+              if (!teams || teams.length < 6) {
                 return res.status(400).json({ error: 'Es müssen 6 Teams sein' });
               }
+
               const pairs = [
                 [teams[0].id, teams[1].id],
                 [teams[2].id, teams[3].id],
                 [teams[4].id, teams[5].id]
               ];
-              db.run(`BEGIN IMMEDIATE`, (eBegin) => {
-                if (eBegin) return res.status(500).json({ error: 'Konnte Transaktion nicht starten: ' + eBegin.message });
-                let hadErr = false;
-                pairs.forEach((p, idx) => {
-                  db.run(
-                    `INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
-                     VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?)`,
-                    [p[0], p[1], groupName, 1, idx + 1, plannedStart],
-                    function (insErr) {
-                      if (insErr && !hadErr) {
-                        hadErr = true;
-                        db.run(`ROLLBACK`, () => res.status(500).json({ error: 'Insert fehlgeschlagen: ' + insErr.message }));
-                      }
-                    }
-                  );
-                });
-                if (!hadErr) {
-                  // group_state upsert: lastRound=1
-                  db.run(
-                    `INSERT INTO group_state (groupName, lastRound)
-                     VALUES (?, 1)
-                     ON CONFLICT(groupName) DO UPDATE SET lastRound = excluded.lastRound`,
-                    [groupName],
-                    (eGS) => {
-                      if (eGS) {
-                        return db.run(`ROLLBACK`, () => res.status(500).json({ error: 'group_state Fehler: ' + eGS.message }));
-                      }
-                      db.run(`COMMIT`, async (eCommit) => {
-                        if (eCommit) return res.status(500).json({ error: 'Commit Fehler: ' + eCommit.message });
 
-                        // Log + Snapshot
-                        try {
-                          await appendOp(db, 'matches:start', { groupName, schedule });
-                          await makeSnapshot(db);
-                        } catch {}
+              db.run(`BEGIN IMMEDIATE`, async (eBegin) => {
+                if (eBegin) return res.status(500).json({ error: eBegin.message });
 
-                        io.emit('group:started', { groupName, plannedStart });
-                        io.emit('resultUpdate', { type: 'startGroup', groupName });
-                        res.json({ success: true, groupName, created: pairs.length, plannedStart });
-                      });
-                    }
-                  );
+                try {
+                  // 3) Inserts nacheinander, mit mode = '3v3'
+                  for (let i = 0; i < pairs.length; i++) {
+                    const p = pairs[i];
+                    await new Promise((resolve, reject) => {
+                      db.run(
+                        `INSERT INTO matches
+                          (teamA, teamB, groupName, round, field,
+                           scoreA, scoreB, winner, plannedStart, mode)
+                         VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')`,
+                        [p[0], p[1], groupName, 1, i + 1, plannedStart],
+                        (err) => (err ? reject(err) : resolve())
+                      );
+                    });
+                  }
+
+                  // 4) group_state updaten
+                  await new Promise((resolve, reject) => {
+                    db.run(
+                      `INSERT INTO group_state (groupName, lastRound)
+                       VALUES (?, 1)
+                       ON CONFLICT(groupName) DO UPDATE SET lastRound = 1`,
+                      [groupName],
+                      (err) => (err ? reject(err) : resolve())
+                    );
+                  });
+
+                  db.run(`COMMIT`, () => {
+                    io.emit('group:started', { groupName, plannedStart });
+                    io.emit('resultUpdate', { type: 'startGroup', groupName });
+                    res.json({ success: true, groupName, created: pairs.length, plannedStart });
+                  });
+                } catch (err) {
+                  db.run(`ROLLBACK`, () => {
+                    res.status(500).json({ error: err.message });
+                  });
                 }
               });
-            });
-          }
-        );
-      });
-    });
-  });
+            }
+          );
+        }
+      );
+    }
+  );
+});
+});
 
   // DELETE /matches/reset
   // Spielplan vollständig zurücksetzen: matches, group_state und (NEU) match_history löschen.

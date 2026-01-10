@@ -1,10 +1,13 @@
 
-<!doctype ht+ml>
+<!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Viewer – 3. Königsbrunner Mini‑Fußball Hallenmasters</title>
+  <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
+  <link rel="icon" href="/assets/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
 
   <style>
     :root{
@@ -305,7 +308,6 @@
               <th>Zeit</th>
               <th>Team A</th>
               <th>Team B</th>
-              <th>Sieger</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -338,7 +340,7 @@
             <h3 class="adTitle">2. Königsbrunner Mini-Fußball Sommerfestival
               <span class="adToggleIcon">›</span>
             </h3>
-            /assets/save_the_date.jpg
+            <img id="adHeaderImg" class="adHeaderImg" src="/assets/save_the_date.jpg" alt="Info" />
           </div>
           <!-- Body: Text (vollbreit, collapsible) -->
           <div id="adBody" class="adBody">
@@ -448,7 +450,7 @@ Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird
 
         var tdWinner=document.createElement('td'); tdWinner.textContent=hasWinner ? ((Number(winnerVal)===Number(teamAId)) ? teamAName : teamBName) : '–';
 
-        tr.append(tdId, tdGroup, tdRound, tdField, tdTime, tdA, tdB, tdWinner);
+        tr.append(tdId, tdGroup, tdRound, tdField, tdTime, tdA, tdB);
         tbody.appendChild(tr);
       }
 
