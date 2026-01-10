@@ -47,6 +47,7 @@ const reseedRouterFactory = require('./routes/reseedGroups');
 const adminOpsRouter = require('./routes/adminOps')(io);
 const historyRouter = require('./routes/history')(io);
 const metaRouter = require('./routes/meta')(io);
+const qrRouter = require('./routes/qr');
 
 // minis5
 const minis5Router = require('./routes/minis5');
@@ -61,6 +62,7 @@ app.use('/api/funino', reseedRouterFactory(db, io));
 app.use('/api/adminOps', adminOpsRouter);
 app.use('/api/history', historyRouter);
 app.use('/api/meta', metaRouter);
+app.use('/api/qr', qrRouter);
 
 // minis5
 app.use('/api/minis5', minis5Router);

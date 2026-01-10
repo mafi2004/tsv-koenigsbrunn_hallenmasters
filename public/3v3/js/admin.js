@@ -32,27 +32,38 @@ function buildViewerUrl(base){
   const urlBase = hasProto ? host : ('http://' + host);
   return urlBase.replace(/\/+$/,'') + '/3v3/viewer.html';
 }
+
+// Hilfsfunktion für Cache-Busting
+const cacheBust = () => `&_v=${Date.now()}`;
+
 function applyQRBaseToUI(){
-  const base = getQRBase();
+  const base = getQRBase(); // kommt aus deinem LocalStorage (Eingabefeld)
   const input = document.getElementById('qrBase');
   const a = document.getElementById('viewerLink');
   const img = document.getElementById('qr-img');
+
   if (input) input.value = base;
+
+  // Viewer-URL aus Basis bauen (http(s)://host:port + /3v3/viewer.html)
   const url = buildViewerUrl(base);
   if (a) { a.href = url || '#'; a.textContent = 'Viewer öffnen'; }
-  // Optional: QR vom Server rendern, falls verfügbar (z. B. /api/qr?text=...)
+
   if (img) {
     if (url) {
-      const qrEndpoint = '/api/qr?text=' + encodeURIComponent(url);
+      // PNG von /api/qr beziehen (Größe optional ändern: 128/256/512)
+      const endpoint = `/api/qr?text=${encodeURIComponent(url)}&size=256${cacheBust()}`;
       img.onerror = () => { img.style.display = 'none'; };
       img.onload  = () => { img.style.display = 'block'; };
-      img.src = qrEndpoint + cacheBust();
+      img.src = endpoint;
+      img.alt = 'QR-Code zum Viewer';
+      img.title = 'QR-Code zum Viewer (' + url + ')';
     } else {
       img.style.display = 'none';
       img.removeAttribute('src');
     }
   }
 }
+
 function wireQRBase(){
   document.getElementById('btnSaveQRBase')?.addEventListener('click', () => {
     const val = (document.getElementById('qrBase').value || '').trim();
