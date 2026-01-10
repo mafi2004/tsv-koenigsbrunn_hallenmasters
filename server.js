@@ -9,6 +9,20 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
+
+const fs = require('fs');
+
+// … deine existierenden app.use('/api/…') Routen …
+
+// "Pretty URLs" für Admin/Viewer (ohne .html)
+app.get('/3v3/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '3v3', 'admin.html'));
+});
+app.get('/3v3/viewer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '3v3', 'viewer.html'));
+});
+
+
 // Socket.io einrichten
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 // io im app-Objekt verfügbar machen, z.B. für Broadcasts

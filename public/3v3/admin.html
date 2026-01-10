@@ -1,0 +1,247 @@
+
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</title>
+
+  <!-- Favicon / Assets bleiben im Root -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/Fussballwappen_logo.png">
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
+
+  <!-- Ausgelagerte Styles -->
+  <link rel="stylesheet" href="/3v3/css/admin.css">
+</head>
+<body>
+  <!-- Passwort-Overlay -->
+  <div id="pwOverlay">
+    <div class="pwBox">
+      <h2>Admin Login</h2>
+      <input id="pwInput" type="password" placeholder="Passwort" />
+      <button id="pwBtn">Login</button>
+      <div id="pwError">Falsches Passwort</div>
+    </div>
+  </div>
+
+  <!-- Sticky Header (Logo + QR bleibt immer sichtbar) -->
+  <header>
+    <div class="bar">
+      <div class="leftWrap">
+        <div class="titleWrap">
+          <img class="clubLogo" id="clubLogo" alt="Vereinslogo" />
+          <div style="display:flex; flex-direction:column; gap:.25rem;">
+            <h1>
+              Admin – 3. Königsbrunner Mini-Fußball Hallenmasters
+              <span id="adminYearLabelHead" class="pill" style="margin-left:.5rem; display:none;">Jahrgang: –</span>
+            </h1>
+            <div class="logoPath">
+              Logo-Pfad: <code id="logoPathText">–</code>
+              <span id="logoError" class="logoError">Logo konnte nicht geladen werden. Datei unter <code>public/assets/…</code> ablegen und Pfad prüfen.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="gap:.5rem;">
+          <label for="qrBase" class="pill" title="Protokoll+Host+Port (z. B. 192.168.0.25)">Viewer‑Basis:</label>
+          <input id="qrBase" type="text" class="input" style="min-width:260px;" placeholder="192.168.0.25" />
+          <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
+          <a id="viewerLink" class="viewerLink" target="_blank" rel="noopener">Viewer öffnen</a>
+        </div>
+      </div>
+
+      <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
+        <div class="container">
+          <img src="" id="qr-img" alt="QR-Code zum Viewer">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Tabs -->
+    <nav class="tabs-bar" role="tablist" aria-label="Admin-Bereiche">
+      <button class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-teams" id="tab-teams">Teams</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-games" id="tab-games">Spiele + Historie</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-recovery" id="tab-recovery">Recovery & Snapshots</button>
+    </nav>
+
+    <!-- Panel 1: Teams -->
+    <div id="panel-teams" class="tab-panel active" role="tabpanel" aria-labelledby="tab-teams">
+      <section id="teamsSection">
+        <header>
+          <h2>
+            Teams
+            <span id="adminYearLabel" class="pill" style="margin-left:.5rem; display:none;">Jahrgang: –</span>
+          </h2>
+          <div class="row">
+            <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
+            <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
+          </div>
+        </header>
+
+        <div class="teams-grid" id="teamsGrid"></div>
+
+        <div class="row" style="padding:1rem">
+          <!-- Team-Erfassung -->
+          <div class="row" style="flex:1 1 100%">
+            <input id="teamName" class="input" placeholder="Teamname" />
+            <select id="teamGroup" class="input">
+              <option value="A">Gruppe A</option>
+              <option value="B">Gruppe B</option>
+              <option value="C">Gruppe C</option>
+            </select>
+            <button id="btnAddTeam" type="button" class="btn btn-success">Hinzufügen</button>
+            <span id="teamsMsg" class="pill" style="display:none"></span>
+          </div>
+
+          <!-- Jahrgangs-Label -->
+          <div class="row" style="flex:1 1 100%">
+            <label for="yearLabelInput" class="pill" title="Bezeichner für die Turnierdatei und Anzeige im Viewer">Jahrgangs‑Label:</label>
+            <input id="yearLabelInput" type="text" class="input" style="min-width:260px;" placeholder="z. B. U10 Samstag" />
+            <button id="btnSaveYearLabel" type="button" class="btn btn-primary" title="Label speichern (optional serverseitig)">Speichern</button>
+            <span id="yearLabelMsg" class="pill" style="display:none"></span>
+          </div>
+
+          <!-- Turnierdatei Import/Export -->
+          <div class="row" style="flex:1 1 100%">
+            <input id="tournamentFile" type="file" accept=".json" class="input" />
+            <button id="btnImportTournament" type="button" class="btn btn-primary" title="Label + Zeitplan + Teams importieren">Turnierdatei importieren</button>
+            <button id="btnExportTournament" type="button" class="btn btn-muted"  title="Label + Zeitplan + Teams exportieren">Turnierdatei exportieren</button>
+            <span id="tournamentMsg" class="pill" style="display:none"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Panel 2: Spiele + Historie -->
+    <div id="panel-games" class="tab-panel" role="tabpanel" aria-labelledby="tab-games">
+      <!-- Matches -->
+      <section id="matchesSection">
+        <header>
+          <h2>Spiele</h2>
+          <div class="row">
+            <button id="btnLoadMatches" type="button" class="btn btn-muted">Spiele laden</button>
+            <button id="btnStartA" type="button" class="btn grpA">Gruppe A starten</button>
+            <button id="btnStartB" type="button" class="btn grpB">Gruppe B starten</button>
+            <button id="btnStartC" type="button" class="btn grpC">Gruppe C starten</button>
+            <button id="btnNextRound" type="button" class="btn btn-primary">Nächste Runde (oberste 3)</button>
+            <span id="nextMsg" class="pill" style="display:none"></span>
+            <button id="btnReset"  type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
+            <button id="btnReseedGroups" type="button" class="btn btn-primary">Gruppen neu zusammenstellen (nach 3 Runden)</button>
+            <span id="reseedMsg" class="pill" style="display:none"></span>
+          </div>
+        </header>
+
+        <div class="row" style="padding:1rem">
+          <div class="card" style="flex:1 1 100%">
+            <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Zeitmanagement (global)</h3>
+            <div class="tm-row">
+              <label for="sched-time">Start:</label>
+              <input id="sched-time" type="time" class="input" step="60" />
+              <label for="sched-dur">Dauer (min):</label>
+              <input id="sched-dur" type="number" min="1" step="1" value="10" class="input" style="width:90px" />
+              <label for="sched-break">Pause (min):</label>
+              <input id="sched-break" type="number" min="0" step="1" value="2" class="input" style="width:90px" />
+              <button id="sched-save" class="btn btn-primary">Speichern</button>
+              <span id="timeMsg" class="pill" style="display:none; margin-left:auto;"></span>
+            </div>
+            <div style="margin-top:.5rem; color:#9ca3af; font-size:.85rem;">
+              Raster: alphabetisch pro Slot (A → B → C). Runde&nbsp;2 von A bezieht sich zeitlich auf vorheriges C. Slot = <em>Dauer + Pause</em>.
+            </div>
+          </div>
+        </div>
+
+        <div class="tableWrap" style="padding:1rem">
+          <table id="matchesTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Gruppe</th>
+                <th>Runde</th>
+                <th>Feld</th>
+                <th>Zeit</th>
+                <th>Team A</th>
+                <th>Team B</th>
+                <!-- Sieger-Spalte entfernt -->
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Historie -->
+      <section id="historySection">
+        <header>
+          <h2>Historie (letzte gespielte Runde)</h2>
+          <div class="row">
+            <label for="hist-group" class="pill">Gruppe:</label>
+            <select id="hist-group" class="input">
+              <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+              <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+            </select>
+            <button id="btnLoadHistory" type="button" class="btn btn-muted">History laden</button>
+            <button id="btnApplyHistory" type="button" class="btn btn-primary" title="Korrekturen anwenden und aktuellen 3er-Block im Haupt-View aktualisieren">Übernehmen & Haupt‑View aktualisieren</button>
+            <span id="histMsg" class="pill" style="display:none"></span>
+          </div>
+        </header>
+
+        <div class="tableWrap" style="padding:1rem">
+          <table id="historyTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Gruppe·Runde</th>
+                <th>Feld</th>
+                <th>Team A</th>
+                <th>Team B</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Panel 3: Recovery & Snapshots -->
+    <div id="panel-recovery" class="tab-panel" role="tabpanel" aria-labelledby="tab-recovery">
+      <section id="recoverySection">
+        <header>
+          <h2>Recovery & Snapshots</h2>
+          <div class="row">
+            <button id="btnMakeSnapshot" type="button" class="btn btn-success" title="Aktuellen Zustand als Snapshot sichern">Snapshot jetzt erstellen</button>
+            <button id="btnRecoverLatest" type="button" class="btn btn-danger" title="Neuesten Snapshot wiederherstellen">Neuesten Snapshot wiederherstellen</button>
+
+            <label for="snapshotSelect" class="pill">Snapshot wählen:</label>
+            <select id="snapshotSelect" class="input" style="min-width:320px;"></select>
+            <button id="btnRecoverSelected" type="button" class="btn btn-primary">Gewählten Snapshot wiederherstellen</button>
+
+            <label for="opsSelect" class="pill" style="margin-left:.5rem;">Letzte Admin‑Operation:</label>
+            <select id="opsSelect" class="input" style="min-width:320px;"></select>
+            <button id="btnShowOp" type="button" class="btn btn-muted">Details anzeigen</button>
+
+            <span id="recMsg" class="pill" style="display:none;"></span>
+          </div>
+        </header>
+
+        <div class="row" style="padding:1rem">
+          <div class="card" style="flex:1 1 100%">
+            <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Ausgewählte Operation (Details)</h3>
+            <div id="opDetails" class="kvt" aria-live="polite">–</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Socket.IO Client -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Ausgelagerte Admin-Logik -->
+  <script src="/3v3/js/admin.js"></script>
+</body>
+</html>
