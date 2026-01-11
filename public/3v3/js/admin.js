@@ -6,7 +6,6 @@
 
 /* ===== Logo ===== */
 const LOGO_PATH = '/assets/Fussballwappen_logo.png';
-const cacheBust = () => `?_v=${Date.now()}`;
 function setLogo(){
   const img = document.getElementById('clubLogo');
   const pathEl = document.getElementById('logoPathText');

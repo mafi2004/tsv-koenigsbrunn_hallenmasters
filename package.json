@@ -1,4 +1,3 @@
-
 {
   "name": "mini-fussball-hallenmasters",
   "version": "1.0.0",
@@ -17,10 +16,10 @@
   "dependencies": {
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
-    "express": "^4.18.2",
+    "express": "^4.22.1",
+    "qrcode": "^1.5.3",
     "socket.io": "^4.7.5",
-    "sqlite3": "^5.1.6",
-	"qrcode": "^1.5.3"
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
