@@ -25,15 +25,21 @@ function getQRBase(){ return (localStorage.getItem(QR_BASE_KEY) || '').trim(); }
 function setQRBase(v){ localStorage.setItem(QR_BASE_KEY, (v || '').trim()); }
 function buildViewerUrl(base){
   const host = (base || '').trim();
-  if (!host) return '';
   // Wenn nur IP angegeben, nimm http://
   const hasProto = /^https?:\/\//i.test(host);
   const urlBase = hasProto ? host : ('http://' + host);
-  return urlBase.replace(/\/+$/,'') + '/3v3/viewer.html';
+  if (host)
+	return urlBase.replace(/\/+$/,'') + '/3v3/viewer.html';
+  
+  const is5v5 = window.location.pathname.includes('/5v5/');
+  const viewerPath = is5v5 ? '/5v5/viewer.html' : '/3v3/viewer';
+
+  const fullUrl = `https://tsv-koenigsbrunn-hallenmasters.onrender.com${viewerPath}`;
+  return fullUrl;
 }
 
 // Hilfsfunktion für Cache-Busting
-const cacheBust = () => `&_v=${Date.now()}`;
+const cacheBust = () => `?_v=${Date.now()}`;
 
 function applyQRBaseToUI(){
   const base = getQRBase(); // kommt aus deinem LocalStorage (Eingabefeld)
@@ -50,7 +56,7 @@ function applyQRBaseToUI(){
   if (img) {
     if (url) {
       // PNG von /api/qr beziehen (Größe optional ändern: 128/256/512)
-      const endpoint = `/api/qr?text=${encodeURIComponent(url)}&size=256${cacheBust()}`;
+      const endpoint = `/api/qr?text=${encodeURIComponent(url)}&size=64${cacheBust()}`;
       img.onerror = () => { img.style.display = 'none'; };
       img.onload  = () => { img.style.display = 'block'; };
       img.src = endpoint;

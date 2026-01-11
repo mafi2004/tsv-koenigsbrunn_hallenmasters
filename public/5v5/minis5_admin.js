@@ -34,6 +34,56 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+/* ===== QR / Viewer-Link (ersetzt frühere qr_script.js minimal) ===== */
+const QR_BASE_KEY = 'viewer.qr.base';
+function getQRBase(){ return (localStorage.getItem(QR_BASE_KEY) || '').trim(); }
+function setQRBase(v){ localStorage.setItem(QR_BASE_KEY, (v || '').trim()); }
+function buildViewerUrl(base){
+  const host = (base || '').trim();
+  // Wenn nur IP angegeben, nimm http://
+  const hasProto = /^https?:\/\//i.test(host);
+  const urlBase = hasProto ? host : ('http://' + host);
+  if (host)
+	return urlBase.replace(/\/+$/,'') + '/3v3/viewer.html';
+  
+  const is5v5 = window.location.pathname.includes('/5v5/');
+  const viewerPath = is5v5 ? '/5v5/viewer.html' : '/3v3/viewer';
+
+  const fullUrl = `https://tsv-koenigsbrunn-hallenmasters.onrender.com${viewerPath}`;
+  return fullUrl;
+}
+
+// Hilfsfunktion für Cache-Busting
+const cacheBust = () => `?_v=${Date.now()}`;
+
+function applyQRBaseToUI(){
+  const base = getQRBase(); // kommt aus deinem LocalStorage (Eingabefeld)
+  const input = document.getElementById('qrBase');
+  const a = document.getElementById('viewerLink');
+  const img = document.getElementById('qr-img');
+
+  if (input) input.value = base;
+
+  // Viewer-URL aus Basis bauen (http(s)://host:port + /3v3/viewer.html)
+  const url = buildViewerUrl(base);
+  if (a) { a.href = url || '#'; a.textContent = 'Viewer öffnen'; }
+
+  if (img) {
+    if (url) {
+      // PNG von /api/qr beziehen (Größe optional ändern: 128/256/512)
+      const endpoint = `/api/qr?text=${encodeURIComponent(url)}&size=64${cacheBust()}`;
+      img.onerror = () => { img.style.display = 'none'; };
+      img.onload  = () => { img.style.display = 'block'; };
+      img.src = endpoint;
+      img.alt = 'QR-Code zum Viewer';
+      img.title = 'QR-Code zum Viewer (' + url + ')';
+    } else {
+      img.style.display = 'none';
+      img.removeAttribute('src');
+    }
+  }
+}
+
 /* -------------------------------------------------------
    Status-Anzeige
 ------------------------------------------------------- */
@@ -380,6 +430,7 @@ function initSocket() {
 document.addEventListener("DOMContentLoaded", async () => {
   wireScheduleUI();
   initSocket();
+  applyQRBaseToUI();
 
   const btnLoadTeams = document.getElementById("btnLoadTeams");
   const btnAddTeam = document.getElementById("btnAddTeam");
