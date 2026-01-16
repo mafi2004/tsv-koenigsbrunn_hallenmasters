@@ -308,6 +308,12 @@ th {
   font-weight: 600;
 }
 
+.currentMatch {
+  border: 2px solid var(--accent) !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+  background: rgba(34, 197, 94, 0.15) !important;
+}
+
 /* -------------------------------------------------------
    Hallenlayout
 ------------------------------------------------------- */

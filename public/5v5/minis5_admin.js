@@ -304,6 +304,9 @@ function renderMatches() {
   const tbody = document.querySelector("#matchesTable tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
+  
+  const upcoming = MATCHES.filter(m => !m.winner).slice(0, 2);
+  const upcomingIds = upcoming.map(m => m.id);
 
   MATCHES.forEach((m) => {
     const tr = document.createElement("tr");
@@ -328,8 +331,11 @@ function renderMatches() {
       <td>
         <button class="btn btn-success btnWinnerA" data-id="${m.id}">Sieger: Team A</button>
         <button class="btn btn-success btnWinnerB" data-id="${m.id}">Sieger: Team B</button>
+		<button class="btn btn-danger btnResetWinner" data-id="${m.id}">Reset</button>
       </td>
     `;
+	
+	if (upcomingIds.includes(m.id)) { tr.classList.add("currentMatch"); }
 
     tbody.appendChild(tr);
   });
@@ -361,6 +367,18 @@ function initWinnerButtons() {
       }
     });
   });
+  
+  document.querySelectorAll(".btnResetWinner").forEach(btn => {
+	  btn.addEventListener("click", async () => {
+		const id = btn.dataset.id;
+		try {
+		  await updateResult(id, null, null); // Sieger zurücksetzen
+		  await refreshMatches();
+		} catch (e) {
+		  showMsg("#timeMsg", "Fehler: " + e.message, true);
+		}
+	  });
+	});
 }
 
 function initScoreInputs() {

@@ -73,6 +73,9 @@ function renderTiles(matches) {
   });
 
   const times = Array.from(rowsByTime.keys()).sort((a, b) => hhmmToNum(a) - hhmmToNum(b));
+  
+  const upcoming = matches.filter(m => !m.winner).slice(0, 2);
+  const upcomingIds = upcoming.map(m => m.id);
 
   times.forEach(time => {
     const rowEl = document.createElement('div');
@@ -87,11 +90,14 @@ function renderTiles(matches) {
     grid.className = 'grid2';
 
     const ms = rowsByTime.get(time).sort((a, b) => Number(a.field) - Number(b.field));
-
+	
     for (let f = 1; f <= 2; f++) {
       const m = ms.find(x => Number(x.field) === f) || null;
       const tile = document.createElement('div');
       tile.className = 'tile';
+	  if (upcomingIds.includes(m.id)) {
+		tile.classList.add("currentMatch");
+	  }
 
       if (m) {
         const cls = groupClass(m.groupName);
@@ -133,6 +139,9 @@ function renderTable(matches) {
   const tbody = document.querySelector('#matchesTable tbody');
   tbody.innerHTML = '';
 
+  const upcoming = matches.filter(m => !m.winner).slice(0, 2);
+  const upcomingIds = upcoming.map(m => m.id);
+
   matches.forEach(m => {
     const tr = document.createElement('tr');
     const cls = groupClass(m.groupName);
@@ -152,6 +161,10 @@ function renderTable(matches) {
 	  <td>${ta}</td>
 	  <td>${tb}</td>
 	`;
+	
+	if (upcomingIds.includes(m.id)) {
+	  tr.classList.add("currentMatch");
+	}
 
     tbody.appendChild(tr);
   });
