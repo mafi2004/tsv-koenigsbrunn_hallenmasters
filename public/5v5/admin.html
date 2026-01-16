@@ -58,18 +58,28 @@
         </div>
       </div>
     </div>
+	
+	<!-- NAVIGATION -->
+	<nav class="viewerNav">
+	  <button class="navBtn navBtn-active" data-page="teams">Teams</button>
+	  <button class="navBtn" data-page="matches">Spielplan</button>
+	</nav>
+
   </header>
 
   <!-- MAIN -->
   <main>
 
     <!-- TEAMS -->
-    <section id="teamsSection">
+    <section id="page-teams" class="page page-active">
       <header>
         <h2>Teams (5v5)</h2>
         <div class="row">
           <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
           <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
+		  <button id="btnExportTeams" type="button" class="btn btn-primary">Teams exportieren</button>
+		  <input id="importFile" type="file" accept="application/json" style="display:none">
+		  <button id="btnImportTeams" type="button" class="btn btn-success">Teams importieren</button>
         </div>
       </header>
 
@@ -89,7 +99,7 @@
     </section>
 
     <!-- SPIELPLAN -->
-    <section id="matchesSection">
+    <section id="page-matches" class="page">
       <header>
         <h2>Spielplan (A+B)</h2>
         <div class="row">
@@ -127,7 +137,6 @@
               <th>Feld</th>
               <th>Team A</th>
               <th>Team B</th>
-              <th>Sieger</th>
               <th>Aktion</th>
             </tr>
           </thead>
@@ -140,7 +149,6 @@
 
   <!-- SCRIPTS -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/qr_script.js"></script>
   <script src="minis5_admin.js"></script>
   <script src="/admin_password.js"></script>
 

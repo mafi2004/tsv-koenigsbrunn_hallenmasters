@@ -34,44 +34,65 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/* ===== QR / Viewer-Link (ersetzt frühere qr_script.js minimal) ===== */
+/* -------------------------------------------------------
+   Tabs (Teams / Spielplan)
+------------------------------------------------------- */
+function initNav() {
+  const buttons = document.querySelectorAll('.navBtn');
+  const pages = document.querySelectorAll('.page');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.dataset.page;
+
+      buttons.forEach(b => b.classList.toggle('navBtn-active', b === btn));
+      pages.forEach(p => {
+        p.classList.toggle('page-active', p.id === 'page-' + page);
+      });
+    });
+  });
+}
+
+/* -------------------------------------------------------
+   QR / Viewer-Link
+------------------------------------------------------- */
 const QR_BASE_KEY = 'viewer.qr.base';
 function getQRBase(){ return (localStorage.getItem(QR_BASE_KEY) || '').trim(); }
 function setQRBase(v){ localStorage.setItem(QR_BASE_KEY, (v || '').trim()); }
+
 function buildViewerUrl(base){
   const host = (base || '').trim();
-  // Wenn nur IP angegeben, nimm http://
   const hasProto = /^https?:\/\//i.test(host);
   const urlBase = hasProto ? host : ('http://' + host);
-  if (host)
-	return urlBase.replace(/\/+$/,'') + '/3v3/viewer.html';
-  
-  const is5v5 = window.location.pathname.includes('/5v5/');
-  const viewerPath = is5v5 ? '/5v5/viewer.html' : '/3v3/viewer';
 
-  const fullUrl = `https://tsv-koenigsbrunn-hallenmasters.onrender.com${viewerPath}`;
-  return fullUrl;
+  if (host) {
+    const is5v5 = window.location.pathname.includes('/5v5/');
+    const viewerPath = is5v5 ? '/5v5/viewer.html' : '/3v3/viewer.html';
+    return urlBase.replace(/\/+$/,'') + viewerPath;
+  }
+
+  const is5v5 = window.location.pathname.includes('/5v5/');
+  const viewerPath = is5v5 ? '/5v5/viewer.html' : '/3v3/viewer.html';
+
+  return `https://tsv-koenigsbrunn-hallenmasters.onrender.com${viewerPath}`;
 }
 
-// Hilfsfunktion für Cache-Busting
 const cacheBust = () => `?_v=${Date.now()}`;
 
 function applyQRBaseToUI(){
-  const base = getQRBase(); // kommt aus deinem LocalStorage (Eingabefeld)
+  const base = getQRBase();
   const input = document.getElementById('qrBase');
   const a = document.getElementById('viewerLink');
   const img = document.getElementById('qr-img');
 
   if (input) input.value = base;
 
-  // Viewer-URL aus Basis bauen (http(s)://host:port + /3v3/viewer.html)
   const url = buildViewerUrl(base);
   if (a) { a.href = url || '#'; a.textContent = 'Viewer öffnen'; }
 
   if (img) {
     if (url) {
-      // PNG von /api/qr beziehen (Größe optional ändern: 128/256/512)
-      const endpoint = `/api/qr?text=${encodeURIComponent(url)}&size=64${cacheBust()}`;
+      const endpoint = `/api/qr?text=${encodeURIComponent(url)}&size=128${cacheBust()}`;
       img.onerror = () => { img.style.display = 'none'; };
       img.onload  = () => { img.style.display = 'block'; };
       img.src = endpoint;
@@ -102,25 +123,16 @@ async function safeFetch(path, init) {
   const res = await fetch(API_BASE + path, init);
   if (!res.ok) {
     let txt = "";
-    try {
-      txt = await res.text();
-    } catch {}
-    throw new Error(
-      "HTTP " +
-        res.status +
-        " " +
-        res.statusText +
-        (txt ? ": " + txt : "")
-    );
+    try { txt = await res.text(); } catch {}
+    throw new Error("HTTP " + res.status + " " + res.statusText + (txt ? ": " + txt : ""));
   }
   return res.json();
 }
 
 function showMsg(selectorOrEl, text, isError) {
-  const el =
-    typeof selectorOrEl === "string"
-      ? document.querySelector(selectorOrEl)
-      : selectorOrEl;
+  const el = typeof selectorOrEl === "string"
+    ? document.querySelector(selectorOrEl)
+    : selectorOrEl;
 
   if (!el) return;
 
@@ -143,10 +155,9 @@ function groupClass(g) {
 }
 
 /* -------------------------------------------------------
-   API Aliases (5v5)
+   API Aliases
 ------------------------------------------------------- */
-const loadTeams = () => safeFetch("/teams", { method: "GET" });
-
+const loadTeams = () => safeFetch("/teams");
 const addTeam = (name, groupName) =>
   safeFetch("/teams", {
     method: "POST",
@@ -159,22 +170,18 @@ const deleteTeam = (id) =>
 
 const deleteAllTeams = () => safeFetch("/teams", { method: "DELETE" });
 
-const loadMatches = () => safeFetch("/matches", { method: "GET" });
-
-const resetMatches = () =>
-  safeFetch("/matches", {
-    method: "DELETE",
-  });
+const loadMatches = () => safeFetch("/matches");
+const resetMatches = () => safeFetch("/matches", { method: "DELETE" });
 
 const generateScheduleOnServer = (schedule) =>
-  safeFetch("/generate", {
+  safeFetch("/matches/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(schedule),
   });
 
 const updateResult = (id, scoreA, scoreB) =>
-  safeFetch("/updateResult", {
+  safeFetch("/matches/updateResult", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, scoreA, scoreB }),
@@ -195,9 +202,7 @@ function buildTeamsGrid(groups) {
   grid.innerHTML = "";
 
   const order = ["A", "B"];
-  const groupsOrdered = groups
-    .slice()
-    .sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  const groupsOrdered = groups.slice().sort((a, b) => order.indexOf(a) - order.indexOf(b));
 
   groupsOrdered.forEach((g) => {
     const card = document.createElement("div");
@@ -229,9 +234,7 @@ function buildTeamsGrid(groups) {
 function renderTeams() {
   const groupsSet = new Set(
     TEAMS.map((t) =>
-      String(t.groupName || "")
-        .trim()
-        .toUpperCase()
+      String(t.groupName || "").trim().toUpperCase()
     ).filter(Boolean)
   );
   const groups = groupsSet.size ? Array.from(groupsSet) : ["A", "B"];
@@ -274,7 +277,6 @@ function renderTeams() {
     ul.appendChild(li);
   });
 
-  // Counts aktualisieren
   groups.forEach((g) => {
     const count = TEAMS.filter(
       (t) => String(t.groupName).toUpperCase() === g
@@ -296,7 +298,7 @@ async function refreshTeams() {
 }
 
 /* -------------------------------------------------------
-   Matches Rendering (mit Toreingabe)
+   Matches Rendering
 ------------------------------------------------------- */
 function renderMatches() {
   const tbody = document.querySelector("#matchesTable tbody");
@@ -311,29 +313,54 @@ function renderMatches() {
     const taName = m.teamA_name || m.teamA || "";
     const tbName = m.teamB_name || m.teamB || "";
 
+    const trophy = `<span style="color:#facc15; margin-left:6px;">🏆</span>`;
+
+    const taWinner = m.winner === "A" ? trophy : "";
+    const tbWinner = m.winner === "B" ? trophy : "";
+
     tr.innerHTML = `
       <td>${m.id}</td>
       <td><span class="pill ${cls}">${m.groupName}</span></td>
       <td>${m.plannedStart || "–"}</td>
       <td>${m.field}</td>
-      <td>${taName}</td>
-      <td>${tbName}</td>
+      <td>${taName} ${taWinner}</td>
+      <td>${tbName} ${tbWinner}</td>
       <td>
-        <input type="number" class="scoreInput" data-id="${m.id}" data-team="A" value="${
-      m.scoreA ?? ""
-    }">
-      </td>
-      <td>
-        <input type="number" class="scoreInput" data-id="${m.id}" data-team="B" value="${
-      m.scoreB ?? ""
-    }">
+        <button class="btn btn-success btnWinnerA" data-id="${m.id}">Sieger: Team A</button>
+        <button class="btn btn-success btnWinnerB" data-id="${m.id}">Sieger: Team B</button>
       </td>
     `;
 
     tbody.appendChild(tr);
   });
 
-  initScoreInputs();
+  initWinnerButtons();
+}
+
+function initWinnerButtons() {
+  document.querySelectorAll(".btnWinnerA").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      try {
+        await updateResult(id, 1, 0); // Sieger A
+        await refreshMatches();
+      } catch (e) {
+        showMsg("#timeMsg", "Fehler: " + e.message, true);
+      }
+    });
+  });
+
+  document.querySelectorAll(".btnWinnerB").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      try {
+        await updateResult(id, 0, 1); // Sieger B
+        await refreshMatches();
+      } catch (e) {
+        showMsg("#timeMsg", "Fehler: " + e.message, true);
+      }
+    });
+  });
 }
 
 function initScoreInputs() {
@@ -366,7 +393,7 @@ async function refreshMatches() {
 }
 
 /* -------------------------------------------------------
-   Schedule UI (Zeitplan → Spielplan)
+   Schedule UI
 ------------------------------------------------------- */
 function wireScheduleUI() {
   const btn = document.getElementById("sched-generate");
@@ -424,10 +451,60 @@ function initSocket() {
   });
 }
 
+function exportTeamsToFile() {
+  const data = {
+    meta: {
+      exportedAt: new Date().toISOString(),
+      count: TEAMS.length
+    },
+    teams: TEAMS.map(t => ({
+      name: t.name,
+      groupName: t.groupName
+    }))
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "teams_export.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+async function importTeamsFromFile(file) {
+  try {
+    const text = await file.text();
+    const json = JSON.parse(text);
+
+    if (!Array.isArray(json.teams)) {
+      showMsg("#teamsMsg", "Ungültiges JSON-Format.", true);
+      return;
+    }
+
+    // Bestehende Teams löschen
+    await deleteAllTeams();
+
+    // Neue Teams einfügen
+    for (const t of json.teams) {
+      if (!t.name || !t.groupName) continue;
+      await addTeam(t.name, t.groupName);
+    }
+
+    await refreshTeams();
+    showMsg("#teamsMsg", "Teams erfolgreich importiert.");
+  } catch (e) {
+    showMsg("#teamsMsg", "Fehler beim Import: " + e.message, true);
+  }
+}
+
 /* -------------------------------------------------------
    Init
 ------------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", async () => {
+  initNav();
   wireScheduleUI();
   initSocket();
   applyQRBaseToUI();
@@ -437,10 +514,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnDeleteAllTeams = document.getElementById("btnDeleteAllTeams");
   const btnLoadMatches = document.getElementById("btnLoadMatches");
   const btnReset = document.getElementById("btnReset");
+  const btnSaveQRBase = document.getElementById("btnSaveQRBase");
 
-  if (btnLoadTeams) {
-    btnLoadTeams.addEventListener("click", refreshTeams);
+  if (btnSaveQRBase) {
+    btnSaveQRBase.addEventListener("click", () => {
+      const base = document.getElementById("qrBase").value.trim();
+      setQRBase(base);
+      applyQRBaseToUI();
+    });
   }
+
+  if (btnLoadTeams) btnLoadTeams.addEventListener("click", refreshTeams);
 
   if (btnAddTeam) {
     btnAddTeam.addEventListener("click", async () => {
@@ -480,9 +564,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  if (btnLoadMatches) {
-    btnLoadMatches.addEventListener("click", refreshMatches);
-  }
+  if (btnLoadMatches) btnLoadMatches.addEventListener("click", refreshMatches);
 
   if (btnReset) {
     btnReset.addEventListener("click", async () => {
@@ -496,6 +578,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
+  
+  const btnExportTeams = document.getElementById("btnExportTeams");
+  const btnImportTeams = document.getElementById("btnImportTeams");
+  const importFile = document.getElementById("importFile");
+
+  if (btnExportTeams) {
+    btnExportTeams.addEventListener("click", exportTeamsToFile);
+  }
+
+  if (btnImportTeams && importFile) {
+    btnImportTeams.addEventListener("click", () => importFile.click());
+
+    importFile.addEventListener("change", async () => {
+      if (importFile.files.length === 0) return;
+      await importTeamsFromFile(importFile.files[0]);
+      importFile.value = ""; // Reset
+    });
+  }
+
 
   await refreshTeams();
   await refreshMatches();

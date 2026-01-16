@@ -4,6 +4,6 @@ const express = require('express');
 const router = express.Router();
 
 router.use('/teams', require('./teams'));
-router.use('/', require('./matches'));
+router.use('/matches', require('./matches'));
 
 module.exports = router;

@@ -13,7 +13,7 @@ const {
    GET /api/minis5/matches
    → Alle 5v5-Matches zurückgeben
 ------------------------------------------------------- */
-router.get('/matches', (req, res) => {
+router.get('/', (req, res) => {
   db.all(
     `SELECT m.*, 
             ta.name AS teamA_name,
@@ -31,24 +31,10 @@ router.get('/matches', (req, res) => {
 });
 
 /* -------------------------------------------------------
-   GET /api/minis5/teams
-   → Alle 5v5-Teams zurückgeben
-------------------------------------------------------- */
-router.get('/teams', (req, res) => {
-  db.all(
-    `SELECT * FROM teams WHERE mode='5v5' ORDER BY groupName, id`,
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    }
-  );
-});
-
-/* -------------------------------------------------------
    DELETE /api/minis5/matches
    → Alle 5v5-Matches löschen
 ------------------------------------------------------- */
-router.delete('/matches', (req, res) => {
+router.delete('/', (req, res) => {
   db.run(
     `DELETE FROM matches WHERE mode='5v5'`,
     function (err) {
@@ -63,7 +49,7 @@ router.delete('/matches', (req, res) => {
 });
 
 /* -------------------------------------------------------
-   POST /api/minis5/generate
+   POST /api/minis5/matches/generate
    → Spielplan erzeugen und in DB speichern
 ------------------------------------------------------- */
 router.post('/generate', (req, res) => {
@@ -108,32 +94,35 @@ router.post('/generate', (req, res) => {
 
         matches.forEach(m => {
           const round =
-            m.group === 'A'
+            m.groupName === 'A'
               ? roundCounterA
               : roundCounterB;
 
           stmt.run(
             m.teamA,
             m.teamB,
-            m.group,
+            m.groupName,
             round,
             m.field,
             m.plannedStart
           );
 
           // Nach 3 Spielen Runde erhöhen
-          if (m.group === 'A') {
-            if (matches.filter(x => x.group === 'A' && x.round === round).length === 3) {
+          if (m.groupName === 'A') {
+            if (matches.filter(x => x.groupName === 'A' && x.round === round).length === 3) {
               roundCounterA++;
             }
           } else {
-            if (matches.filter(x => x.group === 'B' && x.round === round).length === 3) {
+            if (matches.filter(x => x.groupName === 'B' && x.round === round).length === 3) {
               roundCounterB++;
             }
           }
         });
 
         stmt.finalize();
+
+        // Live-Update senden
+        req.app.get('io').emit('matches:updated');
 
         res.json({ ok: true, inserted: matches.length });
       });
@@ -142,7 +131,7 @@ router.post('/generate', (req, res) => {
 });
 
 /* -------------------------------------------------------
-   POST /api/minis5/updateResult
+   POST /api/minis5/matches/updateResult
    → Ergebnis eines Spiels speichern
 ------------------------------------------------------- */
 router.post('/updateResult', (req, res) => {

@@ -4,6 +4,8 @@ const API_BASE = window.location.origin + '/api/minis5';
 
 const connState = document.getElementById("connState");
 
+const trophy = `<span style="color:#facc15; margin-left:6px;">🏆</span>`;
+
 function setStatus(text, color) {
     connState.textContent = text;
     connState.style.color = color;
@@ -101,17 +103,15 @@ function renderTiles(matches) {
           <span>Feld ${m.field}</span>
         `;
 
-        const ta = m.teamA_name || m.teamA || '';
-        const tb = m.teamB_name || m.teamB || '';
-        const winner = m.winner
-          ? (Number(m.winner) === Number(m.teamA) ? ta : tb)
-          : null;
-
         const main = document.createElement('div');
         main.className = 'tileMain';
-        main.textContent = winner
-          ? `${ta} vs ${tb} – Sieger: ${winner}`
-          : `${ta} vs ${tb}`;
+        let ta = m.teamA_name || m.teamA || '';
+		let tb = m.teamB_name || m.teamB || '';
+
+		if (m.winner === 'A') ta += ` ${trophy}`;
+		if (m.winner === 'B') tb += ` ${trophy}`;
+
+		main.innerHTML = `${ta} vs ${tb}`;
 
         tile.append(top, main);
       } else {
@@ -138,21 +138,20 @@ function renderTable(matches) {
     const cls = groupClass(m.groupName);
     if (cls) tr.classList.add(cls);
 
-    const ta = m.teamA_name || m.teamA || '';
-    const tb = m.teamB_name || m.teamB || '';
-    const winner = m.winner
-      ? (Number(m.winner) === Number(m.teamA) ? ta : tb)
-      : '–';
+    let ta = m.teamA_name || m.teamA || '';
+	let tb = m.teamB_name || m.teamB || '';
 
-    tr.innerHTML = `
-      <td>${m.id}</td>
-      <td><span class="pill ${cls}">${m.groupName}</span></td>
-      <td>${m.plannedStart || '–'}</td>
-      <td>${m.field}</td>
-      <td>${ta}</td>
-      <td>${tb}</td>
-      <td>${winner}</td>
-    `;
+	if (m.winner === 'A') ta += ` ${trophy}`;
+	if (m.winner === 'B') tb += ` ${trophy}`;
+
+	tr.innerHTML = `
+	  <td>${m.id}</td>
+	  <td><span class="pill ${cls}">${m.groupName}</span></td>
+	  <td>${m.plannedStart || '–'}</td>
+	  <td>${m.field}</td>
+	  <td>${ta}</td>
+	  <td>${tb}</td>
+	`;
 
     tbody.appendChild(tr);
   });
