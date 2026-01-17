@@ -346,8 +346,7 @@ function refresh(){
     setStatus(false);
     return;
   }
-  var base=window.location.origin;
-  var s=io(base, { path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000 });
+  var s=io("/minis3", { path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000 });
 
   s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTheadSpacer(); updateTilesHeadHeight(); });
   s.on('disconnect', function(){ setStatus(false); });

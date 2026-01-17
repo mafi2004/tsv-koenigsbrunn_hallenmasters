@@ -88,7 +88,8 @@ db.serialize(() => {
             scoreA INTEGER,
             scoreB INTEGER,
             winner INTEGER,
-            plannedStart TEXT
+            plannedStart TEXT,
+			mode TEXT
           )
         `, (crtErr) => {
           if (crtErr) {
@@ -96,7 +97,7 @@ db.serialize(() => {
             return db.run(`ROLLBACK`);
           }
           db.run(`
-            INSERT INTO matches_migr (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
+            INSERT INTO matches_migr (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
             SELECT
               id,
               teamA,
@@ -107,7 +108,8 @@ db.serialize(() => {
               scoreA,
               scoreB,
               CASE WHEN winner IS NULL THEN NULL ELSE CAST(winner AS INTEGER) END,
-              ${selectPlanned}
+              ${selectPlanned},
+			  '3v3'
             FROM matches
           `, (insErr) => {
             if (insErr) {
@@ -151,6 +153,7 @@ db.serialize(() => {
       winner INTEGER,
       plannedStart TEXT,
       originalMatchId INTEGER,
+	  mode TEXT,
       archivedAt TEXT DEFAULT (datetime('now'))
     )
   `);

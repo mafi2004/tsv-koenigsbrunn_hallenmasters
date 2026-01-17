@@ -452,7 +452,7 @@ function wireScheduleUI() {
 function initSocket() {
   if (typeof io !== "function") return;
 
-  const s = io(window.location.origin, {
+  const s = io("/minis5", {
     path: "/socket.io",
     transports: ["websocket", "polling"],
     reconnectionAttempts: 10,

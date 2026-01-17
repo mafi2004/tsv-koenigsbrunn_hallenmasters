@@ -4,7 +4,7 @@ const express = require('express');
 const db = require('../db');
 const { appendOp, makeSnapshot } = require('../utils/recovery');
 
-module.exports = (io) => {
+module.exports = (io3) => {
   const router = express.Router();
 
   // Helpers (Promise-Wrapper)
@@ -38,6 +38,7 @@ module.exports = (io) => {
         FROM matches m
         LEFT JOIN teams t1 ON m.teamA = t1.id
         LEFT JOIN teams t2 ON m.teamB = t2.id
+		WHERE m.mode='3v3'
         ORDER BY m.id ASC
       `);
       res.json(rows);
@@ -104,7 +105,7 @@ module.exports = (io) => {
         const curRows = await all(`
           SELECT id AS originalMatchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart
           FROM matches
-          WHERE UPPER(groupName) = ?
+          WHERE UPPER(groupName) = ? AND mode='3v3'
           ORDER BY field ASC, id ASC
         `, [groupName]);
 
@@ -113,8 +114,8 @@ module.exports = (io) => {
         for (const r of curRows) {
           await run(`
             INSERT INTO match_history
-            (batchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart, originalMatchId)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (batchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart, originalMatchId, mode)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '3v3')
           `, [
             batchId, r.groupName, r.round, r.field,
             r.teamA, r.teamB,
@@ -126,7 +127,7 @@ module.exports = (io) => {
         }
 
         // Alte Spiele löschen
-        await run(`DELETE FROM matches WHERE UPPER(groupName) = ?`, [groupName]);
+        await run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND mode='3v3'`, [groupName]);
 
         // Neue Runde einfügen
         for (const p of pairs) {
@@ -152,9 +153,9 @@ module.exports = (io) => {
         } catch {}
 
         // Events
-        io.emit('history:archived', { groupName, round: lastRound, batchId, count: curRows.length });
-        io.emit('round:advanced',  { groupName, plannedStart, round: nextRound });
-        io.emit('resultUpdate',    { type: 'nextRound', groupName, round: nextRound });
+        io3.emit('history:archived', { groupName, round: lastRound, batchId, count: curRows.length });
+        io3.emit('round:advanced',  { groupName, plannedStart, round: nextRound });
+        io3.emit('resultUpdate',    { type: 'nextRound', groupName, round: nextRound });
 
         res.json({ success: true, plannedStart, round: nextRound, archivedBatchId: batchId });
       } catch (inner) {
@@ -185,7 +186,7 @@ module.exports = (io) => {
 
       if (!Number.isFinite(lastRound)) {
         const maxRow = await get(
-          `SELECT MAX(round) AS r FROM matches WHERE UPPER(groupName) = ?`,
+          `SELECT MAX(round) AS r FROM matches WHERE UPPER(groupName) = ? AND mode='3v3'`,
           [groupName]
         );
         lastRound = Number(maxRow?.r);
@@ -201,7 +202,7 @@ module.exports = (io) => {
       let prev = await all(`
         SELECT id, field, teamA AS teamA_id, teamB AS teamB_id, winner
         FROM matches
-        WHERE UPPER(groupName) = ? AND round = ?
+        WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'
         ORDER BY field ASC
       `, [groupName, prevRound]);
 
@@ -255,14 +256,14 @@ module.exports = (io) => {
       // geplante Zeit der aktuellen Runde beibehalten
       const keepPlanned = (await get(`
         SELECT plannedStart FROM matches
-        WHERE UPPER(groupName) = ? AND round = ?
+        WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'
         ORDER BY id ASC LIMIT 1
       `, [groupName, lastRound]))?.plannedStart || null;
 
       await run(`BEGIN IMMEDIATE`);
       try {
         // aktuelle Runde R löschen …
-        await run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND round = ?`, [groupName, lastRound]);
+        await run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'`, [groupName, lastRound]);
         // … und neu einfügen (mit gleicher plannedStart)
         for (const p of pairs) {
           await run(`
@@ -280,8 +281,8 @@ module.exports = (io) => {
         } catch {}
 
         // Events
-        io.emit('round:rebuilt', { groupName, round: lastRound });
-        io.emit('resultUpdate',  { type: 'roundRebuilt', groupName, round: lastRound });
+        io3.emit('round:rebuilt', { groupName, round: lastRound });
+        io3.emit('resultUpdate',  { type: 'roundRebuilt', groupName, round: lastRound });
 
         res.json({ ok: true, groupName, round: lastRound, rebuilt: 3, plannedStart: keepPlanned, source, batchId: usedBatchId });
       } catch (inner) {

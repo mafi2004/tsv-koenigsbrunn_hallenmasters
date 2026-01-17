@@ -4,7 +4,7 @@ const db = require('../db');
 const fs = require('fs');
 const path = require('path');
 
-module.exports = (io) => {
+module.exports = (io3) => {
   const router = express.Router();
 
   const LOG_DIR = path.join(process.cwd(), 'logs');
@@ -73,7 +73,7 @@ module.exports = (io) => {
       db.run(`UPDATE match_history SET winner = ? WHERE id = ?`, [winner, id], function (eU) {
         if (eU) return res.status(500).json({ error: eU.message });
 
-        io.emit('history:updated', { id, winner });
+        io3.emit('history:updated', { id, winner });
         logLine(`[${new Date().toISOString()}] HISTORY_UPDATE id=${id} group=${row.groupName} round=${row.round} field=${row.field} before=${before} after=${winner}`);
 
         res.json({ ok: true, id, winner, groupName: row.groupName, round: row.round, field: row.field });

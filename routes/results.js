@@ -3,7 +3,7 @@ const express = require('express');
 const db = require('../db');
 const { appendOp, makeSnapshot } = require('../utils/recovery');
 
-module.exports = (io) => {
+module.exports = (io3) => {
   const router = express.Router();
 
   // Sieger setzen (mit Validierung + Log + Snapshot)
@@ -38,7 +38,7 @@ module.exports = (io) => {
           if (eBegin) return res.status(500).json({ error: 'Transaktion start fehlgeschlagen: ' + eBegin.message });
 
           db.run(
-            `UPDATE matches SET winner = ? WHERE id = ?`,
+            `UPDATE matches SET winner = ? WHERE id = ? AND mode='3v3'`,
             [wId, mid],
             function (updErr) {
               if (updErr) {
@@ -59,8 +59,8 @@ module.exports = (io) => {
                     try { await makeSnapshot(db); } catch {}
 
                     // Broadcasts
-                    io.emit('results:updated', { matchId: mid, winner: wId });
-                    io.emit('resultUpdate',    { matchId: mid, winner: wId });
+                    io3.emit('results:updated', { matchId: mid, winner: wId });
+                    io3.emit('resultUpdate',    { matchId: mid, winner: wId });
 
                     res.json({ success: true, matchId: mid, winner: wId });
                   });

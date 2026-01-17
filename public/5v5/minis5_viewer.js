@@ -228,7 +228,7 @@ function renderTeams(teams) {
 function initSocket() {
   if (typeof io !== 'function') return;
 
-  const s = io(window.location.origin, {
+  const s = io("/minis5", {
     path: '/socket.io',
     transports: ['websocket', 'polling'],
     reconnectionAttempts: 10,
@@ -242,6 +242,7 @@ function initSocket() {
   s.on('results:updated', reload);
   s.on('matches:updated', reload);
   s.on('winner:updated', reload);
+  s.on('teams:updated', reload);
   
   // Verbindung hergestellt
   s.on("connect", () => {
