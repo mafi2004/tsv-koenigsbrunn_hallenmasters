@@ -415,12 +415,17 @@ async function refreshMatches() {
 ------------------------------------------------------- */
 function wireScheduleUI() {
   const btn = document.getElementById("sched-generate");
+  
   if (!btn) return;
 
   btn.addEventListener("click", async () => {
     const timeHHMM = document.getElementById("sched-time").value;
     const dur = Number(document.getElementById("sched-dur").value);
     const brk = Number(document.getElementById("sched-break").value);
+	
+	localStorage.setItem("sched_time", timeHHMM);
+    localStorage.setItem("sched_dur", dur);
+    localStorage.setItem("sched_brk", brk);
 
     if (!/^\d{2}:\d{2}$/.test(timeHHMM)) {
       showMsg("#timeMsg", "Startzeit HH:MM ungültig.", true);
@@ -473,7 +478,12 @@ function exportTeamsToFile() {
   const data = {
     meta: {
       exportedAt: new Date().toISOString(),
-      count: TEAMS.length
+      count: TEAMS.length,
+      schedule: {
+        timeHHMM: localStorage.getItem("sched_time") || "",
+        dur: localStorage.getItem("sched_dur") || "",
+        brk: localStorage.getItem("sched_brk") || ""
+      }
     },
     teams: TEAMS.map(t => ({
       name: t.name,
@@ -497,10 +507,23 @@ async function importTeamsFromFile(file) {
     const text = await file.text();
     const json = JSON.parse(text);
 
-    if (!Array.isArray(json.teams)) {
-      showMsg("#teamsMsg", "Ungültiges JSON-Format.", true);
-      return;
-    }
+    // Schedule übernehmen, falls vorhanden
+	if (json.meta && json.meta.schedule) {
+	  const s = json.meta.schedule;
+
+	  if (s.timeHHMM) {
+		document.getElementById("sched-time").value = s.timeHHMM;
+		localStorage.setItem("sched_time", s.timeHHMM);
+	  }
+	  if (s.dur) {
+		document.getElementById("sched-dur").value = s.dur;
+		localStorage.setItem("sched_dur", s.dur);
+	  }
+	  if (s.brk) {
+		document.getElementById("sched-break").value = s.brk;
+		localStorage.setItem("sched_brk", s.brk);
+	  }
+	}
 
     // Bestehende Teams löschen
     await deleteAllTeams();
@@ -533,6 +556,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnLoadMatches = document.getElementById("btnLoadMatches");
   const btnReset = document.getElementById("btnReset");
   const btnSaveQRBase = document.getElementById("btnSaveQRBase");
+  
+  const t = localStorage.getItem("sched_time");
+  const d = localStorage.getItem("sched_dur");
+  const b = localStorage.getItem("sched_brk");
+
+  if (t) document.getElementById("sched-time").value = t;
+  if (d) document.getElementById("sched-dur").value = d;
+  if (b) document.getElementById("sched-break").value = b;
 
   if (btnSaveQRBase) {
     btnSaveQRBase.addEventListener("click", () => {

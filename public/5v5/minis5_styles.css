@@ -411,3 +411,52 @@ th {
   color: #ef4444;
   display: none;
 }
+
+/* -------------------------------------------------------
+  Werbeblock
+------------------------------------------------------- */
+.adWrap {
+  background: rgba(34, 197, 94, 0.25); /* leichtes Grün */
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.adTile {
+  background: transparent !important; /* wichtig: nicht überschreiben lassen */
+}
+
+.viewerInfoBox {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.adTileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.adTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* HIER: Bild klein machen */
+.adHeaderImg {
+  width: 96px;      /* oder 20px, wenn du es noch kleiner willst */
+  height: auto;
+  flex-shrink: 0;
+  border-radius: 4px; /* optional, wirkt etwas feiner */
+}
+
+.indentList {
+  list-style: none;
+  padding-left: 1.2rem; /* Einrückung */
+  margin: 0;
+}
+
+
+

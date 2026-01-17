@@ -264,8 +264,24 @@ function initSocket() {
     setStatus("Update empfangen", "#22c55e");
     setTimeout(() => setStatus("verbunden", "#22c55e"), 1500);
   });
-
 }
+
+function initAdTile() {
+  const tile = document.getElementById("adTile");
+  const header = document.getElementById("adHeader");
+  const body = document.getElementById("adBody");
+  const icon = tile.querySelector(".adToggleIcon");
+
+  header.addEventListener("click", () => {
+    const expanded = tile.getAttribute("aria-expanded") === "true";
+    tile.setAttribute("aria-expanded", !expanded);
+    body.style.display = expanded ? "none" : "block";
+    icon.textContent = expanded ? "›" : "‹";
+  });
+}
+
+document.addEventListener("DOMContentLoaded", initAdTile);
+
 
 /* -------------------------------------------------------
    Refresh All

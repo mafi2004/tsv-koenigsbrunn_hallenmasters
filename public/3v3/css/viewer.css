@@ -236,7 +236,7 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 }
 .adToggleIcon{ display:inline-block; margin-left:.5rem; transition: transform .18s ease; }
 .adBody{
-  margin-top:.6rem; line-height:1.55; white-space:pre-wrap;
+  margin-top:.6rem; line-height:1.55;
   max-height: 0; overflow: hidden;
   transition: max-height .22s ease, opacity .22s ease, margin-top .22s ease;
   opacity: 0; font-size: 0.95rem;
@@ -244,3 +244,9 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .adTile[aria-expanded="true"] .adBody{ max-height: 500px; opacity: 1; margin-top: .6rem; }
 .adTileHeader:focus{ outline: 2px solid #14b8a6; outline-offset: 2px; border-radius: 6px; }
 @media (max-width: 560px){ .adTileHeader{ flex-wrap:wrap; } .adHeaderImg{ order: 2; margin-top:.35rem; } }
+
+.indentList {
+  list-style: none;
+  padding-left: 1.2rem; /* Einrückung */
+  margin: 0;
+}
