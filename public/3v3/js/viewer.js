@@ -281,6 +281,33 @@ function renderTeamsGrid(teams){
   });
 }
 
+function updateHallenlayout() {
+  document.querySelectorAll('.team-overlay').forEach(el => { 
+	el.textContent = '';
+	el.className = 'team-overlay';
+  });
+  
+  if (!MATCHES || MATCHES.length === 0) return;
+  const current = MATCHES.slice(0, 3);
+
+  current.forEach(m => {
+	  const elA = document.getElementById(`field${m.field}-teamA`);
+	  const elB = document.getElementById(`field${m.field}-teamB`);
+	  console.log(m.groupName.toUpperCase())
+	  if (elA){
+		  elA.textContent = m.teamA || '';
+		  if (m.groupName) elA.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+	  
+	  if (elB){
+		  elB.textContent = m.teamB || '';
+		  if (m.groupName) elB.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+/*    document.getElementById(`field${m.field}-teamA`).textContent = m.teamA || '';
+    document.getElementById(`field${m.field}-teamB`).textContent = m.teamB || '';*/
+  });
+}
+
 /* === Sticky Offsets & View-Umschaltung === */
 function updateSectionTitle(mode){ var h2=document.getElementById('sectionTitle'); if(!h2) return; if(mode==='hall') h2.textContent='Halle'; else if(mode==='teams') h2.textContent='Gruppeneinteilung'; else h2.textContent='Spielübersicht'; }
 function updateStickyOffsets(){
@@ -331,7 +358,13 @@ document.getElementById('btnViewTeams').addEventListener('click', function(){ se
 /* === Refresh === */
 function refresh(){
   return loadMatches()
-    .then(function(rows){ renderTable(rows); renderTiles(rows); setLastUpdate(); })
+    .then(function(rows){ 
+		MATCHES = rows;
+		renderTable(rows); 
+		renderTiles(rows); 
+		updateHallenlayout(); 
+		setLastUpdate(); 
+	})
     .catch(function(e){
       console.error('Laden fehlgeschlagen:', e);
       var el=document.getElementById('lastUpdate'); if(el){ el.textContent='Letztes Update: Fehler'; el.className='pill err'; }

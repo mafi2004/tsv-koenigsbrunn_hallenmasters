@@ -252,7 +252,7 @@ function buildTeamsGrid(groups){
     const wrap = document.createElement('div'); wrap.className = 'table-wrap';
     const table = document.createElement('table'); table.id = `teams-table-${g}`;
     const thead = document.createElement('thead'); thead.innerHTML = `
-      <tr><th style="width:80px;">ID</th><th>Name</th><th style="width:160px;">Aktion</th></tr>`;
+      <tr><th style="width:20px;">ID</th><th>Name</th><th style="width:60px;">Aktion</th></tr>`;
     table.appendChild(thead);
     const tbody = document.createElement('tbody'); tbody.id = `teams-tbody-${g}`; table.appendChild(tbody);
     wrap.appendChild(table); card.appendChild(wrap); grid.appendChild(card);
@@ -442,7 +442,12 @@ function initSocket(){
     showMsg('#recMsg', 'Wiederherstellung abgeschlossen.');
   });
 
-  s.on('meta:updated', (p) => { setAdminYearLabel(p?.yearLabel ?? YEAR_LABEL); });
+  s.on('meta:updated', (p) => {
+	  setAdminYearLabel(p?.yearLabel ?? YEAR_LABEL);
+	  document.querySelector('#scheduleTime').value = p?.schedule.timeHHMM || '';
+	  document.querySelector('#scheduleDur').value = p?.schedule.dur || '';
+	  document.querySelector('#scheduleBrk').value = p?.schedule.brk || '';
+  });
 }
 
 function wireUI(){
@@ -636,6 +641,21 @@ async function importTournamentFile(file){
       if (!name || !grp) continue;
       try { await addTeam(name, grp); added++; } catch {}
     }
+	
+	if (obj.meta && obj.meta.timeHHMM) {
+		await fetch('/api/meta', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				yearLabel: null, // oder json.meta.yearLabel
+				schedule: {
+					timeHHMM: obj.meta.timeHHMM,
+					dur: obj.meta.dur,
+					brk: obj.meta.brk
+				}
+			})
+		});
+	}
 
     showMsg('#tournamentMsg', `Turnierdatei importiert. Label: ${yearLabel ?? '–'} | Teams: ${added}/${teamsArr.length}`);
     await refreshTeams();

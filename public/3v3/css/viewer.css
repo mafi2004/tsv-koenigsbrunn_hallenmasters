@@ -166,8 +166,11 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 
 /* Hallenlayout */
 .hallWrap{
+  position: relative;
   padding: 1rem;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 40vh;
 }
 .hallWrap .hall-img{
@@ -178,6 +181,54 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
   box-shadow: 0 4px 18px rgba(0,0,0,.25);
   background: #0b1020;
 }
+.team-overlay { 
+  position: absolute;
+  padding: 6px 10px;
+  background: rgba(0,255,0,0.65);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  pointer-events: none;
+  text-align: center;
+}
+.group-A {
+	background-color: #1d4ed8;
+	border-color: #1d4ed8;
+} 
+.group-B { 
+	background-color: #7f1d1d;
+	border-color: #7f1d1d;
+}
+.group-C {
+	background-color: #166534;
+	border-color: #166534;
+} 
+.group-D { 
+	background-color: #f59e0b;
+	border-color: #f59e0b;
+}
+.group-E {
+	background-color: #8b5cf6;
+	border-color: #8b5cf6;
+} 
+.group-F { 
+	background-color: #14b8a6;
+	border-color: #14b8a6;
+}
+
+/* Feld 1 */
+#field1-teamA { top: 15%; left: 12%; }
+#field1-teamB { top: 78%; left: 12%; }
+
+/* Feld 2 */
+#field2-teamA { top: 15%; left: 45%; }
+#field2-teamB { top: 78%; left: 45%; }
+
+/* Feld 3 */
+#field3-teamA { top: 15%; left: 72%; }
+#field3-teamB { top: 78%; left: 72%; }
+
 
 /* Teams-View */
 .teamsWrap{ padding:1rem; }

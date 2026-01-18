@@ -223,6 +223,34 @@ function renderTeams(teams) {
 }
 
 /* -------------------------------------------------------
+   Hallenlayout Rendering
+------------------------------------------------------- */
+function updateHallenlayout(matches) {
+  document.querySelectorAll('.team-overlay').forEach(el => {
+	  el.textContent = '';
+	  el.className = 'team-overlay';
+  });
+  
+  if (!matches || matches.length === 0) return;
+  const current = matches.filter(m => !m.winner).slice(0, 2);
+
+  current.forEach(m => {
+	  const elA = document.getElementById(`field${m.field}-teamA`);
+	  const elB = document.getElementById(`field${m.field}-teamB`);
+	  
+	  if (elA){
+		  elA.textContent = m.teamA_name || '';
+		  if (m.groupName) elA.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+	  
+	  if (elB){
+		  elB.textContent = m.teamB_name || '';
+		  if (m.groupName) elB.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+  });
+}
+
+/* -------------------------------------------------------
    Socket.IO Live Updates
 ------------------------------------------------------- */
 function initSocket() {
@@ -295,6 +323,7 @@ async function refreshAll() {
     renderTiles(matches);
     renderTable(matches);
     renderTeams(teams);
+	updateHallenlayout(matches);
   } catch (e) {
     const cont = document.getElementById('tilesContainer');
     cont.textContent = 'Fehler beim Laden: ' + e.message;

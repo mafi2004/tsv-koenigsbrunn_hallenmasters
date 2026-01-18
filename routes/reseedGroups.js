@@ -25,7 +25,7 @@ async function getTeamsByGroup(dbHandle, g) {
     dbHandle,
     `SELECT id, name, groupName
      FROM teams
-     WHERE UPPER(groupName) = UPPER(?)`,
+     WHERE UPPER(groupName) = UPPER(?) AND mode = '3v3'`,
     [String(g || '').trim()]
   );
 }
@@ -190,7 +190,7 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
 }
 
 /* --------------------- Route: POST /reseedGroups -------------------------- */
-module.exports = (sqliteDb, io) => {
+module.exports = (sqliteDb, io3) => {
   router.post('/reseedGroups', async (req, res) => {
     try {
       const schedule = req.body?.schedule ?? null;

@@ -318,6 +318,7 @@ th {
    Hallenlayout
 ------------------------------------------------------- */
 .hallWrap {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -329,6 +330,36 @@ th {
   border-radius: 8px;
   border: 1px solid var(--border);
 }
+
+.team-overlay { 
+  position: absolute;
+  padding: 6px 10px;
+  background: rgba(0,255,0,0.65);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  pointer-events: none;
+  text-align: center;
+}
+
+.group-A {
+	background: var(--grpA-fg) !important;
+	border-color: var(--grpA-br) !important;
+} 
+
+.group-B { 
+	background: var(--grpB-fg) !important;
+	border-color: var(--grpB-br) !important;
+}
+
+/* Feld 1 */
+#field1-teamA { top: 15%; left: 15%; }
+#field1-teamB { top: 75%; left: 15%; }
+
+/* Feld 2 */
+#field2-teamA { top: 15%; left: 67%; }
+#field2-teamB { top: 75%; left: 67%; }
 
 /* -------------------------------------------------------
    QR Code
