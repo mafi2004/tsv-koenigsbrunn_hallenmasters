@@ -114,10 +114,25 @@ function renderTiles(matches) {
         let ta = m.teamA_name || m.teamA || '';
 		let tb = m.teamB_name || m.teamB || '';
 
-		if (m.winner === 'A') ta += ` ${trophy}`;
+		if (m.winner === 'A') ta = `${trophy} ` + ta;
 		if (m.winner === 'B') tb += ` ${trophy}`;
 
-		main.innerHTML = `${ta} vs ${tb}`;
+		main.innerHTML = `
+		  <span class="teamA">${ta}</span>
+		  <span class="teamB">${tb}</span>
+		`;
+
+		const teamAEl = main.querySelector(".teamA");
+		const teamBEl = main.querySelector(".teamB");
+
+		if (m.winner === "A") {
+		  teamAEl.classList.add("winner");
+		  teamBEl.classList.add("loser");
+		}
+		if (m.winner === "B") {
+		  teamBEl.classList.add("winner");
+		  teamAEl.classList.add("loser");
+		}
 
         tile.append(top, main);
       } else {

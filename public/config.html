@@ -1,3 +1,27 @@
+<script>
+  const PW = "hm2026mf";
+
+  const entered = sessionStorage.getItem("cfgAuth") 
+               || prompt("Passwort für die Konfiguration:");
+
+  if (entered !== PW) {
+    alert("Falsches Passwort.");
+    window.location.href = "/"; // zurück zum Viewer
+  } else {
+    sessionStorage.setItem("cfgAuth", PW);
+  }
+</script>
+
+<script>
+  function logoutConfig() {
+    sessionStorage.removeItem("cfgAuth");
+    alert("Du wurdest ausgeloggt.");
+    window.location.href = "/"; // zurück zum Viewer
+  }
+</script>
+
+<script> if (!sessionStorage.getItem("cfgAuth")) { window.location.href = "/"; } </script>
+
 <!doctype html>
 <html lang="de">
 <head>
@@ -7,6 +31,10 @@
   <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
   <link rel="icon" href="/assets/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
+  
+  <button onclick="logoutConfig()" class="btn btn-danger">
+	Logout
+  </button>
 
   <style>
     body {

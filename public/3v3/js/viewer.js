@@ -51,14 +51,7 @@ function computeCompletedByRules(rows){
 function isABC(g){ return g==='A'||g==='B'||g==='C'; }
 function isDEF(g){ return g==='D'||g==='E'||g==='F'; }
 
-/* === Tabellen-Rendering === */
-function updateTheadSpacer(){
-  var tw=document.querySelector('.tableWrap');
-  var thead=tw?tw.querySelector('thead'):null;
-  if(!thead||!tw) return;
-  var h=Math.ceil(thead.getBoundingClientRect().height)||0;
-  tw.style.setProperty('--thead-spacer', h+'px');
-}
+
 function renderTable(rows){
   var tbody=document.querySelector('#matchesTable tbody');
   if(!tbody) return;
@@ -66,7 +59,7 @@ function renderTable(rows){
   rows=sortMatches(rows);
   if(!Array.isArray(rows)||!rows.length){
     var tr0=document.createElement('tr'); var td0=document.createElement('td'); td0.colSpan=7; td0.textContent='Noch keine Spiele geplant.'; td0.style.color='#9ca3af'; tr0.appendChild(td0); tbody.appendChild(tr0);
-    updateTheadSpacer(); return;
+    return;
   }
 
   var completed = computeCompletedByRules(rows);
@@ -119,8 +112,6 @@ function renderTable(rows){
       tbody.appendChild(tr);
     }
   });
-
-  updateTheadSpacer();
 }
 
 /* === Tiles-Rendering === */
@@ -319,7 +310,6 @@ function updateStickyOffsets(){
   document.documentElement.style.setProperty('--sticky-sec',  secH+'px');
 }
 window.addEventListener('load', updateStickyOffsets); window.addEventListener('resize', updateStickyOffsets); setTimeout(updateStickyOffsets, 350);
-window.addEventListener('load', updateTheadSpacer); window.addEventListener('resize', updateTheadSpacer);
 window.addEventListener('load', updateTilesHeadHeight); window.addEventListener('resize', updateTilesHeadHeight);
 
 function setView(mode){
@@ -343,7 +333,6 @@ function setView(mode){
 
   updateSectionTitle(mode);
   updateStickyOffsets();
-  updateTheadSpacer();
   updateTilesHeadHeight();
 
   if (mode==='teams'){
@@ -381,7 +370,7 @@ function refresh(){
   }
   var s=io("/minis3", { path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000 });
 
-  s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTheadSpacer(); updateTilesHeadHeight(); });
+  s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTilesHeadHeight(); });
   s.on('disconnect', function(){ setStatus(false); });
 
   var t; function triggerDebounced(){ clearTimeout(t); t=setTimeout(function(){ refresh(); }, 250); }

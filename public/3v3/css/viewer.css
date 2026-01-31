@@ -65,12 +65,6 @@ th,td{
   padding:.5rem; border-bottom:1px solid var(--border); text-align:left;
   box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.tableWrap thead{
-  position: sticky; top: var(--sticky-sec); z-index: 800; background:#0b1020;
-}
-.tableWrap tbody::before{
-  content:''; display:block; height: var(--thead-spacer, 0px);
-}
 
 /* Zeilenfärbung je Gruppe A–F */
 tr.grpA td{ background:rgba(29,78,216,.08); }

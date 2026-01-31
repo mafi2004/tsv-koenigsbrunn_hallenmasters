@@ -539,4 +539,43 @@ html {
   }
 }
 
+/* ============================================
+   5v5 – Siegerteam hervorheben + Team B rechtsbündig
+   ============================================ */
+
+/* ============================================
+   5v5 – Siegerteam hervorheben + Team B rechtsbündig
+   ============================================ */
+
+.tileMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* Team B rechtsbündig */
+.tileMain .teamB {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* Siegerteam grün */
+.tileMain .winner {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Verlierer leicht ausgegraut */
+.tileMain .loser {
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+/* "vs" etwas dezenter */
+.tileMain .vs {
+  color: var(--muted);
+  font-weight: 400;
+  margin: 0 .4rem;
+}
 
