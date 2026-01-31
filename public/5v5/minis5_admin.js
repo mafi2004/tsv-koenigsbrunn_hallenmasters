@@ -466,6 +466,9 @@ function initSocket() {
   s.on("disconnect", () => {
     setStatus("getrennt", "#ef4444");
   });
+  
+  s.on("reset-5v5", () => { location.reload(); });
+  s.on("reset-all", () => { location.reload(); });
 
   s.on("matches:updated", () => {
     setStatus("Update empfangen", "#22c55e");

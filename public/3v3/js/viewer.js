@@ -393,6 +393,9 @@ function refresh(){
   s.on('matches:reset',          triggerDebounced);
   s.on('groups:reseeded',        triggerDebounced);
   s.on('schedule:recalculated',  triggerDebounced);
+  
+  s.on("reset-3v3", () => { location.reload(); });
+  s.on("reset-all", () => { location.reload(); });
 
   s.on('meta:updated', function(p){
     var lbl = (p && typeof p.yearLabel==='string') ? p.yearLabel : null;

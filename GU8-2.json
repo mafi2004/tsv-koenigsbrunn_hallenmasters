@@ -1,8 +1,8 @@
 {
   "meta": {
-    "yearLabel": "JG_2019/20",
+    "yearLabel": "JG_2018",
     "schedule": {
-      "timeHHMM": "08:30",
+      "timeHHMM": "12:30",
       "dur": 7,
       "brk": 3
     }
@@ -21,51 +21,51 @@
       "groupName": "C"
     },
     {
-      "name": "FSV Großaitingen 1",
+      "name": "SV Mering",
       "groupName": "A"
     },
     {
-      "name": "FSV Großaitingen 2",
+      "name": "TSV Schwaben Augsburg",
       "groupName": "B"
     },
     {
-      "name": "TSV Diedorf 1",
+      "name": "Aux Pro Göggingen",
       "groupName": "C"
     },
     {
-      "name": "TSV Diedorf 2",
+      "name": "Türk. SV Bobingen 1",
       "groupName": "A"
     },
     {
-      "name": "TSV Haunstetten",
+      "name": "Türk. SV Bobingen 2",
       "groupName": "B"
     },
     {
-      "name": "TSV Bobingen 1",
+      "name": "FAA Augsburg 1",
       "groupName": "C"
     },
     {
-      "name": "TSV Bobingen 2",
+      "name": "FAA Augsburg 2",
       "groupName": "A"
     },
     {
-      "name": "SV Mering 1",
+      "name": "Münchner Talente",
       "groupName": "B"
     },
     {
-      "name": "SV Mering 2",
+      "name": "SSV Bobingen",
       "groupName": "C"
     },
     {
-      "name": "JFG Lechfeld 1",
+      "name": "TSG Augsburg 1",
       "groupName": "A"
     },
     {
-      "name": "JFG Lechfeld 2",
+      "name": "TSG Augsburg 2",
       "groupName": "B"
     },
     {
-      "name": "FC Königsbrunn 1",
+      "name": "SV Wulfertshausen",
       "groupName": "C"
     },
     {
@@ -73,11 +73,11 @@
       "groupName": "A"
     },
     {
-      "name": "FC Königsbrunn 2",
+      "name": "DJK Göggingen",
       "groupName": "B"
     },
     {
-      "name": "TSV Königsbrunn 5",
+      "name": "TSV Merching",
       "groupName": "C"
     }
   ]

@@ -1,8 +1,8 @@
 {
   "meta": {
-    "yearLabel": "JG_2019/20",
+    "yearLabel": "JG_2017",
     "schedule": {
-      "timeHHMM": "08:30",
+      "timeHHMM": "12:30",
       "dur": 7,
       "brk": 3
     }
@@ -21,51 +21,51 @@
       "groupName": "C"
     },
     {
-      "name": "FSV Großaitingen 1",
+      "name": "TSV Pfersee",
       "groupName": "A"
     },
     {
-      "name": "FSV Großaitingen 2",
+      "name": "TSV Gersthofen 1",
       "groupName": "B"
     },
     {
-      "name": "TSV Diedorf 1",
+      "name": "TSV Gersthofen 2",
       "groupName": "C"
     },
     {
-      "name": "TSV Diedorf 2",
+      "name": "DJK Göggingen 1",
       "groupName": "A"
     },
     {
-      "name": "TSV Haunstetten",
+      "name": "DJK Göggingen 2",
       "groupName": "B"
     },
     {
-      "name": "TSV Bobingen 1",
+      "name": "SV Mering",
       "groupName": "C"
     },
     {
-      "name": "TSV Bobingen 2",
+      "name": "TSV Friedberg 1",
       "groupName": "A"
     },
     {
-      "name": "SV Mering 1",
+      "name": "TSV Friedberg 2",
       "groupName": "B"
     },
     {
-      "name": "SV Mering 2",
+      "name": "TSV Firnhaberau 1",
       "groupName": "C"
     },
     {
-      "name": "JFG Lechfeld 1",
+      "name": "TSV Firnhaberau 2",
       "groupName": "A"
     },
     {
-      "name": "JFG Lechfeld 2",
+      "name": "SSV Bobingen 1",
       "groupName": "B"
     },
     {
-      "name": "FC Königsbrunn 1",
+      "name": "SSV Bobingen 2",
       "groupName": "C"
     },
     {
@@ -73,11 +73,11 @@
       "groupName": "A"
     },
     {
-      "name": "FC Königsbrunn 2",
+      "name": "TSV Merching",
       "groupName": "B"
     },
     {
-      "name": "TSV Königsbrunn 5",
+      "name": "SV Mühlried",
       "groupName": "C"
     }
   ]

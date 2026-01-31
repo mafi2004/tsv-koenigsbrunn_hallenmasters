@@ -73,6 +73,88 @@ app.use('/api/minis5', minis5Router);
 app.use('/api/minis5/teams', minis5TeamsRouter);
 app.use('/api/minis5/matches', minis5MatchesRouter);
 
+// ---------------------------------------------
+// RESET ROUTES MIT SOCKET-BROADCASTS
+// ---------------------------------------------
+
+// Reset 3v3 Modul
+app.post('/admin/reset-3v3', async (req, res) => {
+  try {
+    await db.exec(`
+      DELETE FROM teams WHERE mode = '3v3';
+      DELETE FROM matches WHERE mode = '3v3';
+      DELETE FROM match_history WHERE mode = '3v3';
+      DELETE FROM group_state; -- 3v3 nutzt nur eine group_state Tabelle
+      VACUUM;
+    `);
+
+    console.log("3v3 Modul zurückgesetzt");
+    io3.emit("reset-3v3");
+
+    res.json({ success: true, message: "3v3 Modul erfolgreich zurückgesetzt" });
+
+  } catch (err) {
+    console.error("Fehler beim Reset 3v3:", err);
+    res.status(500).json({ success: false, message: "Fehler beim Reset 3v3" });
+  }
+});
+
+
+// Reset 5v5 Modul
+app.post('/admin/reset-5v5', async (req, res) => {
+  try {
+    await db.exec(`
+      DELETE FROM teams WHERE mode = '5v5';
+      DELETE FROM matches WHERE mode = '5v5';
+      DELETE FROM match_history WHERE mode = '5v5';
+      -- group_state NICHT löschen, das ist nur für 3v3
+      VACUUM;
+    `);
+
+    console.log("5v5 Modul zurückgesetzt");
+    io5.emit("reset-5v5");
+
+    res.json({ success: true, message: "5v5 Modul erfolgreich zurückgesetzt" });
+
+  } catch (err) {
+    console.error("Fehler beim Reset 5v5:", err);
+    res.status(500).json({ success: false, message: "Fehler beim Reset 5v5" });
+  }
+});
+
+
+// Komplett-Reset (alle Module)
+app.post('/admin/reset-all', async (req, res) => {
+  try {
+    await db.exec(`
+      DELETE FROM teams;
+      DELETE FROM matches;
+      DELETE FROM match_history;
+      DELETE FROM group_state;
+      DELETE FROM admin_ops;
+      DELETE FROM admin_snapshots;
+      UPDATE tournament_meta SET 
+        yearLabel = NULL,
+        timeHHMM = NULL,
+        dur = NULL,
+        brk = NULL,
+        updatedAt = datetime('now');
+      VACUUM;
+    `);
+
+    console.log("Komplett-Reset durchgeführt");
+    io3.emit("reset-all");
+    io5.emit("reset-all");
+
+    res.json({ success: true, message: "Komplett‑Reset erfolgreich durchgeführt" });
+
+  } catch (err) {
+    console.error("Fehler beim Komplett‑Reset:", err);
+    res.status(500).json({ success: false, message: "Fehler beim Komplett‑Reset" });
+  }
+});
+
+
 // Server starten
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {

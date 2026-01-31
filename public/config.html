@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>3. Königsbrunner Hallenmasters – Turnierauswahl</title>
+  <title>Konfiguration – Hallenmasters</title>
   <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
   <link rel="icon" href="/assets/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
@@ -53,18 +53,12 @@
       padding: 2rem;
     }
 
-    .twoCols {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3rem;
-      width: 100%;
-      max-width: 500px;
-    }
-
     .col {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      width: 100%;
+      max-width: 400px;
     }
 
     .colTitle {
@@ -76,16 +70,12 @@
     }
 
     .card {
-      aspect-ratio: 1 / 1;
       background: #111827;
       border: 1px solid #1f2937;
       border-radius: 12px;
       padding: 1.5rem;
       text-align: center;
       transition: transform .15s ease, border-color .15s ease;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
       cursor: pointer;
     }
 
@@ -93,22 +83,19 @@
       transform: translateY(-4px);
     }
 
-    .adminCard {
-      border-color: #1d4ed8;
-      background: rgba(29, 78, 216, 0.15);
+    .reset3v3 {
+      border-color: #2563eb;
+      background: rgba(37, 99, 235, 0.15);
     }
 
-    .adminCard:hover {
-      border-color: #3b82f6;
-    }
-
-    .viewerCard {
+    .reset5v5 {
       border-color: #16a34a;
       background: rgba(22, 163, 74, 0.15);
     }
 
-    .viewerCard:hover {
-      border-color: #22c55e;
+    .resetAll {
+      border-color: #dc2626;
+      background: rgba(220, 38, 38, 0.15);
     }
 
     .card h3 {
@@ -123,23 +110,11 @@
       font-size: .95rem;
     }
 
-    a {
-      text-decoration: none;
-      color: inherit;
-    }
-
     footer {
       text-align: center;
       padding: 1rem;
       color: #6b7280;
       font-size: .85rem;
-    }
-
-    @media (max-width: 700px) {
-      .twoCols {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-      }
     }
   </style>
 </head>
@@ -149,67 +124,53 @@
   <header>
     <img src="/assets/Fussballwappen_logo.png" class="logo" alt="Vereinslogo" />
     <div class="titleBlock">
-      <h1>3. Königsbrunner Hallenmasters</h1>
-      <span>Turnierplattform</span>
+      <h1>Konfiguration</h1>
+      <span>Systemverwaltung</span>
     </div>
   </header>
 
   <main>
-    <div class="twoCols" style="grid-template-columns: 1fr 1fr 1fr; max-width: 800px;">
+    <div class="col">
+      <h2 class="colTitle">Datenbank‑Reset</h2>
 
-      <div class="col">
-        <h2 class="colTitle">3vs3 Funino</h2>
-
-        <a href="/3v3/admin.html">
-          <div class="card adminCard">
-            <h3>Admin</h3>
-            <p>Teams, Spielplan & Ergebnisse</p>
-          </div>
-        </a>
-
-        <a href="/3v3/viewer.html">
-          <div class="card viewerCard">
-            <h3>Viewer</h3>
-            <p>Live‑Ansicht für Zuschauer</p>
-          </div>
-        </a>
+      <div class="card reset3v3" onclick="resetModule('3v3')">
+        <h3>Modul Reset 3v3</h3>
+        <p>Löscht alle Daten des 3vs3‑Moduls</p>
       </div>
 
-      <div class="col">
-        <h2 class="colTitle">5v5 Hallenmasters</h2>
-
-        <a href="/5v5/admin.html">
-          <div class="card adminCard">
-            <h3>Admin</h3>
-            <p>Teams, Spielplan & Ergebnisse</p>
-          </div>
-        </a>
-
-        <a href="/5v5/viewer.html">
-          <div class="card viewerCard">
-            <h3>Viewer</h3>
-            <p>Live‑Ansicht für Zuschauer</p>
-          </div>
-        </a>
+      <div class="card reset5v5" onclick="resetModule('5v5')">
+        <h3>Modul Reset 5v5</h3>
+        <p>Löscht alle Daten des 5vs5‑Moduls</p>
       </div>
-	  
-	<div class="col">
-      <h2 class="colTitle">Config</h2>
 
-      <a href="/config.html">
-        <div class="card" style="border-color:#d97706; background:rgba(217,119,6,0.15);">
-          <h3>Konfiguration</h3>
-          <p>Reset & Systemeinstellungen</p>
-        </div>
-      </a>
-    </div>
-
+      <div class="card resetAll" onclick="resetModule('all')">
+        <h3>Komplett‑Reset</h3>
+        <p>Setzt das gesamte System zurück</p>
+      </div>
     </div>
   </main>
 
   <footer>
     © Markus Finke - TSV Königsbrunn
   </footer>
+
+  <script>
+    async function resetModule(type) {
+      const confirmText = prompt("Zum Bestätigen 'RESET' eingeben:");
+
+      if (confirmText !== "RESET") {
+        alert("Abgebrochen");
+        return;
+      }
+
+      const res = await fetch(`/admin/reset-${type}`, {
+        method: "POST"
+      });
+
+      const data = await res.json();
+      alert(data.message || "Reset ausgeführt");
+    }
+  </script>
 
 </body>
 </html>

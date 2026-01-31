@@ -358,8 +358,28 @@ th {
 #field1-teamB { top: 75%; left: 15%; }
 
 /* Feld 2 */
-#field2-teamA { top: 15%; left: 67%; }
-#field2-teamB { top: 75%; left: 67%; }
+#field2-teamA { top: 15%; left: 70%; }
+#field2-teamB { top: 75%; left: 70%; }
+
+/* ============================================
+   MOBILE FIX: Team-Overlay-Positionen im Hochformat
+   ============================================ */
+@media (max-width: 600px) and (orientation: portrait) {
+
+  /* Feld 1 */
+  #field1-teamA { top: 15%; left: 11%; }
+  #field1-teamB { top: 72%; left: 11%; }
+
+  /* Feld 2 */
+  #field2-teamA { top: 15%; left: 68%; }
+  #field2-teamB { top: 72%; left: 68%; }
+
+  /* Schrift kleiner für mobile Overlays */
+  .team-overlay {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+}
 
 /* -------------------------------------------------------
    QR Code
@@ -489,5 +509,34 @@ th {
   margin: 0;
 }
 
+/* ============================================
+   RESPONSIVE SCHRIFTGRÖSSEN FÜR HANDYS & TABLETS
+   ============================================ */
+
+/* Standard Desktop */
+html {
+  font-size: 16px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Handy Querformat */
+@media (max-width: 900px) and (min-aspect-ratio: 1/1) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Handy Hochformat */
+@media (max-width: 600px) and (orientation: portrait) {
+  html {
+    font-size: 10px;
+  }
+}
 
 

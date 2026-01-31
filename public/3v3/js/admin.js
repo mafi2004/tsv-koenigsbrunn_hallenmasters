@@ -433,6 +433,9 @@ function initSocket(){
   s.on('schedule:recalculated', reloadMatches);
 
   s.on('matches:reset', () => { reloadMatches(); clearHistoryUI(); });
+  
+  s.on("reset-3v3", () => { location.reload(); });
+  s.on("reset-all", () => { location.reload(); });
 
   s.on('snapshot:created', async () => { await refreshSnapshots(); showMsg('#recMsg', 'Snapshot erstellt.'); });
   s.on('recovery:done', async () => {

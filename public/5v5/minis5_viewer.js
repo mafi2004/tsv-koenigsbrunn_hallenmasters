@@ -272,6 +272,9 @@ function initSocket() {
   s.on('winner:updated', reload);
   s.on('teams:updated', reload);
   
+  s.on("reset-5v5", () => { location.reload(); });
+  s.on("reset-all", () => { location.reload(); });
+  
   // Verbindung hergestellt
   s.on("connect", () => {
     setStatus("verbunden", "#22c55e"); // grün
