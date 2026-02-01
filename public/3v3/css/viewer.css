@@ -307,11 +307,12 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .teamDot.F{ background:#14b8a6; }
 
 /* View-Umschaltung */
-#tableView, #tilesView, #hallView, #teamsView{ display:none; }
+#tableView, #tilesView, #hallView, #teamsView, #rulesView { display:none; }
 .view-table #tableView{ display:block; }
 .view-tiles #tilesView{ display:block; }
 .view-hall  #hallView { display:block; }
 .view-teams #teamsView{ display:block; }
+.view-rules #rulesView{ display:block; }
 
 /* Werbungskachel */
 .adWrap{ padding: 1rem; }
@@ -452,5 +453,40 @@ table tbody td:nth-child(4) {
 .footerInner {
   max-width: 900px;
   margin: 0 auto;
+}
+
+/* -------------------------------------------------------
+  Regelblock
+------------------------------------------------------- */
+.rulesWrap {
+  background: rgba(197, 34, 94, 0.25);
+  border: 1px solid rgba(197, 34, 94, 0.25);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.rulesTile {
+  background: transparent !important; /* wichtig: nicht überschreiben lassen */
+}
+
+.rulesTileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.rulesTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* HIER: Bild klein machen */
+.rulesHeaderImg {
+  width: 96px;      /* oder 20px, wenn du es noch kleiner willst */
+  height: auto;
+  flex-shrink: 0;
+  border-radius: 4px; /* optional, wirkt etwas feiner */
 }
 

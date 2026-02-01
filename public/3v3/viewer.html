@@ -48,6 +48,7 @@
           <button id="btnViewTiles" class="btn btn-active" type="button">Spielfeldbelegung</button>
           <button id="btnViewHall"  class="btn"            type="button">Hallenlayout</button>
           <button id="btnViewTeams" class="btn"            type="button">Teams</button>
+		  <button id="btnViewRules" class="btn"            type="button">Regelübersicht</button>
         </div>
       </header>
 
@@ -101,6 +102,31 @@
       <div id="teamsView" class="teamsWrap">
         <div id="teamsGrid" class="teamsGrid"></div>
         <div id="teamsEmpty" class="emptyMsg" style="display:none">Es wurden noch keine Teams eingetragen.</div>
+      </div>
+	  
+	  <!-- Regeln -->
+      <div id="rulesView" class="rulesWrap">
+		<div id="rulesHeader" class="rulesTileHeader" aria-controls="rulesBody">
+		  <h2></h2>
+		  <img id="rulesHeaderImg" class="rulesHeaderImg" src="/assets/regeln.jpg" alt="Info" />
+		</div>
+        <br>
+        Wir spielen Minifußball 3 vs 3 auf 3 Feldern und 3 Gruppen im Wechsel, d.h. nach einem Spiel haben die Mannschaften jeweils 2 Spiele Pause. Danach wird das Spielfeld im Champions League Modus gewechselt, d.h. Gewinner von Feld 3 wechselt auf Feld 2, Verlierer von Feld 1 wechselt auf Feld 2, usw.
+		<br><br>
+		<ul class="indentList">
+			<li>- Spieldauer: 7min</li>
+			<li>- Schusszone bei 6m</li>
+			<li>- Kein Grätschen!</li>
+			<li>- Zum Spielbeginn befinden sich alle Spieler auf der eigenen Torlinie, der Ball wird von einem Trainer im Bereich der Mittellinie ins Spiel gebracht.</li>
+			<li>- Bei Seitenaus (Ball über der Abtrennung): Einkick oder Eindribbeln (keine direkte Torerzielung)</li>
+			<li>- Bei Eckball: Einkick oder Eindribbeln von der Seitenlinie auf Höhe der Schusszone (keine direkte Torerzielung).</li>
+			<li>- Bei Toraus: Verteidiger bringen den Ball von der Grundlinie ins Feld.</li>
+			<li>- Bei Torerzielung: in eigene Spielhälfte zurückziehen</li>
+		</ul>
+		<br>
+		Liegt eine Mannschaft mit 3 Toren zurück, darf sie einen 4. Spieler aufs Feld bringen (solange bis der Rückstand aufgeholt werden konnte).<br>
+		Bei Unentschieden gilt die Mannschaft als Sieger, die das letzte Tor geschossen hat. Bei einem 0:0 losen die beiden Teams den Sieger aus.<br><br>
+		Nach dem Spiel bitte immer den Sieger für jedes Feld bei der Turnierleitung melden, damit wir den Spielplan aktualisieren können.
       </div>
 
       <!-- Werbe-Infobox -->

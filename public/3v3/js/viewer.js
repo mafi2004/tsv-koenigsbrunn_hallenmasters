@@ -299,7 +299,8 @@ function updateHallenlayout() {
 }
 
 /* === Sticky Offsets & View-Umschaltung === */
-function updateSectionTitle(mode){ var h2=document.getElementById('sectionTitle'); if(!h2) return; if(mode==='hall') h2.textContent='Halle'; else if(mode==='teams') h2.textContent='Gruppeneinteilung'; else h2.textContent='Spielübersicht'; }
+function updateSectionTitle(mode){ var h2=document.getElementById('sectionTitle'); if(!h2) return; if(mode==='hall') h2.textContent='Halle'; else if(mode==='teams') h2.textContent='Gruppeneinteilung'; else if(mode==='rules') h2.textContent='Regelübersicht'; else h2.textContent='Spielübersicht'; }
+
 function updateStickyOffsets(){
   var topHdr=document.querySelector('body > header');
   var secHdr=document.getElementById('sectionHeader');
@@ -317,17 +318,20 @@ function setView(mode){
   var btnK=document.getElementById('btnViewTiles');
   var btnH=document.getElementById('btnViewHall');
   var btnTe=document.getElementById('btnViewTeams');
+  var btnTe=document.getElementById('btnViewRules');
 
-  body.classList.remove('view-table','view-tiles','view-hall','view-teams');
+  body.classList.remove('view-table','view-tiles','view-hall','view-teams','view-rules');
   if (mode==='table') body.classList.add('view-table');
   else if (mode==='hall') body.classList.add('view-hall');
   else if (mode==='teams') body.classList.add('view-teams');
+  else if (mode==='rules') body.classList.add('view-rules');
   else body.classList.add('view-tiles');
 
   [btnT,btnK,btnH,btnTe].forEach(function(b){ b&&b.classList.remove('btn-active'); });
   if (mode==='table') btnT&&btnT.classList.add('btn-active');
   else if (mode==='hall') btnH&&btnH.classList.add('btn-active');
   else if (mode==='teams') btnTe&&btnTe.classList.add('btn-active');
+  else if (mode==='rules') btnTe&&btnTe.classList.add('btn-active');
   else btnK&&btnK.classList.add('btn-active');
 
   updateSectionTitle(mode);
@@ -342,6 +346,7 @@ document.getElementById('btnViewTable').addEventListener('click', function(){ se
 document.getElementById('btnViewTiles').addEventListener('click', function(){ setView('tiles'); });
 document.getElementById('btnViewHall').addEventListener('click',  function(){ setView('hall'); });
 document.getElementById('btnViewTeams').addEventListener('click', function(){ setView('teams'); });
+document.getElementById('btnViewRules').addEventListener('click', function(){ setView('rules'); });
 
 /* === Refresh === */
 function refresh(){
