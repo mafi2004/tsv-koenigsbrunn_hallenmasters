@@ -30,6 +30,51 @@ const io5 = io.of("/minis5");
 // io im app-Objekt verfügbar machen, z.B. für Broadcasts
 app.set('io', io);
 
+// Besucher der Seite tracken
+let viewerCount3 = 0;
+let viewerCount5 = 0;
+let totalVisitors3 = 0;
+let totalVisitors5 = 0;
+
+io.of("/minis3").on("connection", socket => {
+  const isAdmin = socket.handshake.query.admin === "true";
+  
+  if (!isAdmin) {
+    viewerCount3++;
+    totalVisitors3++;
+  }
+  io.of("/minis3").emit("totalVisitors3", totalVisitors3);
+
+  // allen Clients neue Zahl schicken
+  io.of("/minis3").emit("viewerCount3", viewerCount3);
+
+  socket.on("disconnect", () => {
+    if (!isAdmin) {
+      viewerCount3--;
+      io.of("/minis3").emit("viewerCount3", viewerCount3);
+	}
+  });
+});
+io.of("/minis5").on("connection", socket => {
+  const isAdmin = socket.handshake.query.admin === "true";
+  
+  if (!isAdmin) {
+    viewerCount5++;
+    totalVisitors5++;
+  }
+  io.of("/minis5").emit("totalVisitors5", totalVisitors5);
+
+  // allen Clients neue Zahl schicken
+  io.of("/minis5").emit("viewerCount5", viewerCount5);
+
+  socket.on("disconnect", () => {
+	if (!isAdmin) {
+      viewerCount5--;
+      io.of("/minis5").emit("viewerCount5", viewerCount5);
+	}
+  });
+});
+
 app.use(cors());
 app.use(bodyParser.json());
 

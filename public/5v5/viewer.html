@@ -42,6 +42,7 @@
         border: 1px solid #374151;
       ">
         Status: <span id="connState">…</span>
+		<span id="viewerCount" class="pill">Zuschauer online: 0</span>
       </div>
     </div>
 
@@ -131,6 +132,42 @@
 		</ul>
         <br>
         Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird für jeden etwas dabei sein. Für das leibliche Wohl wird vor Ort ausreichend gesorgt sein.
+		<p>
+		<b>Vorananmeldungen per Mail sind bereits jetzt möglich: finke.markus@gmx.de</b>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Regel-KACHEL (unter allen Tabs) -->
+  <div class="rulesWrap viewerInfoBox">
+    <div id="rulesTile" class="tile grpF rulesTile" aria-label="Werbung" aria-expanded="false">
+      <div id="rulesHeader" class="rulesTileHeader" role="button" tabindex="0" aria-controls="rulesBody">
+        <h3 class="rulesTitle">
+          Regelübersicht
+          <span class="rulesToggleIcon">›</span>
+        </h3>
+        <img id="rulesHeaderImg" class="rulesHeaderImg" src="/assets/regeln.jpg" alt="Info" />
+      </div>
+
+      <div id="rulesBody" class="rulesBody">
+	    <br>
+        Wir spielen Minifußball 5 vs 5 auf 2 Feldern und 2 Gruppen im Wechsel. Jede Gruppe spielt „Jeder gegen Jeden“. 
+		<br><br>
+		<ul class="indentList">
+			<li>- Spieldauer: 10min</li>
+			<li>- Schusszone: ab der Mittellinie</li>
+			<li>- Kein Grätschen!</li>
+			<li>- Zum Spielbeginn befinden sich alle Spieler auf der eigenen Torlinie, der Ball wird von einem Trainer im Bereich der Mittellinie ins Spiel gebracht.</li>
+			<li>- Bei Seitenaus (Ball über der Abtrennung): Einkick oder Eindribbeln (keine direkte Torerzielung)</li>
+			<li>- Bei Eckball: Einkick von der Ecke (keine direkte Torerzielung).</li>
+			<li>- Bei Toraus: Verteidiger bringen den Ball von der Grundlinie ins Feld.</li>
+			<li>- Bei Torerzielung: in eigene Spielhälfte zurückziehen</li>
+		</ul>
+		<br>
+		Liegt eine Mannschaft mit 3 Toren zurück, darf sie einen 6. Spieler aufs Feld bringen (solange bis der Rückstand aufgeholt werden konnte).<br>
+		Bei Unentschieden gilt die Mannschaft als Sieger, die das letzte Tor geschossen hat.<br><br>
+		Nach dem Spiel bitte immer den Sieger für jedes Feld bei der Turnierleitung melden, damit wir den Spielplan aktualisieren können.
+
       </div>
     </div>
   </div>
@@ -139,6 +176,12 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="/qr_script.js"></script>
   <script src="minis5_viewer.js"></script>
+
+  <footer class="viewerFooter">
+    <div class="footerInner">
+      © 2026 – Kontakt: Markus Finke, <a href="mailto:deine@mail.de">finke.markus@gmx.de</a>
+    </div>
+  </footer>
 
 </body>
 </html>

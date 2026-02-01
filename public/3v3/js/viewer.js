@@ -148,8 +148,7 @@ function tileNodeForMatch(m){
   var top=document.createElement('div'); top.className='tileTop';
   var topLeft=document.createElement('div'); topLeft.className='tileTopLeft';
   var tag=document.createElement('span'); tag.className='tileTag'; tag.textContent='Gruppe '+(grp||'–');
-  var idTag=document.createElement('span'); idTag.className='idTag'; idTag.textContent='ID '+((m && m.id!=null)?m.id:'–');
-  topLeft.append(tag,idTag);
+  topLeft.append(tag);
 
   var topRight=document.createElement('div');
   var roundSpan=document.createElement('span'); roundSpan.className='roundBadge'; roundSpan.textContent='Runde '+((m && m.round!=null)?m.round:'-');
@@ -372,6 +371,11 @@ function refresh(){
 
   s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTilesHeadHeight(); });
   s.on('disconnect', function(){ setStatus(false); });
+  
+  s.on("viewerCount3", count => {
+	const el = document.getElementById("viewerCount");
+	if (el) el.textContent = "Zuschauer online: " + count;
+  });
 
   var t; function triggerDebounced(){ clearTimeout(t); t=setTimeout(function(){ refresh(); }, 250); }
 

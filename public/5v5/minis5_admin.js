@@ -454,6 +454,7 @@ function initSocket() {
 
   const s = io("/minis5", {
     path: "/socket.io",
+	query: { admin: "true" },
     transports: ["websocket", "polling"],
     reconnectionAttempts: 10,
     timeout: 10000,

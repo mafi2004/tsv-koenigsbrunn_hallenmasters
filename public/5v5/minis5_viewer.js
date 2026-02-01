@@ -294,6 +294,11 @@ function initSocket() {
   s.on("connect", () => {
     setStatus("verbunden", "#22c55e"); // grün
   });
+  
+  s.on("viewerCount5", count => {
+    const el = document.getElementById("viewerCount");
+    if (el) el.textContent = "Zuschauer online: " + count;
+  });
 
   // Verbindung verloren
   s.on("disconnect", () => {
@@ -328,6 +333,21 @@ function initAdTile() {
 }
 
 document.addEventListener("DOMContentLoaded", initAdTile);
+
+function initRulesTile() {
+  const tile = document.getElementById("rulesTile");
+  const header = document.getElementById("rulesHeader");
+  const body = document.getElementById("rulesBody");
+  const icon = tile.querySelector(".rulesToggleIcon");
+
+  header.addEventListener("click", () => {
+    const expanded = tile.getAttribute("aria-expanded") === "true";
+    tile.setAttribute("aria-expanded", !expanded);
+    body.style.display = expanded ? "none" : "block";
+    icon.textContent = expanded ? "›" : "‹";
+  });
+}
+document.addEventListener("DOMContentLoaded", initRulesTile);
 
 
 /* -------------------------------------------------------

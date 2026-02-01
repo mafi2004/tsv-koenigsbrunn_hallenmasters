@@ -427,3 +427,30 @@ table tbody td:nth-child(4) {
   text-align: center;
 }
 
+.viewerFooter {
+  position: fixed;
+  width: 100%;
+  background: #0f172a; /* dunkles Blau wie dein Header */
+  color: #94a3b8;       /* helles Grau */
+  padding: .5rem 1rem;
+  font-size: .85rem;
+  text-align: center;
+  border-top: 1px solid #1e293b;
+  margin-top: 1rem;
+  bottom: 0; left: 0; right: 0;
+}
+
+.viewerFooter a {
+  color: #38bdf8; /* cyan */
+  text-decoration: none;
+}
+
+.viewerFooter a:hover {
+  text-decoration: underline;
+}
+
+.footerInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+

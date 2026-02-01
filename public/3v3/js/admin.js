@@ -419,9 +419,14 @@ function computeNextRoundPayloadFromTop3(){
 }
 
 function initSocket(){
-  const s = window.io ? window.io(window.location.origin, {
-    path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000
-  }) : null;
+  const s = io("/minis3", {
+    path: "/socket.io",
+	query: { admin: "true" },
+    transports: ["websocket", "polling"],
+    reconnectionAttempts: 10,
+    timeout: 10000,
+  });
+  
   if (!s) return;
 
   const reloadMatches = () => refreshMatches();

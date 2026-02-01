@@ -52,6 +52,28 @@
         </div>
       </div>
 
+		<div class="adminStats">
+		  <div class="statRow">
+			<span class="statLabel">Aktuell online 3v3:</span>
+			<span id="stat-viewerCount3" class="statValue">0</span>
+		  </div>
+
+		  <div class="statRow">
+			<span class="statLabel">Besucher gesamt 3v3:</span>
+			<span id="stat-totalVisitors3" class="statValue">0</span>
+		  </div>
+
+		  <div class="statRow">
+			<span class="statLabel">Aktuell online 5v5:</span>
+			<span id="stat-viewerCount5" class="statValue">0</span>
+		  </div>
+
+		  <div class="statRow">
+			<span class="statLabel">Besucher gesamt 5v5:</span>
+			<span id="stat-totalVisitors5" class="statValue">0</span>
+		  </div>
+		</div>
+
 	  <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
         <div class="container">
           <img src="" id="qr-img" alt="QR-Code zum Viewer" width="128" height="128">
@@ -151,6 +173,27 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="minis5_admin.js"></script>
   <script src="/admin_password.js"></script>
+  
+  <script>
+  const s3 = io("/minis3", { query: { admin: "true" } });
+
+  s3.on("viewerCount3", count => {
+    document.getElementById("stat-viewerCount3").textContent = count;
+  });
+  s3.on("totalVisitors3", count => {
+    document.getElementById("stat-totalVisitors3").textContent = count;
+  });
+</script>
+<script>
+  const s5 = io("/minis5", { query: { admin: "true" } });
+
+  s5.on("viewerCount5", count => {
+    document.getElementById("stat-viewerCount5").textContent = count;
+  });
+  s5.on("totalVisitors5", count => {
+    document.getElementById("stat-totalVisitors5").textContent = count;
+  });
+</script>
 
 </body>
 </html>
