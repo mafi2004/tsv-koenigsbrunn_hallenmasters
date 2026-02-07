@@ -6,11 +6,15 @@ const connState = document.getElementById("connState");
 
 const trophy = `<span style="color:#facc15; margin-left:6px;">🏆</span>`;
 
+let MIRROR_MODE = false; 
+
 function setStatus(text, color) {
     connState.textContent = text;
     connState.style.color = color;
 }
 
+// Ansicht spiegeln
+function toggleMirror() { MIRROR_MODE = document.getElementById("mirrorView").checked; refreshAll(); }
 
 /* -------------------------------------------------------
    Helper
@@ -92,7 +96,9 @@ function renderTiles(matches) {
     const ms = rowsByTime.get(time).sort((a, b) => Number(a.field) - Number(b.field));
 	
     for (let f = 1; f <= 2; f++) {
-      const m = ms.find(x => Number(x.field) === f) || null;
+	  var fieldNo = f;
+	  if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 2; else if (fieldNo === 2) fieldNo = 1; }
+      const m = ms.find(x => Number(x.field) === fieldNo) || null;
       const tile = document.createElement('div');
       tile.className = 'tile';
 	  if (upcomingIds.includes(m.id)) {
@@ -241,6 +247,13 @@ function renderTeams(teams) {
    Hallenlayout Rendering
 ------------------------------------------------------- */
 function updateHallenlayout(matches) {
+  const img = document.getElementById("hallImage");
+  if (MIRROR_MODE) {
+    img.src = "/assets/bg_hallenmasters_Gym2_mirrored.jpg";
+  } else {
+    img.src = "/assets/bg_hallenmasters_Gym2.jpg"; 
+  }	
+	
   document.querySelectorAll('.team-overlay').forEach(el => {
 	  el.textContent = '';
 	  el.className = 'team-overlay';
@@ -250,9 +263,14 @@ function updateHallenlayout(matches) {
   const current = matches.filter(m => !m.winner).slice(0, 2);
 
   current.forEach(m => {
-	  const elA = document.getElementById(`field${m.field}-teamA`);
-	  const elB = document.getElementById(`field${m.field}-teamB`);
-	  
+	  var fieldNo = m.field;
+	  if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 2; else if (fieldNo === 2) fieldNo = 1; }
+	  var elA = document.getElementById(`field${fieldNo}-teamA`);
+	  var elB = document.getElementById(`field${fieldNo}-teamB`);
+	  if (MIRROR_MODE) {
+		elB = document.getElementById(`field${fieldNo}-teamA`);
+		elA = document.getElementById(`field${fieldNo}-teamB`);
+	  }
 	  if (elA){
 		  elA.textContent = m.teamA_name || '';
 		  if (m.groupName) elA.classList.add(`group-${m.groupName.toUpperCase()}`);

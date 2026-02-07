@@ -43,6 +43,10 @@
       ">
         Status: <span id="connState">…</span>
 		<span id="viewerCount" class="pill">Zuschauer online: 0</span>
+		<label class="mirrorToggle">
+		  <input type="checkbox" id="mirrorView" onchange="toggleMirror()">
+		  Ansicht spiegeln
+		</label>
       </div>
     </div>
 
@@ -96,7 +100,7 @@
     <section id="page-hall" class="page">
       <header><h2>Hallenlayout</h2></header>
       <div class="hallWrap">
-        <img src="/assets/bg_hallenmasters_Gym2.jpg" alt="Hallenlayout" class="hallImg" />
+        <img src="/assets/bg_hallenmasters_Gym2.jpg" alt="Hallenlayout" class="hallImg" id="hallImage" />
 		<!-- Team-Overlays -->
 		<div class="team-overlay" id="field1-teamA"></div>
 		<div class="team-overlay" id="field1-teamB"></div>

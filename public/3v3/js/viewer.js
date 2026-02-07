@@ -4,21 +4,37 @@
  * Assets bleiben unter /assets, API unter /api, Socket.IO unter /socket.io.
  */
 
+let MIRROR_MODE = false; 
+
 /* === Assets === */
 var HALL_IMG_PATH = '/assets/bg_hallenmasters_Gym.jpg';
+var HALL_IMG_PATH_MIRRORED = '/assets/bg_hallenmasters_Gym_mirrored.jpg';
 (function setLogo(){
   var img=document.getElementById('clubLogo'); if(!img) return;
   var url='/assets/Fussballwappen_logo.png?_v='+Date.now();
   img.onerror=function(){img.style.display='none';};
   img.src=url;
 })();
-(function setHallImage(){
-  var img=document.getElementById('hallImage'); if(!img) return;
-  var url=HALL_IMG_PATH+'?_v='+Date.now();
-  img.onerror=function(){img.style.display='none';};
-  img.onload=function(){img.style.display='block';};
-  img.src=url;
-})();
+
+function setHallImage() {
+  const img = document.getElementById('hallImage');
+  if (!img) return;
+
+  const base = MIRROR_MODE ? HALL_IMG_PATH_MIRRORED : HALL_IMG_PATH;
+  const url = base + '?_v=' + Date.now();
+
+  img.style.display = 'none';
+
+  img.onload = () => {
+    img.style.display = 'block';
+  };
+
+  img.onerror = () => {
+    img.style.display = 'none';
+  };
+
+  img.src = url;
+}
 
 /* === Helpers === */
 function groupClass(g){ var x=String(g||'').trim().toUpperCase(); switch(x){ case 'A':return 'grpA'; case 'B':return 'grpB'; case 'C':return 'grpC'; case 'D':return 'grpD'; case 'E':return 'grpE'; case 'F':return 'grpF'; default:return null; } }
@@ -51,6 +67,8 @@ function computeCompletedByRules(rows){
 function isABC(g){ return g==='A'||g==='B'||g==='C'; }
 function isDEF(g){ return g==='D'||g==='E'||g==='F'; }
 
+// Ansicht spiegeln
+function toggleMirror() { MIRROR_MODE = document.getElementById("mirrorView").checked; refresh(); }
 
 function renderTable(rows){
   var tbody=document.querySelector('#matchesTable tbody');
@@ -116,7 +134,9 @@ function renderTable(rows){
 
 /* === Tiles-Rendering === */
 function uniqueSortedFields(rows){ var set={}; for(var i=0;i<rows.length;i++){ var f=(rows[i] && rows[i].field!=null)?rows[i].field:null; if(f!=null) set[String(f)]=true; } var arr=Object.keys(set); arr.sort(function(a,b){return Number(a)-Number(b);}); return arr.map(Number); }
+
 function uniqueSortedTimes(rows){ var set=new Set(); for(var i=0;i<rows.length;i++){ var t=(rows[i] && rows[i].plannedStart) ? rows[i].plannedStart : '–'; set.add(t); } var arr=Array.from(set); arr.sort(function(a,b){ return hhmmToNum(a)-hhmmToNum(b); }); return arr; }
+
 function updateTilesHeadHeight(){ var head=document.getElementById('tilesHeadGlobal'); if(!head) return; var h=Math.ceil(head.getBoundingClientRect().height)||0; document.documentElement.style.setProperty('--tiles-head-h', h+'px'); }
 
 function bigNoticeTile(group){
@@ -201,8 +221,11 @@ function renderTiles(rows){
   var fields = uniqueSortedFields(activeRows.length ? activeRows : all); if(!fields.length) fields=[1,2,3];
   head.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
   for (var h=0; h<fields.length; h++){
+	var fieldNo = fields[h];
+	// Kacheln spiegeln
+	if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 3; else if (fieldNo === 3) fieldNo = 1; }
     var fh=document.createElement('div'); fh.className='fieldHead';
-    var fb=document.createElement('span'); fb.className='fieldHeadBadge'; fb.textContent='Feld '+fields[h];
+    var fb=document.createElement('span'); fb.className='fieldHeadBadge'; fb.textContent='Feld '+ fieldNo;
     fh.appendChild(fb); head.appendChild(fh);
   }
 
@@ -221,6 +244,8 @@ function renderTiles(rows){
 
     for (var fIdx=0; fIdx<fields.length; fIdx++){
       var f = fields[fIdx];
+	  // Kacheln spiegeln
+	  if (MIRROR_MODE) { if (f === 1) f = 3; else if (f === 3) f = 1; }
       var match=null;
       for (var i=0; i<activeRows.length; i++){
         var m=activeRows[i];
@@ -272,6 +297,7 @@ function renderTeamsGrid(teams){
 }
 
 function updateHallenlayout() {
+  setHallImage();
   document.querySelectorAll('.team-overlay').forEach(el => { 
 	el.textContent = '';
 	el.className = 'team-overlay';
@@ -281,8 +307,14 @@ function updateHallenlayout() {
   const current = MATCHES.slice(0, 3);
 
   current.forEach(m => {
-	  const elA = document.getElementById(`field${m.field}-teamA`);
-	  const elB = document.getElementById(`field${m.field}-teamB`);
+	  var fieldNo = m.field;
+	  if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 3; else if (fieldNo === 3) fieldNo = 1; }
+	  var elA = document.getElementById(`field${fieldNo}-teamA`);
+	  var elB = document.getElementById(`field${fieldNo}-teamB`);
+	  if (MIRROR_MODE) {
+		elB = document.getElementById(`field${fieldNo}-teamA`);
+		elA = document.getElementById(`field${fieldNo}-teamB`);
+	  }
 	  console.log(m.groupName.toUpperCase())
 	  if (elA){
 		  elA.textContent = m.teamA || '';
@@ -293,8 +325,6 @@ function updateHallenlayout() {
 		  elB.textContent = m.teamB || '';
 		  if (m.groupName) elB.classList.add(`group-${m.groupName.toUpperCase()}`);
 	  }
-/*    document.getElementById(`field${m.field}-teamA`).textContent = m.teamA || '';
-    document.getElementById(`field${m.field}-teamB`).textContent = m.teamB || '';*/
   });
 }
 
