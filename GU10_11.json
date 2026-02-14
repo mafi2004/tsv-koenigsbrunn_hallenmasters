@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "exportedAt": "2026-01-17T08:56:19.318Z",
+    "count": 12,
+    "schedule": {
+      "timeHHMM": "12:30",
+      "dur": "10",
+      "brk": "2"
+    }
+  },
+  "teams": [
+    {
+      "name": "TSV Königsbrunn 1",
+      "groupName": "A"
+    },
+    {
+      "name": "TSV Göggingen",
+      "groupName": "A"
+    },
+	{
+      "name": "JFG Lechfeld",
+      "groupName": "A"
+    },
+	{
+      "name": "SpVgg Deuringen",
+      "groupName": "A"
+    },
+	{
+      "name": "SV Hammerschmiede",
+      "groupName": "A"
+    },
+	{
+      "name": "SV Wulfertshausen",
+      "groupName": "A"
+    },
+    {
+      "name": "TSV Königsbrunn 2",
+      "groupName": "B"
+    },
+    {
+      "name": "TSV Firnhaberau",
+      "groupName": "B"
+    },
+	{
+      "name": "TSV Friedberg",
+      "groupName": "B"
+    },
+	{
+      "name": "TSV Schwabmünchen",
+      "groupName": "B"
+    },
+	{
+      "name": "TSV Merching",
+      "groupName": "B"
+    },
+	{
+      "name": "TSV Königsbrunn 3",
+      "groupName": "B"
+    }
+  ]
+}

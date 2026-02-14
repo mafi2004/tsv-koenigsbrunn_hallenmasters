@@ -99,7 +99,7 @@ function scheduleAB(roundsA, roundsB, schedule) {
       teamA: roundsA[i][0][0],
       teamB: roundsA[i][0][1],
       field: 1,
-      group: 'A',
+      groupName: 'A',
       plannedStart: time
     });
 
@@ -107,7 +107,7 @@ function scheduleAB(roundsA, roundsB, schedule) {
       teamA: roundsA[i][1][0],
       teamB: roundsA[i][1][1],
       field: 2,
-      group: 'A',
+      groupName: 'A',
       plannedStart: time
     });
 
@@ -118,7 +118,7 @@ function scheduleAB(roundsA, roundsB, schedule) {
       teamA: roundsA[i][2][0],
       teamB: roundsA[i][2][1],
       field: 1,
-      group: 'A',
+      groupName: 'A',
       plannedStart: slot2
     });
 
@@ -129,7 +129,7 @@ function scheduleAB(roundsA, roundsB, schedule) {
       teamA: roundsB[i][0][0],
       teamB: roundsB[i][0][1],
       field: 2,
-      group: 'B',
+      groupName: 'B',
       plannedStart: slot2
     });
 
@@ -142,7 +142,7 @@ function scheduleAB(roundsA, roundsB, schedule) {
       teamA: roundsB[i][1][0],
       teamB: roundsB[i][1][1],
       field: 1,
-      group: 'B',
+      groupName: 'B',
       plannedStart: slot3
     });
 
@@ -150,7 +150,7 @@ function scheduleAB(roundsA, roundsB, schedule) {
       teamA: roundsB[i][2][0],
       teamB: roundsB[i][2][1],
       field: 2,
-      group: 'B',
+      groupName: 'B',
       plannedStart: slot3
     });
 

@@ -25,7 +25,7 @@ async function getTeamsByGroup(dbHandle, g) {
     dbHandle,
     `SELECT id, name, groupName
      FROM teams
-     WHERE UPPER(groupName) = UPPER(?)`,
+     WHERE UPPER(groupName) = UPPER(?) AND mode = '3v3'`,
     [String(g || '').trim()]
   );
 }
@@ -41,7 +41,7 @@ async function getMatchesByGroup(dbHandle, g) {
             winner,
             plannedStart
      FROM matches
-     WHERE UPPER(groupName) = UPPER(?)`,
+     WHERE UPPER(groupName) = UPPER(?) AND mode='3v3'`,
     [String(g || '').trim()]
   );
 }
@@ -190,7 +190,7 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
 }
 
 /* --------------------- Route: POST /reseedGroups -------------------------- */
-module.exports = (sqliteDb, io) => {
+module.exports = (sqliteDb, io3) => {
   router.post('/reseedGroups', async (req, res) => {
     try {
       const schedule = req.body?.schedule ?? null;
@@ -241,7 +241,7 @@ module.exports = (sqliteDb, io) => {
         for (const t of bucketE) await updateTeamGroup(sqliteDb, t.id, 'E');
         for (const t of bucketF) await updateTeamGroup(sqliteDb, t.id, 'F');
 
-        await run(sqliteDb, `DELETE FROM matches`);
+        await run(sqliteDb, `DELETE FROM matches WHERE mode='3v3'`);
 
         const toIds = rows => rows.map(t => Number(t.id));
 
@@ -272,17 +272,17 @@ module.exports = (sqliteDb, io) => {
           await makeSnapshot(sqliteDb);
         } catch {}
 
-        if (io && typeof io.emit === 'function') {
-          io.emit('matches:reset');
-          io.emit('groups:reseeded', {
+        if (io3 && typeof io3.emit === 'function') {
+          io3.emit('matches:reset');
+          io3.emit('groups:reseeded', {
             D: gDTeams.length, E: gETeams.length, F: gFTeams.length,
             created: { D: pairsD.length, E: pairsE.length, F: pairsF.length },
             round: 4
           });
-          io.emit('round:advanced', { groupName: 'D', round: 4 });
-          io.emit('round:advanced', { groupName: 'E', round: 4 });
-          io.emit('round:advanced', { groupName: 'F', round: 4 });
-          io.emit('results:updated');
+          io3.emit('round:advanced', { groupName: 'D', round: 4 });
+          io3.emit('round:advanced', { groupName: 'E', round: 4 });
+          io3.emit('round:advanced', { groupName: 'F', round: 4 });
+          io3.emit('results:updated');
         }
 
         return res.json({

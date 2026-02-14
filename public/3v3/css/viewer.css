@@ -65,12 +65,6 @@ th,td{
   padding:.5rem; border-bottom:1px solid var(--border); text-align:left;
   box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.tableWrap thead{
-  position: sticky; top: var(--sticky-sec); z-index: 800; background:#0b1020;
-}
-.tableWrap tbody::before{
-  content:''; display:block; height: var(--thead-spacer, 0px);
-}
 
 /* Zeilenfärbung je Gruppe A–F */
 tr.grpA td{ background:rgba(29,78,216,.08); }
@@ -166,8 +160,11 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 
 /* Hallenlayout */
 .hallWrap{
+  position: relative;
   padding: 1rem;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 40vh;
 }
 .hallWrap .hall-img{
@@ -177,6 +174,101 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
   border: 1px solid var(--border);
   box-shadow: 0 4px 18px rgba(0,0,0,.25);
   background: #0b1020;
+}
+.team-overlay { 
+  position: absolute;
+  padding: 6px 10px;
+  background: rgba(0,255,0,0.65);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  pointer-events: none;
+  text-align: center;
+}
+.group-A {
+	background-color: #1d4ed8;
+	border-color: #1d4ed8;
+} 
+.group-B { 
+	background-color: #7f1d1d;
+	border-color: #7f1d1d;
+}
+.group-C {
+	background-color: #166534;
+	border-color: #166534;
+} 
+.group-D { 
+	background-color: #f59e0b;
+	border-color: #f59e0b;
+}
+.group-E {
+	background-color: #8b5cf6;
+	border-color: #8b5cf6;
+} 
+.group-F { 
+	background-color: #14b8a6;
+	border-color: #14b8a6;
+}
+
+/* Feld 1 */
+#field1-teamA { top: 15%; left: 12%; }
+#field1-teamB { top: 78%; left: 12%; }
+
+/* Feld 2 */
+#field2-teamA { top: 15%; left: 45%; }
+#field2-teamB { top: 78%; left: 45%; }
+
+/* Feld 3 */
+#field3-teamA { top: 15%; left: 72%; }
+#field3-teamB { top: 78%; left: 72%; }
+
+/* ============================================
+   MOBILE FIX: Team-Overlay-Positionen im Querformat
+   ============================================ */
+@media (max-width: 900px) and (min-aspect-ratio: 1/1) {
+
+  /* Feld 1 */
+  #field1-teamA { top: 15%; left: 13%; }
+  #field1-teamB { top: 78%; left: 13%; }
+
+  /* Feld 2 */
+  #field2-teamA { top: 15%; left: 43%; }
+  #field2-teamB { top: 78%; left: 43%; }
+
+  /* Feld 3 */
+  #field3-teamA { top: 15%; left: 75%; }
+  #field3-teamB { top: 78%; left: 75%; }
+
+  /* Schrift kleiner für mobile Overlays */
+  .team-overlay {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
+}
+
+/* ============================================
+   MOBILE FIX: Team-Overlay-Positionen im Hochformat
+   ============================================ */
+@media (max-width: 600px) and (orientation: portrait) {
+
+  /* Feld 1 */
+  #field1-teamA { top: 15%; left: 8%; }
+  #field1-teamB { top: 31%; left: 8%; }
+
+  /* Feld 2 */
+  #field2-teamA { top: 15%; left: 38%; }
+  #field2-teamB { top: 31%; left: 38%; }
+
+  /* Feld 3 */
+  #field3-teamA { top: 15%; left: 68%; }
+  #field3-teamB { top: 31%; left: 68%; }
+
+  /* Schrift kleiner für mobile Overlays */
+  .team-overlay {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+  }
 }
 
 /* Teams-View */
@@ -215,11 +307,12 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .teamDot.F{ background:#14b8a6; }
 
 /* View-Umschaltung */
-#tableView, #tilesView, #hallView, #teamsView{ display:none; }
+#tableView, #tilesView, #hallView, #teamsView, #rulesView { display:none; }
 .view-table #tableView{ display:block; }
 .view-tiles #tilesView{ display:block; }
 .view-hall  #hallView { display:block; }
 .view-teams #teamsView{ display:block; }
+.view-rules #rulesView{ display:block; }
 
 /* Werbungskachel */
 .adWrap{ padding: 1rem; }
@@ -236,7 +329,7 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 }
 .adToggleIcon{ display:inline-block; margin-left:.5rem; transition: transform .18s ease; }
 .adBody{
-  margin-top:.6rem; line-height:1.55; white-space:pre-wrap;
+  margin-top:.6rem; line-height:1.55;
   max-height: 0; overflow: hidden;
   transition: max-height .22s ease, opacity .22s ease, margin-top .22s ease;
   opacity: 0; font-size: 0.95rem;
@@ -244,3 +337,156 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .adTile[aria-expanded="true"] .adBody{ max-height: 500px; opacity: 1; margin-top: .6rem; }
 .adTileHeader:focus{ outline: 2px solid #14b8a6; outline-offset: 2px; border-radius: 6px; }
 @media (max-width: 560px){ .adTileHeader{ flex-wrap:wrap; } .adHeaderImg{ order: 2; margin-top:.35rem; } }
+
+.indentList {
+  list-style: none;
+  padding-left: 1.2rem; /* Einrückung */
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE SCHRIFTGRÖSSEN FÜR HANDYS & TABLETS
+   ============================================ */
+
+/* Standard Desktop */
+html {
+  font-size: 16px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Handy Querformat */
+@media (max-width: 900px) and (min-aspect-ratio: 1/1) {
+  html {
+    font-size: 12px;
+  }
+}
+
+/* Handy Hochformat */
+@media (max-width: 600px) and (orientation: portrait) {
+  html {
+    font-size: 10px;
+  }
+}
+
+/* ============================================
+   SPIELPLAN – SPALTENBREITEN
+   ============================================ */
+.col-id     { width: 45px; }
+.col-grp    { width: 75px; }
+.col-round  { width: 65px; }
+.col-field  { width: 50px; }
+.col-time   { width: 70px; }
+
+/* Teams sollen viel Platz bekommen */
+.col-teamA  { width: 1fr; }
+.col-teamB  { width: 1fr; }
+
+/* Mobile Optimierung */
+@media (max-width: 900px) and (min-aspect-ratio: 1/1) {
+  .col-id     { width: 35px; }
+  .col-grp    { width: 55px; }
+  .col-round  { width: 50px; }
+  .col-field  { width: 45px; }
+  .col-time   { width: 50px; }
+
+  .col-teamA  { width: auto; }
+  .col-teamB  { width: auto; }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .col-id     { width: 30px; }
+  .col-grp    { width: 35px; }
+  .col-round  { width: 35px; }
+  .col-field  { width: 30px; }
+  .col-time   { width: 35px; }
+
+  .col-teamA  { width: auto; }
+  .col-teamB  { width: auto; }
+}
+
+/* ============================================
+   SPIELPLAN – SPALTEN ZENTRIEREN
+   ============================================ */
+
+/* Kopfzeile */
+table thead th:nth-child(2),
+table thead th:nth-child(3),
+table thead th:nth-child(4) {
+  text-align: center;
+}
+
+/* Tabellenzellen */
+table tbody td:nth-child(2),
+table tbody td:nth-child(3),
+table tbody td:nth-child(4) {
+  text-align: center;
+}
+
+.viewerFooter {
+  position: fixed;
+  width: 100%;
+  background: #0f172a; /* dunkles Blau wie dein Header */
+  color: #94a3b8;       /* helles Grau */
+  padding: .5rem 1rem;
+  font-size: .85rem;
+  text-align: center;
+  border-top: 1px solid #1e293b;
+  margin-top: 1rem;
+  bottom: 0; left: 0; right: 0;
+}
+
+.viewerFooter a {
+  color: #38bdf8; /* cyan */
+  text-decoration: none;
+}
+
+.viewerFooter a:hover {
+  text-decoration: underline;
+}
+
+.footerInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* -------------------------------------------------------
+  Regelblock
+------------------------------------------------------- */
+.rulesWrap {
+  background: rgba(197, 34, 94, 0.25);
+  border: 1px solid rgba(197, 34, 94, 0.25);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.rulesTile {
+  background: transparent !important; /* wichtig: nicht überschreiben lassen */
+}
+
+.rulesTileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.rulesTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* HIER: Bild klein machen */
+.rulesHeaderImg {
+  width: 96px;      /* oder 20px, wenn du es noch kleiner willst */
+  height: auto;
+  flex-shrink: 0;
+  border-radius: 4px; /* optional, wirkt etwas feiner */
+}
+

@@ -5,7 +5,7 @@ const db = require('../db');
 const fs = require('fs');
 const { restoreFromSnapshot, makeSnapshot } = require('../utils/recovery');
 
-module.exports = (io) => {
+module.exports = (io3) => {
   const router = express.Router();
 
   // GET /api/adminOps/ops?limit=200
@@ -37,7 +37,7 @@ module.exports = (io) => {
   router.post('/snapshot', async (req, res) => {
     try {
       const snap = await makeSnapshot(db);
-      io.emit?.('snapshot:created', snap);
+      io3.emit?.('snapshot:created', snap);
       res.json({ ok: true, ...snap });
     } catch (e) {
       res.status(500).json({ ok: false, error: e.message });
@@ -56,7 +56,7 @@ module.exports = (io) => {
             return res.status(404).json({ error: 'Kein Snapshot gefunden.' });
           }
           await restoreFromSnapshot(db, row.path);
-          io.emit?.('recovery:done', { id: row.id, ts: row.ts });
+          io3.emit?.('recovery:done', { id: row.id, ts: row.ts });
           res.json({ ok: true, snapshotId: row.id, ts: row.ts });
         }
       );
@@ -79,7 +79,7 @@ module.exports = (io) => {
             return res.status(404).json({ error: 'Snapshot nicht gefunden.' });
           }
           await restoreFromSnapshot(db, row.path);
-          io.emit?.('recovery:done', { id: row.id, ts: row.ts });
+          io3.emit?.('recovery:done', { id: row.id, ts: row.ts });
           res.json({ ok: true, snapshotId: row.id, ts: row.ts });
         }
       );

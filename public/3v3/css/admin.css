@@ -165,3 +165,34 @@ tr:hover td { background:#0a0f1f; }
 }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
+
+.adminStats {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  max-width: 320px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  padding: .35rem 0;
+  border-bottom: 1px solid #1f2937;
+}
+
+.statRow:last-child {
+  border-bottom: none;
+}
+
+.statLabel {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.statValue {
+  color: #e5e7eb;
+  font-weight: 700;
+}
+

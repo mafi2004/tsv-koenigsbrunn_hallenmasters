@@ -3,7 +3,7 @@ const express = require('express');
 const db = require('../db');
 const { appendOp, makeSnapshot } = require('../utils/recovery');
 
-module.exports = (io) => {
+module.exports = (io3) => {
   const router = express.Router();
 
   function addMinutesHHMM(hhmm, minutes) {
@@ -26,6 +26,7 @@ module.exports = (io) => {
       FROM matches m
       LEFT JOIN teams t1 ON m.teamA = t1.id
       LEFT JOIN teams t2 ON m.teamB = t2.id
+	  WHERE m.mode='3v3'
       ORDER BY m.id ASC
     `;
     db.all(sql, [], (err, rows) => {
@@ -54,7 +55,7 @@ module.exports = (io) => {
 
   db.serialize(() => {
   db.get(
-    `SELECT COUNT(*) AS cnt FROM matches WHERE UPPER(groupName)=?`,
+    `SELECT COUNT(*) AS cnt FROM matches WHERE UPPER(groupName)=? AND mode='3v3'`,
     [groupName],
     (e1, r1) => {
       if (e1) return res.status(500).json({ error: e1.message });
@@ -135,8 +136,8 @@ module.exports = (io) => {
                   });
 
                   db.run(`COMMIT`, () => {
-                    io.emit('group:started', { groupName, plannedStart });
-                    io.emit('resultUpdate', { type: 'startGroup', groupName });
+                    io3.emit('group:started', { groupName, plannedStart });
+                    io3.emit('resultUpdate', { type: 'startGroup', groupName });
                     res.json({ success: true, groupName, created: pairs.length, plannedStart });
                   });
                 } catch (err) {
@@ -160,7 +161,7 @@ module.exports = (io) => {
     db.run(`BEGIN IMMEDIATE`, (beginErr) => {
       if (beginErr) return res.status(500).json({ error: 'Transaktion fehlgeschlagen: ' + beginErr.message });
 
-      db.run(`DELETE FROM matches`, [], (err1) => {
+      db.run(`DELETE FROM matches WHERE mode='3v3'`, [], (err1) => {
         if (err1) return db.run(`ROLLBACK`, () => res.status(500).json({ error: err1.message }));
 
         db.run(`DELETE FROM group_state`, [], (err2) => {
@@ -180,9 +181,9 @@ module.exports = (io) => {
               } catch {}
 
               // Broadcasts
-              io.emit('matches:reset');
-              io.emit('history:reset');    // <<<<<< wichtig für die UIs
-              io.emit('resultUpdate', { type: 'reset' });
+              io3.emit('matches:reset');
+              io3.emit('history:reset');    // <<<<<< wichtig für die UIs
+              io3.emit('resultUpdate', { type: 'reset' });
 
               res.json({ success: true, wiped: ['matches','group_state','match_history'] });
             });

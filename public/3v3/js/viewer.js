@@ -4,21 +4,37 @@
  * Assets bleiben unter /assets, API unter /api, Socket.IO unter /socket.io.
  */
 
+let MIRROR_MODE = false; 
+
 /* === Assets === */
 var HALL_IMG_PATH = '/assets/bg_hallenmasters_Gym.jpg';
+var HALL_IMG_PATH_MIRRORED = '/assets/bg_hallenmasters_Gym_mirrored.jpg';
 (function setLogo(){
   var img=document.getElementById('clubLogo'); if(!img) return;
   var url='/assets/Fussballwappen_logo.png?_v='+Date.now();
   img.onerror=function(){img.style.display='none';};
   img.src=url;
 })();
-(function setHallImage(){
-  var img=document.getElementById('hallImage'); if(!img) return;
-  var url=HALL_IMG_PATH+'?_v='+Date.now();
-  img.onerror=function(){img.style.display='none';};
-  img.onload=function(){img.style.display='block';};
-  img.src=url;
-})();
+
+function setHallImage() {
+  const img = document.getElementById('hallImage');
+  if (!img) return;
+
+  const base = MIRROR_MODE ? HALL_IMG_PATH_MIRRORED : HALL_IMG_PATH;
+  const url = base + '?_v=' + Date.now();
+
+  img.style.display = 'none';
+
+  img.onload = () => {
+    img.style.display = 'block';
+  };
+
+  img.onerror = () => {
+    img.style.display = 'none';
+  };
+
+  img.src = url;
+}
 
 /* === Helpers === */
 function groupClass(g){ var x=String(g||'').trim().toUpperCase(); switch(x){ case 'A':return 'grpA'; case 'B':return 'grpB'; case 'C':return 'grpC'; case 'D':return 'grpD'; case 'E':return 'grpE'; case 'F':return 'grpF'; default:return null; } }
@@ -51,14 +67,9 @@ function computeCompletedByRules(rows){
 function isABC(g){ return g==='A'||g==='B'||g==='C'; }
 function isDEF(g){ return g==='D'||g==='E'||g==='F'; }
 
-/* === Tabellen-Rendering === */
-function updateTheadSpacer(){
-  var tw=document.querySelector('.tableWrap');
-  var thead=tw?tw.querySelector('thead'):null;
-  if(!thead||!tw) return;
-  var h=Math.ceil(thead.getBoundingClientRect().height)||0;
-  tw.style.setProperty('--thead-spacer', h+'px');
-}
+// Ansicht spiegeln
+function toggleMirror() { MIRROR_MODE = document.getElementById("mirrorView").checked; refresh(); }
+
 function renderTable(rows){
   var tbody=document.querySelector('#matchesTable tbody');
   if(!tbody) return;
@@ -66,7 +77,7 @@ function renderTable(rows){
   rows=sortMatches(rows);
   if(!Array.isArray(rows)||!rows.length){
     var tr0=document.createElement('tr'); var td0=document.createElement('td'); td0.colSpan=7; td0.textContent='Noch keine Spiele geplant.'; td0.style.color='#9ca3af'; tr0.appendChild(td0); tbody.appendChild(tr0);
-    updateTheadSpacer(); return;
+    return;
   }
 
   var completed = computeCompletedByRules(rows);
@@ -119,13 +130,13 @@ function renderTable(rows){
       tbody.appendChild(tr);
     }
   });
-
-  updateTheadSpacer();
 }
 
 /* === Tiles-Rendering === */
 function uniqueSortedFields(rows){ var set={}; for(var i=0;i<rows.length;i++){ var f=(rows[i] && rows[i].field!=null)?rows[i].field:null; if(f!=null) set[String(f)]=true; } var arr=Object.keys(set); arr.sort(function(a,b){return Number(a)-Number(b);}); return arr.map(Number); }
+
 function uniqueSortedTimes(rows){ var set=new Set(); for(var i=0;i<rows.length;i++){ var t=(rows[i] && rows[i].plannedStart) ? rows[i].plannedStart : '–'; set.add(t); } var arr=Array.from(set); arr.sort(function(a,b){ return hhmmToNum(a)-hhmmToNum(b); }); return arr; }
+
 function updateTilesHeadHeight(){ var head=document.getElementById('tilesHeadGlobal'); if(!head) return; var h=Math.ceil(head.getBoundingClientRect().height)||0; document.documentElement.style.setProperty('--tiles-head-h', h+'px'); }
 
 function bigNoticeTile(group){
@@ -157,8 +168,7 @@ function tileNodeForMatch(m){
   var top=document.createElement('div'); top.className='tileTop';
   var topLeft=document.createElement('div'); topLeft.className='tileTopLeft';
   var tag=document.createElement('span'); tag.className='tileTag'; tag.textContent='Gruppe '+(grp||'–');
-  var idTag=document.createElement('span'); idTag.className='idTag'; idTag.textContent='ID '+((m && m.id!=null)?m.id:'–');
-  topLeft.append(tag,idTag);
+  topLeft.append(tag);
 
   var topRight=document.createElement('div');
   var roundSpan=document.createElement('span'); roundSpan.className='roundBadge'; roundSpan.textContent='Runde '+((m && m.round!=null)?m.round:'-');
@@ -211,8 +221,11 @@ function renderTiles(rows){
   var fields = uniqueSortedFields(activeRows.length ? activeRows : all); if(!fields.length) fields=[1,2,3];
   head.style.gridTemplateColumns = 'repeat(' + fields.length + ', minmax(260px, 1fr))';
   for (var h=0; h<fields.length; h++){
+	var fieldNo = fields[h];
+	// Kacheln spiegeln
+	if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 3; else if (fieldNo === 3) fieldNo = 1; }
     var fh=document.createElement('div'); fh.className='fieldHead';
-    var fb=document.createElement('span'); fb.className='fieldHeadBadge'; fb.textContent='Feld '+fields[h];
+    var fb=document.createElement('span'); fb.className='fieldHeadBadge'; fb.textContent='Feld '+ fieldNo;
     fh.appendChild(fb); head.appendChild(fh);
   }
 
@@ -231,6 +244,8 @@ function renderTiles(rows){
 
     for (var fIdx=0; fIdx<fields.length; fIdx++){
       var f = fields[fIdx];
+	  // Kacheln spiegeln
+	  if (MIRROR_MODE) { if (f === 1) f = 3; else if (f === 3) f = 1; }
       var match=null;
       for (var i=0; i<activeRows.length; i++){
         var m=activeRows[i];
@@ -281,8 +296,40 @@ function renderTeamsGrid(teams){
   });
 }
 
+function updateHallenlayout() {
+  setHallImage();
+  document.querySelectorAll('.team-overlay').forEach(el => { 
+	el.textContent = '';
+	el.className = 'team-overlay';
+  });
+  
+  if (!MATCHES || MATCHES.length === 0) return;
+  const current = MATCHES.slice(0, 3);
+
+  current.forEach(m => {
+	  var fieldNo = m.field;
+	  if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 3; else if (fieldNo === 3) fieldNo = 1; }
+	  var elA = document.getElementById(`field${fieldNo}-teamA`);
+	  var elB = document.getElementById(`field${fieldNo}-teamB`);
+	  if (MIRROR_MODE) {
+		elB = document.getElementById(`field${fieldNo}-teamA`);
+		elA = document.getElementById(`field${fieldNo}-teamB`);
+	  }
+	  if (elA){
+		  elA.textContent = m.teamA || '';
+		  if (m.groupName) elA.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+	  
+	  if (elB){
+		  elB.textContent = m.teamB || '';
+		  if (m.groupName) elB.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+  });
+}
+
 /* === Sticky Offsets & View-Umschaltung === */
-function updateSectionTitle(mode){ var h2=document.getElementById('sectionTitle'); if(!h2) return; if(mode==='hall') h2.textContent='Halle'; else if(mode==='teams') h2.textContent='Gruppeneinteilung'; else h2.textContent='Spielübersicht'; }
+function updateSectionTitle(mode){ var h2=document.getElementById('sectionTitle'); if(!h2) return; if(mode==='hall') h2.textContent='Halle'; else if(mode==='teams') h2.textContent='Gruppeneinteilung'; else if(mode==='rules') h2.textContent='Regelübersicht'; else h2.textContent='Spielübersicht'; }
+
 function updateStickyOffsets(){
   var topHdr=document.querySelector('body > header');
   var secHdr=document.getElementById('sectionHeader');
@@ -292,7 +339,6 @@ function updateStickyOffsets(){
   document.documentElement.style.setProperty('--sticky-sec',  secH+'px');
 }
 window.addEventListener('load', updateStickyOffsets); window.addEventListener('resize', updateStickyOffsets); setTimeout(updateStickyOffsets, 350);
-window.addEventListener('load', updateTheadSpacer); window.addEventListener('resize', updateTheadSpacer);
 window.addEventListener('load', updateTilesHeadHeight); window.addEventListener('resize', updateTilesHeadHeight);
 
 function setView(mode){
@@ -301,22 +347,24 @@ function setView(mode){
   var btnK=document.getElementById('btnViewTiles');
   var btnH=document.getElementById('btnViewHall');
   var btnTe=document.getElementById('btnViewTeams');
+  var btnTe=document.getElementById('btnViewRules');
 
-  body.classList.remove('view-table','view-tiles','view-hall','view-teams');
+  body.classList.remove('view-table','view-tiles','view-hall','view-teams','view-rules');
   if (mode==='table') body.classList.add('view-table');
   else if (mode==='hall') body.classList.add('view-hall');
   else if (mode==='teams') body.classList.add('view-teams');
+  else if (mode==='rules') body.classList.add('view-rules');
   else body.classList.add('view-tiles');
 
   [btnT,btnK,btnH,btnTe].forEach(function(b){ b&&b.classList.remove('btn-active'); });
   if (mode==='table') btnT&&btnT.classList.add('btn-active');
   else if (mode==='hall') btnH&&btnH.classList.add('btn-active');
   else if (mode==='teams') btnTe&&btnTe.classList.add('btn-active');
+  else if (mode==='rules') btnTe&&btnTe.classList.add('btn-active');
   else btnK&&btnK.classList.add('btn-active');
 
   updateSectionTitle(mode);
   updateStickyOffsets();
-  updateTheadSpacer();
   updateTilesHeadHeight();
 
   if (mode==='teams'){
@@ -327,11 +375,18 @@ document.getElementById('btnViewTable').addEventListener('click', function(){ se
 document.getElementById('btnViewTiles').addEventListener('click', function(){ setView('tiles'); });
 document.getElementById('btnViewHall').addEventListener('click',  function(){ setView('hall'); });
 document.getElementById('btnViewTeams').addEventListener('click', function(){ setView('teams'); });
+document.getElementById('btnViewRules').addEventListener('click', function(){ setView('rules'); });
 
 /* === Refresh === */
 function refresh(){
   return loadMatches()
-    .then(function(rows){ renderTable(rows); renderTiles(rows); setLastUpdate(); })
+    .then(function(rows){ 
+		MATCHES = rows;
+		renderTable(rows); 
+		renderTiles(rows); 
+		updateHallenlayout(); 
+		setLastUpdate(); 
+	})
     .catch(function(e){
       console.error('Laden fehlgeschlagen:', e);
       var el=document.getElementById('lastUpdate'); if(el){ el.textContent='Letztes Update: Fehler'; el.className='pill err'; }
@@ -346,11 +401,15 @@ function refresh(){
     setStatus(false);
     return;
   }
-  var base=window.location.origin;
-  var s=io(base, { path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000 });
+  var s=io("/minis3", { path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000 });
 
-  s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTheadSpacer(); updateTilesHeadHeight(); });
+  s.on('connect', function(){ setStatus(true); updateStickyOffsets(); updateTilesHeadHeight(); });
   s.on('disconnect', function(){ setStatus(false); });
+  
+  s.on("viewerCount3", count => {
+	const el = document.getElementById("viewerCount");
+	if (el) el.textContent = "Zuschauer online: " + count;
+  });
 
   var t; function triggerDebounced(){ clearTimeout(t); t=setTimeout(function(){ refresh(); }, 250); }
 
@@ -361,11 +420,30 @@ function refresh(){
   s.on('matches:reset',          triggerDebounced);
   s.on('groups:reseeded',        triggerDebounced);
   s.on('schedule:recalculated',  triggerDebounced);
+  
+  s.on("reset-3v3", () => { location.reload(); });
+  s.on("reset-all", () => { location.reload(); });
 
   s.on('meta:updated', function(p){
     var lbl = (p && typeof p.yearLabel==='string') ? p.yearLabel : null;
     var el = document.getElementById('viewerYearLabel');
     if (el) el.textContent = 'Jahrgang: ' + (lbl || '–');
+  });
+  
+  s.on("teams:updated", () => {
+    loadTeams()
+      .then(renderTeamsGrid)
+      .catch(err => console.error("Teams laden fehlgeschlagen:", err));
+  });
+  
+  s.on("teams:updated", () => {
+    Promise.all([loadTeams(), loadMatches()])
+      .then(([teams, matches]) => {
+        renderTeamsGrid(teams);
+        MATCHES = matches;
+        updateHallenlayout();
+        setLastUpdate();
+      });
   });
 })();
 

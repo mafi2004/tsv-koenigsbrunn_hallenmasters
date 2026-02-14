@@ -3,7 +3,7 @@
 const express = require('express');
 const db = require('../db');
 
-module.exports = (io /* optional */) => {
+module.exports = (io3 /* optional */) => {
   const router = express.Router();
 
   // GET /api/meta -> { yearLabel, schedule: { timeHHMM, dur, brk }, updatedAt }

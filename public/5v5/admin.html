@@ -52,24 +52,56 @@
         </div>
       </div>
 
-      <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
+		<div class="adminStats">
+		  <div class="statRow">
+			<span class="statLabel">Aktuell online 3v3:</span>
+			<span id="stat-viewerCount3" class="statValue">0</span>
+		  </div>
+
+		  <div class="statRow">
+			<span class="statLabel">Besucher gesamt 3v3:</span>
+			<span id="stat-totalVisitors3" class="statValue">0</span>
+		  </div>
+
+		  <div class="statRow">
+			<span class="statLabel">Aktuell online 5v5:</span>
+			<span id="stat-viewerCount5" class="statValue">0</span>
+		  </div>
+
+		  <div class="statRow">
+			<span class="statLabel">Besucher gesamt 5v5:</span>
+			<span id="stat-totalVisitors5" class="statValue">0</span>
+		  </div>
+		</div>
+
+	  <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
         <div class="container">
-          <img src="" id="qr-img" alt="QR-Code zum Viewer">
+          <img src="" id="qr-img" alt="QR-Code zum Viewer" width="128" height="128">
         </div>
       </div>
     </div>
+	
+	<!-- NAVIGATION -->
+	<nav class="viewerNav">
+	  <button class="navBtn navBtn-active" data-page="teams">Teams</button>
+	  <button class="navBtn" data-page="matches">Spielplan</button>
+	</nav>
+
   </header>
 
   <!-- MAIN -->
   <main>
 
     <!-- TEAMS -->
-    <section id="teamsSection">
+    <section id="page-teams" class="page page-active">
       <header>
         <h2>Teams (5v5)</h2>
         <div class="row">
           <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
           <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
+		  <button id="btnExportTeams" type="button" class="btn btn-primary">Teams exportieren</button>
+		  <input id="importFile" type="file" accept="application/json" style="display:none">
+		  <button id="btnImportTeams" type="button" class="btn btn-success">Teams importieren</button>
         </div>
       </header>
 
@@ -89,7 +121,7 @@
     </section>
 
     <!-- SPIELPLAN -->
-    <section id="matchesSection">
+    <section id="page-matches" class="page">
       <header>
         <h2>Spielplan (A+B)</h2>
         <div class="row">
@@ -127,7 +159,6 @@
               <th>Feld</th>
               <th>Team A</th>
               <th>Team B</th>
-              <th>Sieger</th>
               <th>Aktion</th>
             </tr>
           </thead>
@@ -140,9 +171,29 @@
 
   <!-- SCRIPTS -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/qr_script.js"></script>
   <script src="minis5_admin.js"></script>
   <script src="/admin_password.js"></script>
+  
+  <script>
+  const s3 = io("/minis3", { query: { admin: "true" } });
+
+  s3.on("viewerCount3", count => {
+    document.getElementById("stat-viewerCount3").textContent = count;
+  });
+  s3.on("totalVisitors3", count => {
+    document.getElementById("stat-totalVisitors3").textContent = count;
+  });
+</script>
+<script>
+  const s5 = io("/minis5", { query: { admin: "true" } });
+
+  s5.on("viewerCount5", count => {
+    document.getElementById("stat-viewerCount5").textContent = count;
+  });
+  s5.on("totalVisitors5", count => {
+    document.getElementById("stat-totalVisitors5").textContent = count;
+  });
+</script>
 
 </body>
 </html>

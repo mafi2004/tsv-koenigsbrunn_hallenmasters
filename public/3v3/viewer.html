@@ -24,12 +24,18 @@
           <h1>3. Königsbrunner Mini‑Fußball Hallenmasters</h1>
           <div class="meta">
             <span>21./22.02.2026</span>
+			<span class="pill" style="margin-left:.5rem;">Modus: 3v3</span>
             <span id="lastUpdate" class="pill err" title="Zuletzt geladene Daten">Letztes Update: –</span>
           </div>
         </div>
       </div>
       <div class="meta">
         <span id="connStatus" class="pill err">Status: getrennt</span>
+		<span id="viewerCount" class="pill">Zuschauer online: 0</span>
+		<label class="mirrorToggle">
+		  <input type="checkbox" id="mirrorView" onchange="toggleMirror()">
+		  Ansicht spiegeln
+		</label>
       </div>
     </div>
   </header>
@@ -46,12 +52,22 @@
           <button id="btnViewTiles" class="btn btn-active" type="button">Spielfeldbelegung</button>
           <button id="btnViewHall"  class="btn"            type="button">Hallenlayout</button>
           <button id="btnViewTeams" class="btn"            type="button">Teams</button>
+		  <button id="btnViewRules" class="btn"            type="button">Regelübersicht</button>
         </div>
       </header>
 
       <!-- 1) Tabellenansicht -->
       <div id="tableView" class="tableWrap">
         <table id="matchesTable">
+		  <colgroup>
+			<col class="col-id">
+			<col class="col-grp">
+			<col class="col-round">
+			<col class="col-field">
+			<col class="col-time">
+			<col class="col-teamA">
+			<col class="col-teamB">
+		  </colgroup>
           <thead>
             <tr>
               <th>ID</th>
@@ -77,12 +93,44 @@
       <!-- 3) Hallenlayout -->
       <div id="hallView" class="hallWrap">
         <img id="hallImage" class="hall-img" alt="Hallenlayout" />
+		<!-- Team-Overlays -->
+		<div class="team-overlay" id="field1-teamA"></div>
+		<div class="team-overlay" id="field1-teamB"></div>
+		<div class="team-overlay" id="field2-teamA"></div>
+		<div class="team-overlay" id="field2-teamB"></div>
+		<div class="team-overlay" id="field3-teamA"></div>
+		<div class="team-overlay" id="field3-teamB"></div>
       </div>
 
       <!-- Teams -->
       <div id="teamsView" class="teamsWrap">
         <div id="teamsGrid" class="teamsGrid"></div>
         <div id="teamsEmpty" class="emptyMsg" style="display:none">Es wurden noch keine Teams eingetragen.</div>
+      </div>
+	  
+	  <!-- Regeln -->
+      <div id="rulesView" class="rulesWrap">
+		<div id="rulesHeader" class="rulesTileHeader" aria-controls="rulesBody">
+		  <h2></h2>
+		  <img id="rulesHeaderImg" class="rulesHeaderImg" src="/assets/regeln.jpg" alt="Info" />
+		</div>
+        <br>
+        Wir spielen Minifußball 3 vs 3 auf 3 Feldern und 3 Gruppen im Wechsel, d.h. nach einem Spiel haben die Mannschaften jeweils 2 Spiele Pause. Danach wird das Spielfeld im Champions League Modus gewechselt, d.h. Gewinner von Feld 3 wechselt auf Feld 2, Verlierer von Feld 1 wechselt auf Feld 2, usw.
+		<br><br>
+		<ul class="indentList">
+			<li>- Spieldauer: 7min</li>
+			<li>- Schusszone bei 6m</li>
+			<li>- Kein Grätschen!</li>
+			<li>- Zum Spielbeginn befinden sich alle Spieler auf der eigenen Torlinie, der Ball wird von einem Trainer im Bereich der Mittellinie ins Spiel gebracht.</li>
+			<li>- Bei Seitenaus (Ball über der Abtrennung): Einkick oder Eindribbeln (keine direkte Torerzielung)</li>
+			<li>- Bei Eckball: Einkick oder Eindribbeln von der Seitenlinie auf Höhe der Schusszone (keine direkte Torerzielung).</li>
+			<li>- Bei Toraus: Verteidiger bringen den Ball von der Grundlinie ins Feld.</li>
+			<li>- Bei Torerzielung: in eigene Spielhälfte zurückziehen</li>
+		</ul>
+		<br>
+		Liegt eine Mannschaft mit 3 Toren zurück, darf sie einen 4. Spieler aufs Feld bringen (solange bis der Rückstand aufgeholt werden konnte).<br>
+		Bei Unentschieden gilt die Mannschaft als Sieger, die das letzte Tor geschossen hat. Bei einem 0:0 losen die beiden Teams den Sieger aus.<br><br>
+		Nach dem Spiel bitte immer den Sieger für jedes Feld bei der Turnierleitung melden, damit wir den Spielplan aktualisieren können.
       </div>
 
       <!-- Werbe-Infobox -->
@@ -95,16 +143,21 @@
             <img id="adHeaderImg" class="adHeaderImg" src="/assets/save_the_date.jpg" alt="Info" />
           </div>
           <div id="adBody" class="adBody">
-Der TSV Königsbrunn veranstaltet am 04. und 05. Juli 2026 im Rahmen des 100-jährigen Vereinsjubiläums ein Minifußball Sommerfestival für die Jahrgänge 2015-2020.
-
-Hierzu laden wir euch mit euren Teams recht herzlich ein!
-  2019/20: Samstag, 04.07.26 Minifußball
-  2018: Samstag, 04.07.26 Minifußball
-  2017: Sonntag, 05.07.26 Minifußball
-  2015/16: Sonntag, 05.07.26 Minifußball
-  ...
-
-Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird für jeden etwas dabei sein. Für das leibliche Wohl wird vor Ort ausreichend gesorgt sein.
+			Der TSV Königsbrunn veranstaltet am 04. und 05. Juli 2026 im Rahmen des 100-jährigen Vereinsjubiläums ein Minifußball Sommerfestival für die Jahrgänge 2015-2020.
+			<br><br>
+			Hierzu laden wir euch mit euren Teams recht herzlich ein!
+			<br><br>
+			<ul class="indentList">
+			  <li>JG 2019/20: Samstag, 04.07.26 Minifußball</li>
+			  <li>JG 2018: Samstag, 04.07.26 Minifußball</li>
+			  <li>JG 2017: Sonntag, 05.07.26 Minifußball</li>
+			  <li>JG 2015/16: Sonntag, 05.07.26 Minifußball</li>
+			  <li>...</li>
+			</ul>
+			<br>
+			Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird für jeden etwas dabei sein. Für das leibliche Wohl wird vor Ort ausreichend gesorgt sein.
+			<p>
+			<b>Vorananmeldungen per Mail sind bereits jetzt möglich: finke.markus@gmx.de</b>
           </div>
         </div>
       </div>
@@ -116,5 +169,11 @@ Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird
 
   <!-- Ausgelagerte Viewer-Logik -->
   <script src="/3v3/js/viewer.js"></script>
+  
+  <footer class="viewerFooter">
+    <div class="footerInner">
+      © 2026 – Kontakt: Markus Finke, <a href="mailto:deine@mail.de">finke.markus@gmx.de</a>
+    </div>
+  </footer>
 </body>
 </html>

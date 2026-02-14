@@ -76,17 +76,17 @@ async function restoreFromSnapshot(db, snapPath) {
     // Teams mit festen IDs wiederherstellen
     for (const t of data.teams || []) {
       await run(
-        `INSERT INTO teams (id, name, groupName) VALUES (?, ?, ?)`,
-        [t.id, t.name, t.groupName]
+        `INSERT INTO teams (id, name, groupName, mode) VALUES (?, ?, ?, ?)`,
+        [t.id, t.name, t.groupName, t.mode]
       );
     }
 
     // Matches mit festen IDs wiederherstellen
     for (const m of data.matches || []) {
       await run(
-        `INSERT INTO matches (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [m.id, m.teamA, m.teamB, m.groupName, m.round, m.field, m.scoreA, m.scoreB, m.winner, m.plannedStart]
+        `INSERT INTO matches (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [m.id, m.teamA, m.teamB, m.groupName, m.round, m.field, m.scoreA, m.scoreB, m.winner, m.plannedStart, m.mode]
       );
     }
 

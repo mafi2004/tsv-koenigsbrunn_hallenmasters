@@ -1,8 +1,8 @@
 {
   "meta": {
-    "yearLabel": "JG_2019/20",
+    "yearLabel": "JG_2018",
     "schedule": {
-      "timeHHMM": "08:30",
+      "timeHHMM": "08:45",
       "dur": 7,
       "brk": 3
     }
@@ -21,39 +21,15 @@
       "groupName": "C"
     },
     {
-      "name": "FSV Großaitingen 1",
+      "name": "SpVgg Horgau",
       "groupName": "A"
     },
     {
-      "name": "FSV Großaitingen 2",
+      "name": "FC Königsbrunn 1",
       "groupName": "B"
     },
     {
-      "name": "TSV Diedorf 1",
-      "groupName": "C"
-    },
-    {
-      "name": "TSV Diedorf 2",
-      "groupName": "A"
-    },
-    {
-      "name": "TSV Haunstetten",
-      "groupName": "B"
-    },
-    {
-      "name": "TSV Bobingen 1",
-      "groupName": "C"
-    },
-    {
-      "name": "TSV Bobingen 2",
-      "groupName": "A"
-    },
-    {
-      "name": "SV Mering 1",
-      "groupName": "B"
-    },
-    {
-      "name": "SV Mering 2",
+      "name": "FC Königsbrunn 2",
       "groupName": "C"
     },
     {
@@ -61,11 +37,35 @@
       "groupName": "A"
     },
     {
-      "name": "JFG Lechfeld 2",
+      "name": "TSG Stadtbergen 1",
       "groupName": "B"
     },
     {
-      "name": "FC Königsbrunn 1",
+      "name": "TSG Stadtbergen 2",
+      "groupName": "C"
+    },
+    {
+      "name": "DJK Göggingen AuxPro",
+      "groupName": "A"
+    },
+    {
+      "name": "BC Rinnenthal 1",
+      "groupName": "B"
+    },
+    {
+      "name": "BC Rinnenthal 2",
+      "groupName": "C"
+    },
+    {
+      "name": "TSV Haunstetten",
+      "groupName": "A"
+    },
+    {
+      "name": "TSV Neusäß 1",
+      "groupName": "B"
+    },
+    {
+      "name": "TSV Neusäß 2",
       "groupName": "C"
     },
     {
@@ -73,11 +73,11 @@
       "groupName": "A"
     },
     {
-      "name": "FC Königsbrunn 2",
+      "name": "DJK Göggingen",
       "groupName": "B"
     },
     {
-      "name": "TSV Königsbrunn 5",
+      "name": "JFG Lechfeld 2",
       "groupName": "C"
     }
   ]

@@ -4,11 +4,17 @@ const API_BASE = window.location.origin + '/api/minis5';
 
 const connState = document.getElementById("connState");
 
+const trophy = `<span style="color:#facc15; margin-left:6px;">🏆</span>`;
+
+let MIRROR_MODE = false; 
+
 function setStatus(text, color) {
     connState.textContent = text;
     connState.style.color = color;
 }
 
+// Ansicht spiegeln
+function toggleMirror() { MIRROR_MODE = document.getElementById("mirrorView").checked; refreshAll(); }
 
 /* -------------------------------------------------------
    Helper
@@ -71,6 +77,9 @@ function renderTiles(matches) {
   });
 
   const times = Array.from(rowsByTime.keys()).sort((a, b) => hhmmToNum(a) - hhmmToNum(b));
+  
+  const upcoming = matches.filter(m => !m.winner).slice(0, 2);
+  const upcomingIds = upcoming.map(m => m.id);
 
   times.forEach(time => {
     const rowEl = document.createElement('div');
@@ -85,11 +94,16 @@ function renderTiles(matches) {
     grid.className = 'grid2';
 
     const ms = rowsByTime.get(time).sort((a, b) => Number(a.field) - Number(b.field));
-
+	
     for (let f = 1; f <= 2; f++) {
-      const m = ms.find(x => Number(x.field) === f) || null;
+	  var fieldNo = f;
+	  if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 2; else if (fieldNo === 2) fieldNo = 1; }
+      const m = ms.find(x => Number(x.field) === fieldNo) || null;
       const tile = document.createElement('div');
       tile.className = 'tile';
+	  if (upcomingIds.includes(m.id)) {
+		tile.classList.add("currentMatch");
+	  }
 
       if (m) {
         const cls = groupClass(m.groupName);
@@ -101,17 +115,30 @@ function renderTiles(matches) {
           <span>Feld ${m.field}</span>
         `;
 
-        const ta = m.teamA_name || m.teamA || '';
-        const tb = m.teamB_name || m.teamB || '';
-        const winner = m.winner
-          ? (Number(m.winner) === Number(m.teamA) ? ta : tb)
-          : null;
-
         const main = document.createElement('div');
         main.className = 'tileMain';
-        main.textContent = winner
-          ? `${ta} vs ${tb} – Sieger: ${winner}`
-          : `${ta} vs ${tb}`;
+        let ta = m.teamA_name || m.teamA || '';
+		let tb = m.teamB_name || m.teamB || '';
+
+		if (m.winner === 'A') ta = `${trophy} ` + ta;
+		if (m.winner === 'B') tb += ` ${trophy}`;
+
+		main.innerHTML = `
+		  <span class="teamA">${ta}</span>
+		  <span class="teamB">${tb}</span>
+		`;
+
+		const teamAEl = main.querySelector(".teamA");
+		const teamBEl = main.querySelector(".teamB");
+
+		if (m.winner === "A") {
+		  teamAEl.classList.add("winner");
+		  teamBEl.classList.add("loser");
+		}
+		if (m.winner === "B") {
+		  teamBEl.classList.add("winner");
+		  teamAEl.classList.add("loser");
+		}
 
         tile.append(top, main);
       } else {
@@ -133,26 +160,32 @@ function renderTable(matches) {
   const tbody = document.querySelector('#matchesTable tbody');
   tbody.innerHTML = '';
 
+  const upcoming = matches.filter(m => !m.winner).slice(0, 2);
+  const upcomingIds = upcoming.map(m => m.id);
+
   matches.forEach(m => {
     const tr = document.createElement('tr');
     const cls = groupClass(m.groupName);
     if (cls) tr.classList.add(cls);
 
-    const ta = m.teamA_name || m.teamA || '';
-    const tb = m.teamB_name || m.teamB || '';
-    const winner = m.winner
-      ? (Number(m.winner) === Number(m.teamA) ? ta : tb)
-      : '–';
+    let ta = m.teamA_name || m.teamA || '';
+	let tb = m.teamB_name || m.teamB || '';
 
-    tr.innerHTML = `
-      <td>${m.id}</td>
-      <td><span class="pill ${cls}">${m.groupName}</span></td>
-      <td>${m.plannedStart || '–'}</td>
-      <td>${m.field}</td>
-      <td>${ta}</td>
-      <td>${tb}</td>
-      <td>${winner}</td>
-    `;
+	if (m.winner === 'A') ta += ` ${trophy}`;
+	if (m.winner === 'B') tb += ` ${trophy}`;
+
+	tr.innerHTML = `
+	  <td>${m.id}</td>
+	  <td><span class="pill ${cls}">${m.groupName}</span></td>
+	  <td>${m.plannedStart || '–'}</td>
+	  <td>${m.field}</td>
+	  <td>${ta}</td>
+	  <td>${tb}</td>
+	`;
+	
+	if (upcomingIds.includes(m.id)) {
+	  tr.classList.add("currentMatch");
+	}
 
     tbody.appendChild(tr);
   });
@@ -211,12 +244,52 @@ function renderTeams(teams) {
 }
 
 /* -------------------------------------------------------
+   Hallenlayout Rendering
+------------------------------------------------------- */
+function updateHallenlayout(matches) {
+  const img = document.getElementById("hallImage");
+  if (MIRROR_MODE) {
+    img.src = "/assets/bg_hallenmasters_Gym2_mirrored.jpg";
+  } else {
+    img.src = "/assets/bg_hallenmasters_Gym2.jpg"; 
+  }	
+	
+  document.querySelectorAll('.team-overlay').forEach(el => {
+	  el.textContent = '';
+	  el.className = 'team-overlay';
+  });
+  
+  if (!matches || matches.length === 0) return;
+  const current = matches.filter(m => !m.winner).slice(0, 2);
+
+  current.forEach(m => {
+	  var fieldNo = m.field;
+	  if (MIRROR_MODE) { if (fieldNo === 1) fieldNo = 2; else if (fieldNo === 2) fieldNo = 1; }
+	  var elA = document.getElementById(`field${fieldNo}-teamA`);
+	  var elB = document.getElementById(`field${fieldNo}-teamB`);
+	  if (MIRROR_MODE) {
+		elB = document.getElementById(`field${fieldNo}-teamA`);
+		elA = document.getElementById(`field${fieldNo}-teamB`);
+	  }
+	  if (elA){
+		  elA.textContent = m.teamA_name || '';
+		  if (m.groupName) elA.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+	  
+	  if (elB){
+		  elB.textContent = m.teamB_name || '';
+		  if (m.groupName) elB.classList.add(`group-${m.groupName.toUpperCase()}`);
+	  }
+  });
+}
+
+/* -------------------------------------------------------
    Socket.IO Live Updates
 ------------------------------------------------------- */
 function initSocket() {
   if (typeof io !== 'function') return;
 
-  const s = io(window.location.origin, {
+  const s = io("/minis5", {
     path: '/socket.io',
     transports: ['websocket', 'polling'],
     reconnectionAttempts: 10,
@@ -230,10 +303,19 @@ function initSocket() {
   s.on('results:updated', reload);
   s.on('matches:updated', reload);
   s.on('winner:updated', reload);
+  s.on('teams:updated', reload);
+  
+  s.on("reset-5v5", () => { location.reload(); });
+  s.on("reset-all", () => { location.reload(); });
   
   // Verbindung hergestellt
   s.on("connect", () => {
     setStatus("verbunden", "#22c55e"); // grün
+  });
+  
+  s.on("viewerCount5", count => {
+    const el = document.getElementById("viewerCount");
+    if (el) el.textContent = "Zuschauer online: " + count;
   });
 
   // Verbindung verloren
@@ -252,8 +334,39 @@ function initSocket() {
     setStatus("Update empfangen", "#22c55e");
     setTimeout(() => setStatus("verbunden", "#22c55e"), 1500);
   });
-
 }
+
+function initAdTile() {
+  const tile = document.getElementById("adTile");
+  const header = document.getElementById("adHeader");
+  const body = document.getElementById("adBody");
+  const icon = tile.querySelector(".adToggleIcon");
+
+  header.addEventListener("click", () => {
+    const expanded = tile.getAttribute("aria-expanded") === "true";
+    tile.setAttribute("aria-expanded", !expanded);
+    body.style.display = expanded ? "none" : "block";
+    icon.textContent = expanded ? "›" : "‹";
+  });
+}
+
+document.addEventListener("DOMContentLoaded", initAdTile);
+
+function initRulesTile() {
+  const tile = document.getElementById("rulesTile");
+  const header = document.getElementById("rulesHeader");
+  const body = document.getElementById("rulesBody");
+  const icon = tile.querySelector(".rulesToggleIcon");
+
+  header.addEventListener("click", () => {
+    const expanded = tile.getAttribute("aria-expanded") === "true";
+    tile.setAttribute("aria-expanded", !expanded);
+    body.style.display = expanded ? "none" : "block";
+    icon.textContent = expanded ? "›" : "‹";
+  });
+}
+document.addEventListener("DOMContentLoaded", initRulesTile);
+
 
 /* -------------------------------------------------------
    Refresh All
@@ -266,6 +379,7 @@ async function refreshAll() {
     renderTiles(matches);
     renderTable(matches);
     renderTeams(teams);
+	updateHallenlayout(matches);
   } catch (e) {
     const cont = document.getElementById('tilesContainer');
     cont.textContent = 'Fehler beim Laden: ' + e.message;

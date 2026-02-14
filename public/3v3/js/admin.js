@@ -6,7 +6,6 @@
 
 /* ===== Logo ===== */
 const LOGO_PATH = '/assets/Fussballwappen_logo.png';
-const cacheBust = () => `?_v=${Date.now()}`;
 function setLogo(){
   const img = document.getElementById('clubLogo');
   const pathEl = document.getElementById('logoPathText');
@@ -26,33 +25,50 @@ function getQRBase(){ return (localStorage.getItem(QR_BASE_KEY) || '').trim(); }
 function setQRBase(v){ localStorage.setItem(QR_BASE_KEY, (v || '').trim()); }
 function buildViewerUrl(base){
   const host = (base || '').trim();
-  if (!host) return '';
   // Wenn nur IP angegeben, nimm http://
   const hasProto = /^https?:\/\//i.test(host);
   const urlBase = hasProto ? host : ('http://' + host);
-  return urlBase.replace(/\/+$/,'') + '/3v3/viewer.html';
+  if (host)
+	return urlBase.replace(/\/+$/,'') + '/3v3/viewer.html';
+  
+  const is5v5 = window.location.pathname.includes('/5v5/');
+  const viewerPath = is5v5 ? '/5v5/viewer.html' : '/3v3/viewer';
+
+  const fullUrl = `https://tsv-koenigsbrunn-hallenmasters.onrender.com${viewerPath}`;
+  return fullUrl;
 }
+
+// Hilfsfunktion für Cache-Busting
+const cacheBust = () => `?_v=${Date.now()}`;
+
 function applyQRBaseToUI(){
-  const base = getQRBase();
+  const base = getQRBase(); // kommt aus deinem LocalStorage (Eingabefeld)
   const input = document.getElementById('qrBase');
   const a = document.getElementById('viewerLink');
   const img = document.getElementById('qr-img');
+
   if (input) input.value = base;
+
+  // Viewer-URL aus Basis bauen (http(s)://host:port + /3v3/viewer.html)
   const url = buildViewerUrl(base);
   if (a) { a.href = url || '#'; a.textContent = 'Viewer öffnen'; }
-  // Optional: QR vom Server rendern, falls verfügbar (z. B. /api/qr?text=...)
+
   if (img) {
     if (url) {
-      const qrEndpoint = '/api/qr?text=' + encodeURIComponent(url);
+      // PNG von /api/qr beziehen (Größe optional ändern: 128/256/512)
+      const endpoint = `/api/qr?text=${encodeURIComponent(url)}&size=64${cacheBust()}`;
       img.onerror = () => { img.style.display = 'none'; };
       img.onload  = () => { img.style.display = 'block'; };
-      img.src = qrEndpoint + cacheBust();
+      img.src = endpoint;
+      img.alt = 'QR-Code zum Viewer';
+      img.title = 'QR-Code zum Viewer (' + url + ')';
     } else {
       img.style.display = 'none';
       img.removeAttribute('src');
     }
   }
 }
+
 function wireQRBase(){
   document.getElementById('btnSaveQRBase')?.addEventListener('click', () => {
     const val = (document.getElementById('qrBase').value || '').trim();
@@ -236,7 +252,7 @@ function buildTeamsGrid(groups){
     const wrap = document.createElement('div'); wrap.className = 'table-wrap';
     const table = document.createElement('table'); table.id = `teams-table-${g}`;
     const thead = document.createElement('thead'); thead.innerHTML = `
-      <tr><th style="width:80px;">ID</th><th>Name</th><th style="width:160px;">Aktion</th></tr>`;
+      <tr><th style="width:20px;">ID</th><th>Name</th><th style="width:60px;">Aktion</th></tr>`;
     table.appendChild(thead);
     const tbody = document.createElement('tbody'); tbody.id = `teams-tbody-${g}`; table.appendChild(tbody);
     wrap.appendChild(table); card.appendChild(wrap); grid.appendChild(card);
@@ -273,7 +289,19 @@ function renderTeams(){
     tbody.appendChild(tr);
   });
 }
-async function refreshTeams(){ try { TEAMS = await loadTeams(); renderTeams(); } catch(e){ showMsg('#teamsMsg', 'Fehler: '+e.message, true); } }
+async function refreshTeams(){
+	try { 
+		TEAMS = await loadTeams(); 
+		renderTeams(); 
+		
+		if (window.adminSocket) { 
+			window.adminSocket.emit("teams:updated", { module: "3v3" }); 
+		}
+	} 
+	catch(e){ 
+		showMsg('#teamsMsg', 'Fehler: '+e.message, true); 
+	} 
+}
 
 /* ===== Matches (Sieger-Spalte entfernt) ===== */
 function renderMatches(){
@@ -403,20 +431,37 @@ function computeNextRoundPayloadFromTop3(){
 }
 
 function initSocket(){
-  const s = window.io ? window.io(window.location.origin, {
-    path:'/socket.io', transports:['websocket','polling'], reconnectionAttempts:10, timeout:10000
-  }) : null;
+  const s = io("/minis3", {
+    path: "/socket.io",
+	query: { admin: "true" },
+    transports: ["websocket", "polling"],
+    reconnectionAttempts: 10,
+    timeout: 10000,
+  });
+  
   if (!s) return;
+  window.adminSocket = s;
 
   const reloadMatches = () => refreshMatches();
   s.on('resultUpdate', reloadMatches);
   s.on('results:updated', reloadMatches);
   s.on('group:started',   reloadMatches);
-  s.on('round:advanced',  reloadMatches);
-  s.on('round:rebuilt',   reloadMatches);
+  s.on('round:advanced', async () => {
+    await reloadMatches();
+    await loadHistoryUI();
+  });
+
+  s.on('round:rebuilt', async () => {
+    await reloadMatches();
+    await loadHistoryUI();
+  });
+
   s.on('schedule:recalculated', reloadMatches);
 
   s.on('matches:reset', () => { reloadMatches(); clearHistoryUI(); });
+  
+  s.on("reset-3v3", () => { location.reload(); });
+  s.on("reset-all", () => { location.reload(); });
 
   s.on('snapshot:created', async () => { await refreshSnapshots(); showMsg('#recMsg', 'Snapshot erstellt.'); });
   s.on('recovery:done', async () => {
@@ -426,7 +471,12 @@ function initSocket(){
     showMsg('#recMsg', 'Wiederherstellung abgeschlossen.');
   });
 
-  s.on('meta:updated', (p) => { setAdminYearLabel(p?.yearLabel ?? YEAR_LABEL); });
+  s.on('meta:updated', (p) => {
+	  setAdminYearLabel(p?.yearLabel ?? YEAR_LABEL);
+	  document.querySelector('#scheduleTime').value = p?.schedule.timeHHMM || '';
+	  document.querySelector('#scheduleDur').value = p?.schedule.dur || '';
+	  document.querySelector('#scheduleBrk').value = p?.schedule.brk || '';
+  });
 }
 
 function wireUI(){
@@ -620,6 +670,21 @@ async function importTournamentFile(file){
       if (!name || !grp) continue;
       try { await addTeam(name, grp); added++; } catch {}
     }
+	
+	if (obj.meta && obj.meta.timeHHMM) {
+		await fetch('/api/meta', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				yearLabel: null, // oder json.meta.yearLabel
+				schedule: {
+					timeHHMM: obj.meta.timeHHMM,
+					dur: obj.meta.dur,
+					brk: obj.meta.brk
+				}
+			})
+		});
+	}
 
     showMsg('#tournamentMsg', `Turnierdatei importiert. Label: ${yearLabel ?? '–'} | Teams: ${added}/${teamsArr.length}`);
     await refreshTeams();

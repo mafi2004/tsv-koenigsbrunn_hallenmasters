@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Viewer – Mini-Fußball 5v5</title>
+  <title>3. Königsbrunner Mini‑Fußball Hallenmasters: 5v5</title>
   <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
   <link rel="icon" href="/assets/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
@@ -21,41 +21,42 @@
         <div class="titleWrap">
           <img src="/assets/Fussballwappen_logo.png" class="clubLogo" id="clubLogo" alt="Vereinslogo" />
           <div style="display:flex; flex-direction:column; gap:.25rem;">
-            <h1>
-              Mini-Fußball Hallenmasters
+            <h1>3. Königsbrunner Mini‑Fußball Hallenmasters</h1>
+            <div class="meta">
+              <span>21./22.02.2026</span>
               <span class="pill" style="margin-left:.5rem;">Modus: 5v5</span>
-            </h1>
-            <div class="logoPath">
-              Logo-Pfad: <code id="logoPathText">–</code>
-              <span id="logoError" class="logoError">
-                Logo konnte nicht geladen werden. Datei unter <code>/public/assets/…</code> ablegen.
-              </span>
             </div>
           </div>
         </div>
       </div>
 
-		<div id="connStatus" style="
-			position: absolute;
-			top: 10px;
-			right: 10px;
-			padding: 6px 12px;
-			border-radius: 6px;
-			background: #1f2937;
-			color: #9ca3af;
-			font-size: 0.85rem;
-			border: 1px solid #374151;
-		">
-			Status: <span id="connState">…</span>
-		</div>
+      <div id="connStatus" style="
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background: #1f2937;
+        color: #9ca3af;
+        font-size: 0.85rem;
+        border: 1px solid #374151;
+      ">
+        Status: <span id="connState">…</span>
+		<span id="viewerCount" class="pill">Zuschauer online: 0</span>
+		<label class="mirrorToggle">
+		  <input type="checkbox" id="mirrorView" onchange="toggleMirror()">
+		  Ansicht spiegeln
+		</label>
+      </div>
     </div>
 
     <!-- NAVIGATION -->
     <nav class="viewerNav">
-      <button class="navBtn navBtn-active" data-page="tiles">Aktuelle Spiele</button>
+      <button class="navBtn navBtn-active" data-page="tiles">Spielfeldbelegung</button>
       <button class="navBtn" data-page="list">Spielplan</button>
       <button class="navBtn" data-page="teams">Teams</button>
       <button class="navBtn" data-page="hall">Hallenlayout</button>
+	  <button class="navBtn" data-page="rules">Regelübersicht</button>
     </nav>
   </header>
 
@@ -65,13 +66,13 @@
 
     <!-- PAGE: TILES -->
     <section id="page-tiles" class="page page-active">
-      <header><h2>Spiele (Tiles)</h2></header>
+      <header><h2>Spiele</h2></header>
       <div id="tilesContainer"></div>
     </section>
 
     <!-- PAGE: LIST -->
     <section id="page-list" class="page">
-      <header><h2>Spielplan (Liste)</h2></header>
+      <header><h2>Spielplan</h2></header>
       <div class="tableWrap">
         <table id="matchesTable">
           <thead>
@@ -82,7 +83,6 @@
               <th>Feld</th>
               <th>Team A</th>
               <th>Team B</th>
-              <th>Sieger</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -100,16 +100,87 @@
     <section id="page-hall" class="page">
       <header><h2>Hallenlayout</h2></header>
       <div class="hallWrap">
-        <img src="/assets/bg_hallenmasters_Gym2.jpg" alt="Hallenlayout" class="hallImg" />
+        <img src="/assets/bg_hallenmasters_Gym2.jpg" alt="Hallenlayout" class="hallImg" id="hallImage" />
+		<!-- Team-Overlays -->
+		<div class="team-overlay" id="field1-teamA"></div>
+		<div class="team-overlay" id="field1-teamB"></div>
+		<div class="team-overlay" id="field2-teamA"></div>
+		<div class="team-overlay" id="field2-teamB"></div>
       </div>
     </section>
-
+	
+	<!-- PAGE: REGELN -->
+    <section id="page-rules" class="page">
+      <header>
+	    <div id="rulesHeader" class="rulesTileHeader" aria-controls="rulesBody">
+		  <h2>Regelübersicht</h2>
+		  <img id="rulesHeaderImg" class="rulesHeaderImg" src="/assets/regeln.jpg" alt="Info" />
+		</div>
+	  </header>
+      <div class="rulesWrap">
+        <br>
+        Wir spielen Minifußball 5 vs 5 auf 2 Feldern und 2 Gruppen im Wechsel. Jede Gruppe spielt „Jeder gegen Jeden“. 
+		<br><br>
+		<ul class="indentList">
+			<li>- Spieldauer: 10min</li>
+			<li>- Schusszone: ab der Mittellinie</li>
+			<li>- Kein Grätschen!</li>
+			<li>- Zum Spielbeginn befinden sich alle Spieler auf der eigenen Torlinie, der Ball wird von einem Trainer im Bereich der Mittellinie ins Spiel gebracht.</li>
+			<li>- Bei Seitenaus (Ball über der Abtrennung): Einkick oder Eindribbeln (keine direkte Torerzielung)</li>
+			<li>- Bei Eckball: Einkick von der Ecke (keine direkte Torerzielung).</li>
+			<li>- Bei Toraus: Verteidiger bringen den Ball von der Grundlinie ins Feld.</li>
+			<li>- Bei Torerzielung: in eigene Spielhälfte zurückziehen</li>
+		</ul>
+		<br>
+		Liegt eine Mannschaft mit 3 Toren zurück, darf sie einen 6. Spieler aufs Feld bringen (solange bis der Rückstand aufgeholt werden konnte).<br>
+		Bei Unentschieden gilt die Mannschaft als Sieger, die das letzte Tor geschossen hat.<br><br>
+		Nach dem Spiel bitte immer den Sieger für jedes Feld bei der Turnierleitung melden, damit wir den Spielplan aktualisieren können.
+      </div>
+    </section>
   </main>
 
+  <!-- INFO-KACHEL (unter allen Tabs) -->
+  <div class="adWrap viewerInfoBox">
+    <div id="adTile" class="tile grpF adTile" aria-label="Werbung" aria-expanded="false">
+      <div id="adHeader" class="adTileHeader" role="button" tabindex="0" aria-controls="adBody">
+        <h3 class="adTitle">
+          2. Königsbrunner Mini-Fußball Sommerfestival
+          <span class="adToggleIcon">›</span>
+        </h3>
+        <img id="adHeaderImg" class="adHeaderImg" src="/assets/save_the_date.jpg" alt="Info" />
+      </div>
+
+      <div id="adBody" class="adBody">
+	    <br>
+        Der TSV Königsbrunn veranstaltet am 04. und 05. Juli 2026 im Rahmen des 100-jährigen Vereinsjubiläums ein Minifußball Sommerfestival für die Jahrgänge 2015-2020.
+        <br><br>
+        Hierzu laden wir euch mit euren Teams recht herzlich ein!
+        <br><br>
+		<ul class="indentList">
+		  <li>JG 2019/20: Samstag, 04.07.26 Minifußball</li>
+		  <li>JG 2018: Samstag, 04.07.26 Minifußball</li>
+		  <li>JG 2017: Sonntag, 05.07.26 Minifußball</li>
+		  <li>JG 2015/16: Sonntag, 05.07.26 Minifußball</li>
+		  <li>...</li>
+		</ul>
+        <br>
+        Ob Groß ob Klein, ob Jung ob Alt, bei unserem umfangreichen Rahmenprogramm wird für jeden etwas dabei sein. Für das leibliche Wohl wird vor Ort ausreichend gesorgt sein.
+		<p>
+		<b>Vorananmeldungen per Mail sind bereits jetzt möglich: finke.markus@gmx.de</b>
+      </div>
+    </div>
+  </div>
+  
   <!-- SCRIPTS -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/qr_script.js"></script>
   <script src="minis5_viewer.js"></script>
+
+  <footer class="viewerFooter">
+    <div class="footerInner">
+      © 2026 – Kontakt: Markus Finke, <a href="mailto:deine@mail.de">finke.markus@gmx.de</a>
+    </div>
+  </footer>
 
 </body>
 </html>
