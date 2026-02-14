@@ -31,6 +31,8 @@ module.exports = (io3) => {
 			await appendOp(db, 'team:add', { id: this.lastID, name, groupName: grp });
 			await makeSnapshot(db);
 		  } catch {}
+		  
+		  io3.emit("teams:updated");
 
 		  res.json({ id: this.lastID, name, groupName: grp });
 		}
@@ -48,6 +50,8 @@ module.exports = (io3) => {
 		  await appendOp(db, 'team:del', { id });
 		  await makeSnapshot(db);
 		} catch {}
+		
+		io3.emit("teams:updated");
 
 		res.json({ success: true, deletedId: id });
 	  });
@@ -64,6 +68,8 @@ module.exports = (io3) => {
 			await appendOp(db, 'team:delAll', {});
 			await makeSnapshot(db);
 		  } catch {}
+		  
+		  io3.emit("teams:updated");
 
 		  res.json({ ok: true, deletedAll: true });
 		});

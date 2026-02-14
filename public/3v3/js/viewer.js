@@ -315,7 +315,6 @@ function updateHallenlayout() {
 		elB = document.getElementById(`field${fieldNo}-teamA`);
 		elA = document.getElementById(`field${fieldNo}-teamB`);
 	  }
-	  console.log(m.groupName.toUpperCase())
 	  if (elA){
 		  elA.textContent = m.teamA || '';
 		  if (m.groupName) elA.classList.add(`group-${m.groupName.toUpperCase()}`);
@@ -429,6 +428,22 @@ function refresh(){
     var lbl = (p && typeof p.yearLabel==='string') ? p.yearLabel : null;
     var el = document.getElementById('viewerYearLabel');
     if (el) el.textContent = 'Jahrgang: ' + (lbl || '–');
+  });
+  
+  s.on("teams:updated", () => {
+    loadTeams()
+      .then(renderTeamsGrid)
+      .catch(err => console.error("Teams laden fehlgeschlagen:", err));
+  });
+  
+  s.on("teams:updated", () => {
+    Promise.all([loadTeams(), loadMatches()])
+      .then(([teams, matches]) => {
+        renderTeamsGrid(teams);
+        MATCHES = matches;
+        updateHallenlayout();
+        setLastUpdate();
+      });
   });
 })();
 

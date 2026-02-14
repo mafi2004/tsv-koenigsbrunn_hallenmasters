@@ -267,8 +267,8 @@ module.exports = (io3) => {
         // … und neu einfügen (mit gleicher plannedStart)
         for (const p of pairs) {
           await run(`
-            INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart)
-            VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?)
+            INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
+            VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')
           `, [p.teamA, p.teamB, groupName, lastRound, p.field, keepPlanned]);
         }
 

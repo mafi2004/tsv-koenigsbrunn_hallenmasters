@@ -289,7 +289,19 @@ function renderTeams(){
     tbody.appendChild(tr);
   });
 }
-async function refreshTeams(){ try { TEAMS = await loadTeams(); renderTeams(); } catch(e){ showMsg('#teamsMsg', 'Fehler: '+e.message, true); } }
+async function refreshTeams(){
+	try { 
+		TEAMS = await loadTeams(); 
+		renderTeams(); 
+		
+		if (window.adminSocket) { 
+			window.adminSocket.emit("teams:updated", { module: "3v3" }); 
+		}
+	} 
+	catch(e){ 
+		showMsg('#teamsMsg', 'Fehler: '+e.message, true); 
+	} 
+}
 
 /* ===== Matches (Sieger-Spalte entfernt) ===== */
 function renderMatches(){
@@ -428,13 +440,22 @@ function initSocket(){
   });
   
   if (!s) return;
+  window.adminSocket = s;
 
   const reloadMatches = () => refreshMatches();
   s.on('resultUpdate', reloadMatches);
   s.on('results:updated', reloadMatches);
   s.on('group:started',   reloadMatches);
-  s.on('round:advanced',  reloadMatches);
-  s.on('round:rebuilt',   reloadMatches);
+  s.on('round:advanced', async () => {
+    await reloadMatches();
+    await loadHistoryUI();
+  });
+
+  s.on('round:rebuilt', async () => {
+    await reloadMatches();
+    await loadHistoryUI();
+  });
+
   s.on('schedule:recalculated', reloadMatches);
 
   s.on('matches:reset', () => { reloadMatches(); clearHistoryUI(); });
