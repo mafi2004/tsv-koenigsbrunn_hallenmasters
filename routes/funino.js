@@ -226,7 +226,7 @@ module.exports = (io3) => {
         }
 
         const histPrev = await all(`
-          SELECT field, teamA AS teamA_id, teamB AS teamB_id, winner
+          SELECT id, field, teamA AS teamA_id, teamB AS teamB_id, winner
           FROM match_history
           WHERE batchId = ?
           ORDER BY field ASC
@@ -259,18 +259,39 @@ module.exports = (io3) => {
         WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'
         ORDER BY id ASC LIMIT 1
       `, [groupName, lastRound]))?.plannedStart || null;
-
+	  
       await run(`BEGIN IMMEDIATE`);
       try {
-        // aktuelle Runde R löschen …
+        const row = await get(`
+		  SELECT id FROM matches
+		  WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'
+		  ORDER BY id ASC LIMIT 1
+		  `, [groupName, lastRound]);
+
+		const keepID = row?.id || null;
+	  
+		// aktuelle Runde R löschen …
         await run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'`, [groupName, lastRound]);
-        // … und neu einfügen (mit gleicher plannedStart)
-        for (const p of pairs) {
-          await run(`
-            INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
-            VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')
-          `, [p.teamA, p.teamB, groupName, lastRound, p.field, keepPlanned]);
-        }
+        // … und neu einfügen (mit gleicher plannedStart und alten IDs)
+        for (let i = 0; i < pairs.length; i++) {
+		  const p = pairs[i];
+		  const oldId = prev[i].id ?? prev[i].originalMatchId;
+
+		  await run(`
+			INSERT INTO matches
+			  (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
+			VALUES
+			  (?, ?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')
+		  `, [
+			keepID+i,
+			p.teamA,
+			p.teamB,
+			groupName,
+			lastRound,
+			p.field,
+			keepPlanned
+		  ]);
+		}
 
         await run(`COMMIT`);
 

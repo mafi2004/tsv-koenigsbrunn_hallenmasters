@@ -8,7 +8,7 @@ db.serialize(() => {
   // Teams
   db.run(`
     CREATE TABLE IF NOT EXISTS teams (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
       groupName TEXT,
 	  mode TEXT NOT NULL
@@ -31,7 +31,7 @@ db.serialize(() => {
     }
     const createTarget = `
       CREATE TABLE IF NOT EXISTS matches (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY,
         teamA INTEGER,
         teamB INTEGER,
         groupName TEXT,
@@ -79,7 +79,7 @@ db.serialize(() => {
         }
         db.run(`
           CREATE TABLE IF NOT EXISTS matches_migr (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             teamA INTEGER,
             teamB INTEGER,
             groupName TEXT,
