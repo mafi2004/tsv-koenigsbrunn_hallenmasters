@@ -17,11 +17,11 @@
       "groupName": "B"
     },
     {
-      "name": "TSV Königsbrunn 3",
+      "name": "TSV Pfersee",
       "groupName": "C"
     },
     {
-      "name": "TSV Pfersee",
+      "name": "TSV Königsbrunn 3",
       "groupName": "A"
     },
     {
@@ -61,11 +61,11 @@
       "groupName": "A"
     },
     {
-      "name": "SSV Bobingen 1",
+      "name": "TSV Bobingen",
       "groupName": "B"
     },
     {
-      "name": "SSV Bobingen 2",
+      "name": "TSV Merching 1",
       "groupName": "C"
     },
     {
@@ -73,11 +73,11 @@
       "groupName": "A"
     },
     {
-      "name": "TSV Merching",
+      "name": "TSV Merching 2",
       "groupName": "B"
     },
     {
-      "name": "SV Mühlried",
+      "name": "TSV Königsbrunn 5",
       "groupName": "C"
     }
   ]

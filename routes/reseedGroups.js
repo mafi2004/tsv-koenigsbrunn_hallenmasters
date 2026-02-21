@@ -88,30 +88,6 @@ function makePairs(teamIds) {
   return pairs;
 }
 
-/* ------------------------------ Feldlogik -------------------------------- */
-function lastFieldForTeam(teamId, matches) {
-  const ms = (matches || [])
-    .filter((m) =>
-      Number(m.teamA_id) === Number(teamId) ||
-      Number(m.teamB_id) === Number(teamId)
-    )
-    .sort((a, b) => Number(b.round) - Number(a.round));
-
-  for (const m of ms) {
-    if (m.field != null) return Number(m.field);
-  }
-  return NaN;
-}
-function nextFieldFromLastField(last) {
-  const lf = Number(last);
-  if (!Number.isFinite(lf) || lf < 1 || lf > 3) return NaN;
-  return (lf % 3) + 1;
-}
-function computeNextFieldForTeam(teamId, matchesUpToR3) {
-  const lf = lastFieldForTeam(teamId, matchesUpToR3);
-  return nextFieldFromLastField(lf);
-}
-
 /* --------------------------- letzte geplante Zeit -------------------------- */
 function minPlannedHHMMAcrossABC(matchesByG) {
   let last = null;
@@ -205,32 +181,38 @@ module.exports = (sqliteDb, io3) => {
       }
 
       const okAll = groupsABC.every((g) =>
-        (matchesByG[g] || []).some(m => Number(m.round) >= 3)
+        (matchesByG[g] || []).some(m => Number(m.round) >= 4)
       );
 
       if (!okAll) {
-        return res.status(400).json({ ok:false, msg:'Nicht alle Gruppen haben mindestens 3 Runden gespielt.' });
+        return res.status(400).json({ ok:false, msg:'Nicht alle Gruppen haben Runde 4 erreicht.' });
       }
 
-      const bucketD = [], bucketE = [], bucketF = [], bucketU = [];
+      const bucketD = [], bucketE = [], bucketF = [];
 
+      // -------------------------
+      // NEUE SETZLOGIK (Runde 4)
+      // -------------------------
       for (const g of groupsABC) {
-        const matchesUpToR3 = (matchesByG[g] || []).filter(m => Number(m.round) <= 3);
-        for (const t of teamsByG[g] || []) {
-          const nf = computeNextFieldForTeam(t.id, matchesUpToR3);
-          if (nf === 1) bucketD.push(t);
-          else if (nf === 2) bucketE.push(t);
-          else if (nf === 3) bucketF.push(t);
-          else bucketU.push(t);
-        }
-      }
+        const teams = teamsByG[g] || [];
+        const matches = matchesByG[g] || [];
 
-      for (let i = 0; i < bucketU.length; i++) {
-        const t = bucketU[i];
-        const mod = i % 3;
-        if (mod === 0) bucketD.push(t);
-        else if (mod === 1) bucketE.push(t);
-        else bucketF.push(t);
+        const r4 = matches.filter(m => Number(m.round) === 4);
+
+        for (const m of r4) {
+          const t1 = teams.find(t => t.id === Number(m.teamA_id));
+          const t2 = teams.find(t => t.id === Number(m.teamB_id));
+
+          if (!t1 || !t2) continue;
+
+          if (m.field === 1) {
+            bucketD.push(t1, t2);
+          } else if (m.field === 2) {
+            bucketE.push(t1, t2);
+          } else if (m.field === 3) {
+            bucketF.push(t1, t2);
+          }
+        }
       }
 
       const lastPlannedABC = minPlannedHHMMAcrossABC(matchesByG);
@@ -256,14 +238,14 @@ module.exports = (sqliteDb, io3) => {
         await insertMatchesBlockwise(
           sqliteDb,
           pairsD, pairsE, pairsF,
-          4,
+          5,
           schedule,
           lastPlannedABC
         );
 
-        await upsertGroupState(sqliteDb, 'D', 4);
-        await upsertGroupState(sqliteDb, 'E', 4);
-        await upsertGroupState(sqliteDb, 'F', 4);
+        await upsertGroupState(sqliteDb, 'D', 5);
+        await upsertGroupState(sqliteDb, 'E', 5);
+        await upsertGroupState(sqliteDb, 'F', 5);
 
         await run(sqliteDb, 'COMMIT');
 
@@ -277,19 +259,19 @@ module.exports = (sqliteDb, io3) => {
           io3.emit('groups:reseeded', {
             D: gDTeams.length, E: gETeams.length, F: gFTeams.length,
             created: { D: pairsD.length, E: pairsE.length, F: pairsF.length },
-            round: 4
+            round: 5
           });
-          io3.emit('round:advanced', { groupName: 'D', round: 4 });
-          io3.emit('round:advanced', { groupName: 'E', round: 4 });
-          io3.emit('round:advanced', { groupName: 'F', round: 4 });
+          io3.emit('round:advanced', { groupName: 'D', round: 5 });
+          io3.emit('round:advanced', { groupName: 'E', round: 5 });
+          io3.emit('round:advanced', { groupName: 'F', round: 5 });
           io3.emit('results:updated');
         }
 
         return res.json({
           ok: true,
-          msg: 'Gruppen neu zusammengestellt und Runde 4 für D/E/F angelegt.',
+          msg: 'Gruppen neu zusammengestellt und Runde 5 für D/E/F angelegt.',
           result: {
-            round: 4,
+            round: 5,
             D: gDTeams.map(t => ({ id: t.id, name: t.name })),
             E: gETeams.map(t => ({ id: t.id, name: t.name })),
             F: gFTeams.map(t => ({ id: t.id, name: t.name })),
