@@ -71,17 +71,17 @@ public/\
 
 ### **Teams**
 
-GET    /api/minis5/teams
-POST   /api/minis5/teams
-DELETE /api/minis5/teams
-DELETE /api/minis5/teams/:id
+GET    /api/minis5/teams\
+POST   /api/minis5/teams\
+DELETE /api/minis5/teams\
+DELETE /api/minis5/teams/:id\
 
 ### **Matches**
 
-GET    /api/minis5/matches
-DELETE /api/minis5/matches
-POST   /api/minis5/matches/generate
-POST   /api/minis5/matches/updateResult
+GET    /api/minis5/matches\
+DELETE /api/minis5/matches\
+POST   /api/minis5/matches/generate\
+POST   /api/minis5/matches/updateResult\
 
 ### **QR‑Code**
 
