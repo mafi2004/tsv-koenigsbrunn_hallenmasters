@@ -1,16 +1,17 @@
-/* -------------------------------------------------------
-   Root Colors (identisch zu deinem 3vs3-System)
-------------------------------------------------------- */
+/* ============================================================================
+   ROOT COLORS – zentrales Farbsystem (identisch zu deinem 3vs3-Design)
+   - Enthält Grundfarben, Gruppenfarben und UI-Farben
+============================================================================ */
 :root {
-  --bg: #0f172a;
-  --fg: #e5e7eb;
-  --muted: #9ca3af;
-  --accent: #22c55e;
-  --danger: #ef4444;
-  --card: #111827;
-  --border: #1f2937;
+  --bg: #0f172a;        /* Seitenhintergrund */
+  --fg: #e5e7eb;        /* Standard-Textfarbe */
+  --muted: #9ca3af;     /* Dezente Texte */
+  --accent: #22c55e;    /* Erfolgs-/Highlight-Farbe */
+  --danger: #ef4444;    /* Fehlerfarbe */
+  --card: #111827;      /* Karten-/Panel-Hintergrund */
+  --border: #1f2937;    /* Standard-Border */
 
-  /* Gruppenfarben A/B */
+  /* Gruppenfarben für 5v5 (nur A/B) */
   --grpA-bg: #0b1b3a;
   --grpA-fg: #bfdbfe;
   --grpA-br: #1d4ed8;
@@ -20,9 +21,9 @@
   --grpB-br: #7f1d1d;
 }
 
-/* -------------------------------------------------------
-   Base Layout
-------------------------------------------------------- */
+/* ============================================================================
+   BASE LAYOUT – Grundstruktur, Schrift, Farben
+============================================================================ */
 body {
   margin: 0;
   background: var(--bg);
@@ -36,9 +37,9 @@ main {
   padding-top: 20px;
 }
 
-/* -------------------------------------------------------
-   Sticky Header
-------------------------------------------------------- */
+/* ============================================================================
+   STICKY HEADER – Logo, Titel, Navigation
+============================================================================ */
 header {
   position: sticky;
   top: 0;
@@ -67,6 +68,7 @@ header .bar {
   object-fit: contain;
 }
 
+/* Kleine Badges (z. B. Modus, Status) */
 .pill {
   display: inline-block;
   padding: .2rem .6rem;
@@ -76,9 +78,9 @@ header .bar {
   color: var(--muted);
 }
 
-/* -------------------------------------------------------
-   Navigation Tabs
-------------------------------------------------------- */
+/* ============================================================================
+   NAVIGATION – Tabs für Tiles / Spielplan / Teams / Halle / Regeln
+============================================================================ */
 .viewerNav {
   display: flex;
   gap: .5rem;
@@ -102,9 +104,9 @@ header .bar {
   border-color: var(--accent);
 }
 
-/* -------------------------------------------------------
-   Pages
-------------------------------------------------------- */
+/* ============================================================================
+   PAGE SYSTEM – jede Seite ist ein eigener Bereich
+============================================================================ */
 .page {
   display: none;
   padding: 1rem;
@@ -114,9 +116,9 @@ header .bar {
   display: block;
 }
 
-/* -------------------------------------------------------
-   Buttons
-------------------------------------------------------- */
+/* ============================================================================
+   BUTTONS – Standard-Buttons + Farbvarianten
+============================================================================ */
 .btn {
   cursor: pointer;
   border: 1px solid var(--border);
@@ -152,9 +154,9 @@ header .bar {
   color: var(--muted);
 }
 
-/* -------------------------------------------------------
-   Inputs
-------------------------------------------------------- */
+/* ============================================================================
+   INPUTS – einheitliche Eingabefelder
+============================================================================ */
 .input {
   background: #0b1020;
   color: var(--fg);
@@ -164,9 +166,9 @@ header .bar {
   min-height: 2rem;
 }
 
-/* -------------------------------------------------------
-   Cards
-------------------------------------------------------- */
+/* ============================================================================
+   CARDS – Panels für Zeitmanagement, Infos, etc.
+============================================================================ */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -174,9 +176,9 @@ header .bar {
   padding: 1rem;
 }
 
-/* -------------------------------------------------------
-   Tables
-------------------------------------------------------- */
+/* ============================================================================
+   TABLES – Spielplan-Tabellen
+============================================================================ */
 .tableWrap {
   overflow-x: auto;
 }
@@ -198,9 +200,9 @@ th {
   color: #cbd5e1;
 }
 
-/* -------------------------------------------------------
-   Teams Grid
-------------------------------------------------------- */
+/* ============================================================================
+   TEAMS GRID – Kartenlayout für Teamübersicht
+============================================================================ */
 .teams-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -247,9 +249,9 @@ th {
   border-radius: 50%;
 }
 
-/* -------------------------------------------------------
-   Group Colors
-------------------------------------------------------- */
+/* ============================================================================
+   GROUP COLORS – für Teamkarten, Tiles, Overlays
+============================================================================ */
 .grpA {
   background: var(--grpA-bg) !important;
   color: var(--grpA-fg) !important;
@@ -265,9 +267,9 @@ th {
 .teamDot.grpA { background: var(--grpA-br); }
 .teamDot.grpB { background: var(--grpB-br); }
 
-/* -------------------------------------------------------
-   Tiles View (2 Felder)
-------------------------------------------------------- */
+/* ============================================================================
+   TILES VIEW – 5v5 hat 2 Felder → 2-Spalten-Grid
+============================================================================ */
 .tilesRow {
   display: flex;
   gap: .75rem;
@@ -308,15 +310,16 @@ th {
   font-weight: 600;
 }
 
+/* Aktuelles Spiel hervorheben */
 .currentMatch {
   border: 2px solid var(--accent) !important;
   box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
   background: rgba(34, 197, 94, 0.15) !important;
 }
 
-/* -------------------------------------------------------
-   Hallenlayout
-------------------------------------------------------- */
+/* ============================================================================
+   HALLENLAYOUT – Hintergrundbild + Team-Overlays
+============================================================================ */
 .hallWrap {
   position: relative;
   display: flex;
@@ -331,6 +334,7 @@ th {
   border: 1px solid var(--border);
 }
 
+/* Team-Overlays auf dem Hallenbild */
 .team-overlay { 
   position: absolute;
   padding: 6px 10px;
@@ -343,47 +347,43 @@ th {
   text-align: center;
 }
 
+/* Gruppenfarben für Overlays */
 .group-A {
-	background: var(--grpA-fg) !important;
-	border-color: var(--grpA-br) !important;
+  background: var(--grpA-fg) !important;
+  border-color: var(--grpA-br) !important;
 } 
 
 .group-B { 
-	background: var(--grpB-fg) !important;
-	border-color: var(--grpB-br) !important;
+  background: var(--grpB-fg) !important;
+  border-color: var(--grpB-br) !important;
 }
 
-/* Feld 1 */
+/* Feldpositionen */
 #field1-teamA { top: 15%; left: 15%; }
 #field1-teamB { top: 75%; left: 15%; }
 
-/* Feld 2 */
 #field2-teamA { top: 15%; left: 70%; }
 #field2-teamB { top: 75%; left: 70%; }
 
-/* ============================================
-   MOBILE FIX: Team-Overlay-Positionen im Hochformat
-   ============================================ */
+/* ============================================================================
+   MOBILE FIX – Hallenlayout im Hochformat
+============================================================================ */
 @media (max-width: 600px) and (orientation: portrait) {
-
-  /* Feld 1 */
   #field1-teamA { top: 15%; left: 11%; }
   #field1-teamB { top: 72%; left: 11%; }
 
-  /* Feld 2 */
   #field2-teamA { top: 15%; left: 68%; }
   #field2-teamB { top: 72%; left: 68%; }
 
-  /* Schrift kleiner für mobile Overlays */
   .team-overlay {
     font-size: 0.85rem;
     padding: 4px 8px;
   }
 }
 
-/* -------------------------------------------------------
-   QR Code
-------------------------------------------------------- */
+/* ============================================================================
+   QR CODE – Box im Header
+============================================================================ */
 #headerQR .container {
   width: 110px;
   height: 110px;
@@ -401,9 +401,9 @@ th {
   object-fit: contain;
 }
 
-/* -------------------------------------------------------
-   Misc
-------------------------------------------------------- */
+/* ============================================================================
+   MISC – Utility-Klassen
+============================================================================ */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -417,6 +417,9 @@ th {
   font-size: .8rem;
 }
 
+/* ============================================================================
+   LOGIN-OVERLAY – Passwortschutz
+============================================================================ */
 #pwOverlay {
   position: fixed;
   inset: 0;
@@ -463,11 +466,11 @@ th {
   display: none;
 }
 
-/* -------------------------------------------------------
-  Werbeblock
-------------------------------------------------------- */
+/* ============================================================================
+   WERBEBLOCK – Sommerfestival-Teaser
+============================================================================ */
 .adWrap {
-  background: rgba(34, 197, 94, 0.25); /* leichtes Grün */
+  background: rgba(34, 197, 94, 0.25);
   border: 1px solid rgba(34, 197, 94, 0.25);
   padding: 0.75rem;
   border-radius: 8px;
@@ -475,7 +478,7 @@ th {
 }
 
 .adTile {
-  background: transparent !important; /* wichtig: nicht überschreiben lassen */
+  background: transparent !important;
 }
 
 .viewerInfoBox {
@@ -495,23 +498,22 @@ th {
   font-size: 1rem;
 }
 
-/* HIER: Bild klein machen */
 .adHeaderImg {
-  width: 96px;      /* oder 20px, wenn du es noch kleiner willst */
+  width: 96px;
   height: auto;
   flex-shrink: 0;
-  border-radius: 4px; /* optional, wirkt etwas feiner */
+  border-radius: 4px;
 }
 
 .indentList {
   list-style: none;
-  padding-left: 1.2rem; /* Einrückung */
+  padding-left: 1.2rem;
   margin: 0;
 }
 
-/* -------------------------------------------------------
-  Regelblock
-------------------------------------------------------- */
+/* ============================================================================
+   REGELBLOCK – Regelübersicht
+============================================================================ */
 .rulesWrap {
   background: rgba(197, 34, 94, 0.25);
   border: 1px solid rgba(197, 34, 94, 0.25);
@@ -521,7 +523,7 @@ th {
 }
 
 .rulesTile {
-  background: transparent !important; /* wichtig: nicht überschreiben lassen */
+  background: transparent !important;
 }
 
 .rulesTileHeader {
@@ -536,52 +538,33 @@ th {
   font-size: 1rem;
 }
 
-/* HIER: Bild klein machen */
 .rulesHeaderImg {
-  width: 96px;      /* oder 20px, wenn du es noch kleiner willst */
+  width: 96px;
   height: auto;
   flex-shrink: 0;
-  border-radius: 4px; /* optional, wirkt etwas feiner */
+  border-radius: 4px;
 }
 
-/* ============================================
-   RESPONSIVE SCHRIFTGRÖSSEN FÜR HANDYS & TABLETS
-   ============================================ */
+/* ============================================================================
+   RESPONSIVE FONTS – für Handy/Tablet
+============================================================================ */
+html { font-size: 16px; }
 
-/* Standard Desktop */
-html {
-  font-size: 16px;
-}
-
-/* Tablet */
 @media (max-width: 900px) {
-  html {
-    font-size: 14px;
-  }
+  html { font-size: 14px; }
 }
 
-/* Handy Querformat */
 @media (max-width: 900px) and (min-aspect-ratio: 1/1) {
-  html {
-    font-size: 12px;
-  }
+  html { font-size: 12px; }
 }
 
-/* Handy Hochformat */
 @media (max-width: 600px) and (orientation: portrait) {
-  html {
-    font-size: 10px;
-  }
+  html { font-size: 10px; }
 }
 
-/* ============================================
+/* ============================================================================
    5v5 – Siegerteam hervorheben + Team B rechtsbündig
-   ============================================ */
-
-/* ============================================
-   5v5 – Siegerteam hervorheben + Team B rechtsbündig
-   ============================================ */
-
+============================================================================ */
 .tileMain {
   display: flex;
   justify-content: space-between;
@@ -589,31 +572,30 @@ html {
   gap: .5rem;
 }
 
-/* Team B rechtsbündig */
 .tileMain .teamB {
   margin-left: auto;
   text-align: right;
 }
 
-/* Siegerteam grün */
 .tileMain .winner {
   color: var(--accent);
   font-weight: 700;
 }
 
-/* Verlierer leicht ausgegraut */
 .tileMain .loser {
   color: var(--muted);
   opacity: 0.8;
 }
 
-/* "vs" etwas dezenter */
 .tileMain .vs {
   color: var(--muted);
   font-weight: 400;
   margin: 0 .4rem;
 }
 
+/* ============================================================================
+   ADMIN-STATS – Zuschauerzahlen im Admin-Header
+============================================================================ */
 .adminStats {
   background: #111827;
   border: 1px solid #1f2937;
@@ -644,21 +626,25 @@ html {
   font-weight: 700;
 }
 
+/* ============================================================================
+   FOOTER – fester Balken unten
+============================================================================ */
 .viewerFooter {
   position: fixed;
   width: 100%;
-  background: #0f172a; /* dunkles Blau wie dein Header */
-  color: #94a3b8;       /* helles Grau */
+  background: #0f172a;
+  color: #94a3b8;
   padding: .5rem 1rem;
   font-size: .85rem;
   text-align: center;
   border-top: 1px solid #1e293b;
-  margin-top: 1rem;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .viewerFooter a {
-  color: #38bdf8; /* cyan */
+  color: #38bdf8;
   text-decoration: none;
 }
 
@@ -670,4 +656,3 @@ html {
   max-width: 900px;
   margin: 0 auto;
 }
-

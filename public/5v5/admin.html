@@ -3,193 +3,286 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Titel im Browser-Tab -->
   <title>Admin – 3. Königsbrunner Mini-Fußball Hallenmasters</title>
+
+  <!-- Favicons -->
   <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
   <link rel="icon" href="/assets/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
 
-  <!-- Gemeinsamer Style wie 3vs3 -->
+  <!-- Gemeinsamer Style (5v5 nutzt eigenes CSS, aber gleiche Struktur wie 3v3) -->
   <link rel="stylesheet" href="minis5_styles.css" />
 </head>
 
 <body>
 
+<!-- ============================================================================
+     LOGIN-OVERLAY – Passwortschutz für Adminbereich
+     Wird per admin_password.js gesteuert
+============================================================================ -->
 <div id="pwOverlay">
   <div class="pwBox">
     <h2>Admin Login</h2>
+
+    <!-- Passwortfeld -->
     <input id="pwInput" type="password" placeholder="Passwort" />
+
+    <!-- Login-Button -->
     <button id="pwBtn">Login</button>
+
+    <!-- Fehlermeldung bei falschem Passwort -->
     <div id="pwError">Falsches Passwort</div>
   </div>
 </div>
 
-  <!-- HEADER -->
-  <header>
-    <div class="bar">
-      <div class="leftWrap">
-        <div class="titleWrap">
-          <img src="/assets/Fussballwappen_logo.png" class="clubLogo" id="clubLogo" alt="Vereinslogo" />
-          <div style="display:flex; flex-direction:column; gap:.25rem;">
-            <h1>
-              Admin – 3. Königsbrunner Mini-Fußball Hallenmasters
-              <span class="pill" style="margin-left:.5rem;">Modus: 5v5</span>
-            </h1>
-            <div class="logoPath">
-              Logo-Pfad: <code id="logoPathText">–</code>
-              <span id="logoError" class="logoError">
-                Logo konnte nicht geladen werden. Datei unter <code>/public/assets/…</code> ablegen.
-              </span>
-            </div>
-          </div>
-        </div>
+<!-- ============================================================================
+     HEADER – Logo, Titel, Viewer-Basis, QR-Code, Live-Statistiken
+============================================================================ -->
+<header>
+  <div class="bar">
 
-        <!-- QR / Viewer -->
-        <div class="row" style="gap:.5rem;">
-          <label for="qrBase" class="pill">Viewer‑Basis:</label>
-          <input id="qrBase" type="text" class="input" style="min-width:260px;" placeholder="192.168.0.25" />
-          <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
-          <a id="viewerLink" class="viewerLink" target="_blank" rel="noopener">Viewer öffnen</a>
+    <!-- Linke Seite: Logo + Titel + Viewer-Basis -->
+    <div class="leftWrap">
+
+      <!-- Logo + Titelblock -->
+      <div class="titleWrap">
+        <img src="/assets/Fussballwappen_logo.png"
+             class="clubLogo"
+             id="clubLogo"
+             alt="Vereinslogo" />
+
+        <div style="display:flex; flex-direction:column; gap:.25rem;">
+          <h1>
+            Admin – 3. Königsbrunner Mini-Fußball Hallenmasters
+            <span class="pill" style="margin-left:.5rem;">Modus: 5v5</span>
+          </h1>
+
+          <!-- Anzeige des Logo-Pfads + Fehlerhinweis -->
+          <div class="logoPath">
+            Logo-Pfad: <code id="logoPathText">–</code>
+            <span id="logoError" class="logoError">
+              Logo konnte nicht geladen werden. Datei unter <code>/public/assets/…</code> ablegen.
+            </span>
+          </div>
         </div>
       </div>
 
-		<div class="adminStats">
-		  <div class="statRow">
-			<span class="statLabel">Aktuell online 3v3:</span>
-			<span id="stat-viewerCount3" class="statValue">0</span>
-		  </div>
+      <!-- Viewer-Basis + QR-Code -->
+      <div class="row" style="gap:.5rem;">
+        <label for="qrBase" class="pill">Viewer‑Basis:</label>
 
-		  <div class="statRow">
-			<span class="statLabel">Besucher gesamt 3v3:</span>
-			<span id="stat-totalVisitors3" class="statValue">0</span>
-		  </div>
+        <!-- Eingabefeld für IP/Domain -->
+        <input id="qrBase"
+               type="text"
+               class="input"
+               style="min-width:260px;"
+               placeholder="192.168.0.25" />
 
-		  <div class="statRow">
-			<span class="statLabel">Aktuell online 5v5:</span>
-			<span id="stat-viewerCount5" class="statValue">0</span>
-		  </div>
+        <!-- Speichern der Basis-URL -->
+        <button id="btnSaveQRBase" type="button" class="btn btn-primary">Speichern</button>
 
-		  <div class="statRow">
-			<span class="statLabel">Besucher gesamt 5v5:</span>
-			<span id="stat-totalVisitors5" class="statValue">0</span>
-		  </div>
-		</div>
+        <!-- Link zum Viewer -->
+        <a id="viewerLink" class="viewerLink" target="_blank" rel="noopener">Viewer öffnen</a>
+      </div>
+    </div>
 
-	  <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
-        <div class="container">
-          <img src="" id="qr-img" alt="QR-Code zum Viewer" width="128" height="128">
+    <!-- ============================================================================
+         ADMIN-STATS – Live-Zuschauerzahlen für 3v3 und 5v5
+         Werden per Socket.IO aktualisiert
+    ============================================================================ -->
+    <div class="adminStats">
+
+      <div class="statRow">
+        <span class="statLabel">Aktuell online 3v3:</span>
+        <span id="stat-viewerCount3" class="statValue">0</span>
+      </div>
+
+      <div class="statRow">
+        <span class="statLabel">Besucher gesamt 3v3:</span>
+        <span id="stat-totalVisitors3" class="statValue">0</span>
+      </div>
+
+      <div class="statRow">
+        <span class="statLabel">Aktuell online 5v5:</span>
+        <span id="stat-viewerCount5" class="statValue">0</span>
+      </div>
+
+      <div class="statRow">
+        <span class="statLabel">Besucher gesamt 5v5:</span>
+        <span id="stat-totalVisitors5" class="statValue">0</span>
+      </div>
+    </div>
+
+    <!-- QR-Code rechts im Header -->
+    <div id="headerQR" style="display:flex; flex-direction:column; align-items:flex-end;">
+      <div class="container">
+        <img src="" id="qr-img" alt="QR-Code zum Viewer" width="128" height="128">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================================================
+       NAVIGATION – Umschalten zwischen Teams & Spielplan
+       (5v5 hat nur A+B)
+  ============================================================================ -->
+  <nav class="viewerNav">
+    <button class="navBtn navBtn-active" data-page="teams">Teams</button>
+    <button class="navBtn" data-page="matches">Spielplan</button>
+  </nav>
+
+</header>
+
+<!-- ============================================================================
+     MAIN – Seitencontainer für Teams & Spielplan
+============================================================================ -->
+<main>
+
+  <!-- ============================================================================
+       TEAMS-SEITE
+       - Teams laden
+       - Teams importieren/exportieren
+       - Team hinzufügen
+  ============================================================================ -->
+  <section id="page-teams" class="page page-active">
+
+    <header>
+      <h2>Teams (5v5)</h2>
+
+      <div class="row">
+        <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
+        <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
+
+        <!-- Export -->
+        <button id="btnExportTeams" type="button" class="btn btn-primary">Teams exportieren</button>
+
+        <!-- Import -->
+        <input id="importFile" type="file" accept="application/json" style="display:none">
+        <button id="btnImportTeams" type="button" class="btn btn-success">Teams importieren</button>
+      </div>
+    </header>
+
+    <!-- Grid für Teamkarten -->
+    <div class="teams-grid" id="teamsGrid"></div>
+
+    <!-- Team hinzufügen -->
+    <div class="row" style="padding:1rem">
+      <div class="row" style="flex:1 1 100%">
+        <input id="teamName" class="input" placeholder="Teamname" />
+
+        <select id="teamGroup" class="input">
+          <option value="A">Gruppe A</option>
+          <option value="B">Gruppe B</option>
+        </select>
+
+        <button id="btnAddTeam" type="button" class="btn btn-success">Hinzufügen</button>
+
+        <!-- Meldungen -->
+        <span id="teamsMsg" class="pill" style="display:none"></span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================================
+       SPIELPLAN-SEITE (A+B)
+       - Zeitmanagement
+       - Spielplan generieren
+       - Spiele laden / zurücksetzen
+  ============================================================================ -->
+  <section id="page-matches" class="page">
+
+    <header>
+      <h2>Spielplan (A+B)</h2>
+
+      <div class="row">
+        <button id="btnLoadMatches" type="button" class="btn btn-muted">Spiele laden</button>
+        <button id="btnReset" type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
+      </div>
+    </header>
+
+    <!-- Zeitmanagement -->
+    <div class="row" style="padding:1rem">
+      <div class="card" style="flex:1 1 100%">
+        <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Zeitmanagement</h3>
+
+        <div class="tm-row">
+
+          <!-- Startzeit -->
+          <label for="sched-time">Start:</label>
+          <input id="sched-time" type="time" class="input" step="60" />
+
+          <!-- Spieldauer -->
+          <label for="sched-dur">Dauer (min):</label>
+          <input id="sched-dur" type="number" min="1" step="1" value="15"
+                 class="input" style="width:90px" />
+
+          <!-- Pause -->
+          <label for="sched-break">Pause (min):</label>
+          <input id="sched-break" type="number" min="0" step="1" value="3"
+                 class="input" style="width:90px" />
+
+          <!-- Spielplan erzeugen -->
+          <button id="sched-generate" class="btn btn-primary">Spielplan (A+B) erzeugen</button>
+
+          <!-- Meldungen -->
+          <span id="timeMsg" class="pill" style="display:none; margin-left:auto;"></span>
         </div>
       </div>
     </div>
-	
-	<!-- NAVIGATION -->
-	<nav class="viewerNav">
-	  <button class="navBtn navBtn-active" data-page="teams">Teams</button>
-	  <button class="navBtn" data-page="matches">Spielplan</button>
-	</nav>
 
-  </header>
+    <!-- Spielplan-Tabelle -->
+    <div class="tableWrap" style="padding:1rem">
+      <table id="matchesTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Gruppe</th>
+            <th>Zeit</th>
+            <th>Feld</th>
+            <th>Team A</th>
+            <th>Team B</th>
+            <th>Aktion</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-  <!-- MAIN -->
-  <main>
+  </section>
 
-    <!-- TEAMS -->
-    <section id="page-teams" class="page page-active">
-      <header>
-        <h2>Teams (5v5)</h2>
-        <div class="row">
-          <button id="btnLoadTeams" type="button" class="btn btn-muted">Teams laden</button>
-          <button id="btnDeleteAllTeams" type="button" class="btn btn-danger">Alle Teams löschen</button>
-		  <button id="btnExportTeams" type="button" class="btn btn-primary">Teams exportieren</button>
-		  <input id="importFile" type="file" accept="application/json" style="display:none">
-		  <button id="btnImportTeams" type="button" class="btn btn-success">Teams importieren</button>
-        </div>
-      </header>
+</main>
 
-      <div class="teams-grid" id="teamsGrid"></div>
+<!-- ============================================================================
+     SCRIPTS – Socket.IO + minis5_admin.js + Passwortschutz
+============================================================================ -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="minis5_admin.js"></script>
+<script src="/admin_password.js"></script>
 
-      <div class="row" style="padding:1rem">
-        <div class="row" style="flex:1 1 100%">
-          <input id="teamName" class="input" placeholder="Teamname" />
-          <select id="teamGroup" class="input">
-            <option value="A">Gruppe A</option>
-            <option value="B">Gruppe B</option>
-          </select>
-          <button id="btnAddTeam" type="button" class="btn btn-success">Hinzufügen</button>
-          <span id="teamsMsg" class="pill" style="display:none"></span>
-        </div>
-      </div>
-    </section>
-
-    <!-- SPIELPLAN -->
-    <section id="page-matches" class="page">
-      <header>
-        <h2>Spielplan (A+B)</h2>
-        <div class="row">
-          <button id="btnLoadMatches" type="button" class="btn btn-muted">Spiele laden</button>
-          <button id="btnReset" type="button" class="btn btn-danger">Spielplan zurücksetzen</button>
-        </div>
-      </header>
-
-      <div class="row" style="padding:1rem">
-        <div class="card" style="flex:1 1 100%">
-          <h3 style="margin:.25rem 0 1rem; color:#cbd5e1;">Zeitmanagement</h3>
-          <div class="tm-row">
-            <label for="sched-time">Start:</label>
-            <input id="sched-time" type="time" class="input" step="60" />
-
-            <label for="sched-dur">Dauer (min):</label>
-            <input id="sched-dur" type="number" min="1" step="1" value="15" class="input" style="width:90px" />
-
-            <label for="sched-break">Pause (min):</label>
-            <input id="sched-break" type="number" min="0" step="1" value="3" class="input" style="width:90px" />
-
-            <button id="sched-generate" class="btn btn-primary">Spielplan (A+B) erzeugen</button>
-            <span id="timeMsg" class="pill" style="display:none; margin-left:auto;"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="tableWrap" style="padding:1rem">
-        <table id="matchesTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Gruppe</th>
-              <th>Zeit</th>
-              <th>Feld</th>
-              <th>Team A</th>
-              <th>Team B</th>
-              <th>Aktion</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- SCRIPTS -->
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="minis5_admin.js"></script>
-  <script src="/admin_password.js"></script>
-  
-  <script>
+<!-- Live-Statistiken 3v3 -->
+<script>
   const s3 = io("/minis3", { query: { admin: "true" } });
 
   s3.on("viewerCount3", count => {
     document.getElementById("stat-viewerCount3").textContent = count;
   });
+
   s3.on("totalVisitors3", count => {
     document.getElementById("stat-totalVisitors3").textContent = count;
   });
 </script>
+
+<!-- Live-Statistiken 5v5 -->
 <script>
   const s5 = io("/minis5", { query: { admin: "true" } });
 
   s5.on("viewerCount5", count => {
     document.getElementById("stat-viewerCount5").textContent = count;
   });
+
   s5.on("totalVisitors5", count => {
     document.getElementById("stat-totalVisitors5").textContent = count;
   });

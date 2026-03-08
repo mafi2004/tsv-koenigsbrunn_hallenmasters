@@ -1,5 +1,20 @@
-
 // server/routes/funino.js
+// -----------------------------------------------------------------------------
+// Diese Datei steuert den kompletten 3v3-Spielablauf (Funino-Modus).
+//
+// Hauptaufgaben:
+// - Laden aller Matches für Admin/Viewer
+// - Fortschalten einer Gruppe in die nächste Runde (nextRound)
+// - Archivieren der alten Runde in match_history
+// - Erzeugen der neuen Runde basierend auf Gewinner/Verlierer-Logik
+// - Wiederherstellen einer Runde aus der vorherigen Runde oder History
+// - Aktualisieren des group_state (welche Runde ist aktiv?)
+// - Senden von Live-Events an Admin-UI und Viewer
+//
+// Die Datei arbeitet vollständig mit Promise-basierten SQLite-Wrappern
+// und nutzt Transaktionen für atomare Updates.
+// -----------------------------------------------------------------------------
+
 const express = require('express');
 const db = require('../db');
 const { appendOp, makeSnapshot } = require('../utils/recovery');
@@ -7,14 +22,31 @@ const { appendOp, makeSnapshot } = require('../utils/recovery');
 module.exports = (io3) => {
   const router = express.Router();
 
-  // Helpers (Promise-Wrapper)
+  // ---------------------------------------------------------------------------
+  // Promise-basierte SQLite-Wrapper
+  // all(sql, params)  → liefert mehrere Zeilen
+  // get(sql, params)  → liefert eine Zeile
+  // run(sql, params)  → führt Statement aus (INSERT/UPDATE/DELETE)
+  // ---------------------------------------------------------------------------
   const all = (sql, params = []) =>
-    new Promise((resolve, reject) => db.all(sql, params, (e, rows) => (e ? reject(e) : resolve(rows))));
-  const get = (sql, params = []) =>
-    new Promise((resolve, reject) => db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row))));
-  const run = (sql, params = []) =>
-    new Promise((resolve, reject) => db.run(sql, params, function (e) { e ? reject(e) : resolve(this); }));
+    new Promise((resolve, reject) =>
+      db.all(sql, params, (e, rows) => (e ? reject(e) : resolve(rows)))
+    );
 
+  const get = (sql, params = []) =>
+    new Promise((resolve, reject) =>
+      db.get(sql, params, (e, row) => (e ? reject(e) : resolve(row)))
+    );
+
+  const run = (sql, params = []) =>
+    new Promise((resolve, reject) =>
+      db.run(sql, params, function (e) { e ? reject(e) : resolve(this); })
+    );
+
+  // ---------------------------------------------------------------------------
+  // addMinutesHHMM(hhmm, minutes)
+  // Hilfsfunktion: Addiert Minuten zu einer HH:MM-Zeit (24h-Format).
+  // ---------------------------------------------------------------------------
   function addMinutesHHMM(hhmm, minutes) {
     const [h, m] = String(hhmm).split(':').map(Number);
     if (!Number.isFinite(h) || !Number.isFinite(m)) return hhmm;
@@ -26,7 +58,8 @@ module.exports = (io3) => {
   }
 
   /* =========================================================================
-   * GET /api/funino/   → Matches (für Admin-View)
+   * GET /api/funino/
+   * Liefert alle 3v3-Matches für Admin/Viewer.
    * ========================================================================= */
   router.get('/', async (req, res) => {
     try {
@@ -38,7 +71,7 @@ module.exports = (io3) => {
         FROM matches m
         LEFT JOIN teams t1 ON m.teamA = t1.id
         LEFT JOIN teams t2 ON m.teamB = t2.id
-		WHERE m.mode='3v3'
+        WHERE m.mode='3v3'
         ORDER BY m.id ASC
       `);
       res.json(rows);
@@ -49,72 +82,94 @@ module.exports = (io3) => {
 
   /* =========================================================================
    * POST /api/funino/nextRound
-   * Archiviert die aktuelle 3er-Gruppe einer Gruppe in match_history,
-   * löscht sie aus matches und hängt die neue Runde unten an (Zeitplanung via schedule).
+   * Archiviert die aktuelle Runde einer Gruppe in match_history,
+   * löscht sie aus matches und erzeugt die nächste Runde.
+   *
+   * Ablauf:
+   * 1) Ergebnisse validieren
+   * 2) Gewinner/Verlierer bestimmen
+   * 3) Neue Paarungen erzeugen
+   * 4) Zeitplanung berechnen (slotIndex)
+   * 5) Transaktion:
+   *      - alte Runde archivieren
+   *      - alte Runde löschen
+   *      - neue Runde einfügen
+   *      - group_state aktualisieren
+   * 6) Snapshot + Events
    * ========================================================================= */
   router.post('/nextRound', async (req, res) => {
     try {
       const { groupName: gRaw, results, schedule } = req.body;
       const groupName = String(gRaw || '').trim().toUpperCase();
 
+      // --- Validierung ---
       if (!Array.isArray(results) || results.length !== 3) {
-        return res.status(400).json({ error: 'Es müssen genau 3 Ergebnisse vorliegen (3 Spiele einer Gruppe).' });
+        return res.status(400).json({ error: 'Es müssen genau 3 Ergebnisse vorliegen.' });
       }
+
       const timeHHMM = schedule?.timeHHMM;
       const dur = Number(schedule?.dur);
       const brk = Number(schedule?.brk);
+
       if (!timeHHMM || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
-        return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM (HH:MM) im Schedule' });
+        return res.status(400).json({ error: 'Ungültige Startzeit timeHHMM.' });
       }
       if (!Number.isFinite(dur) || dur <= 0 || !Number.isFinite(brk) || brk < 0) {
-        return res.status(400).json({ error: 'Ungültige Dauer/Pause im Schedule' });
+        return res.status(400).json({ error: 'Ungültige Dauer/Pause.' });
       }
+
       const slotLen = dur + brk;
 
-      // Feldsortierung
+      // --- Gewinner/Verlierer sortieren ---
       const ordered = [...results].sort((a, b) => Number(a.field) - Number(b.field));
       const winners = ordered.map(r => Number(r.winnerId));
       const losers  = ordered.map(r => Number(r.loserId));
+
       const pairs = [
         { teamA: winners[0], teamB: winners[1], field: 1 },
         { teamA: winners[2], teamB: losers[0],  field: 2 },
         { teamA: losers[1],  teamB: losers[2],  field: 3 }
       ];
 
-      // Gruppenliste (alphabetisch)
+      // --- Gruppenliste alphabetisch ---
       const groups = (await all(`
         SELECT DISTINCT UPPER(TRIM(groupName)) AS g
         FROM teams
         WHERE groupName IS NOT NULL AND TRIM(groupName) <> ''
         ORDER BY g ASC
       `)).map(r => r.g);
+
       let gIndex = groups.indexOf(groupName);
       if (gIndex < 0) groups.push(groupName), gIndex = groups.length - 1;
 
+      // --- Runde bestimmen ---
       const rowState = await get(`SELECT lastRound FROM group_state WHERE groupName = ?`, [groupName]);
       const lastRound = Number(rowState?.lastRound || 1);
       const nextRound = lastRound + 1;
 
+      // Zeitplanung: slotIndex = (Runde-1) * Gruppenanzahl + Gruppenindex
       const slotIndex = (nextRound - 1) * (groups.length) + gIndex;
       const plannedStart = addMinutesHHMM(timeHHMM, slotIndex * slotLen);
 
-      // Transaktion
+      // --- Transaktion ---
       await run(`BEGIN IMMEDIATE`);
       try {
-        // Aktuelle Spiele der Gruppe lesen
+        // Alte Runde lesen
         const curRows = await all(`
-          SELECT id AS originalMatchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart
+          SELECT id AS originalMatchId, groupName, round, field, teamA, teamB,
+                 scoreA, scoreB, winner, plannedStart
           FROM matches
           WHERE UPPER(groupName) = ? AND mode='3v3'
           ORDER BY field ASC, id ASC
         `, [groupName]);
 
-        // History-Archiv
+        // Archivieren
         const batchId = `${groupName}-R${lastRound}-at-${Date.now()}`;
         for (const r of curRows) {
           await run(`
             INSERT INTO match_history
-            (batchId, groupName, round, field, teamA, teamB, scoreA, scoreB, winner, plannedStart, originalMatchId, mode)
+            (batchId, groupName, round, field, teamA, teamB,
+             scoreA, scoreB, winner, plannedStart, originalMatchId, mode)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '3v3')
           `, [
             batchId, r.groupName, r.round, r.field,
@@ -126,18 +181,20 @@ module.exports = (io3) => {
           ]);
         }
 
-        // Alte Spiele löschen
+        // Alte Runde löschen
         await run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND mode='3v3'`, [groupName]);
 
         // Neue Runde einfügen
         for (const p of pairs) {
           await run(`
-            INSERT INTO matches (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
+            INSERT INTO matches
+              (teamA, teamB, groupName, round, field,
+               scoreA, scoreB, winner, plannedStart, mode)
             VALUES (?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')
           `, [p.teamA, p.teamB, groupName, nextRound, p.field, plannedStart]);
         }
 
-        // group_state updaten
+        // group_state aktualisieren
         await run(`
           INSERT INTO group_state (groupName, lastRound)
           VALUES (?, ?)
@@ -169,16 +226,22 @@ module.exports = (io3) => {
 
   /* =========================================================================
    * POST /api/funino/rebuildCurrentRound
-   * Rebuild der aktuellen Runde R aus der vorigen Runde R-1.
-   * FALLBACK: Wenn R-1 in matches unvollständig/ohne Sieger ist, wird der
-   * zuletzt passende History-Batch (round=R-1) verwendet.
+   * Baut die aktuelle Runde R neu auf, basierend auf Runde R-1.
+   *
+   * Ablauf:
+   * 1) lastRound bestimmen
+   * 2) Versuchen, Runde R-1 aus matches zu laden
+   * 3) Falls unvollständig → History-Fallback
+   * 4) Gewinner/Verlierer bestimmen
+   * 5) aktuelle Runde löschen und neu einfügen (mit gleicher plannedStart)
+   * 6) Snapshot + Events
    * ========================================================================= */
   router.post('/rebuildCurrentRound', async (req, res) => {
     try {
       const groupName = String(req.body?.groupName || '').trim().toUpperCase();
       if (!groupName) return res.status(400).json({ error: 'groupName fehlt' });
 
-      // lastRound feststellen (primär group_state, sekundär matches)
+      // lastRound bestimmen
       let lastRound = Number((await get(
         `SELECT lastRound FROM group_state WHERE UPPER(groupName) = ?`,
         [groupName]
@@ -193,12 +256,12 @@ module.exports = (io3) => {
       }
 
       if (!Number.isFinite(lastRound) || lastRound < 2) {
-        return res.status(400).json({ error: 'Keine aktuelle Runde zum Neuaufbau (lastRound < 2?)' });
+        return res.status(400).json({ error: 'Keine aktuelle Runde zum Neuaufbau.' });
       }
 
       const prevRound = lastRound - 1;
 
-      // 1) Versuche R-1 aus matches zu laden
+      // --- Versuche R-1 aus matches ---
       let prev = await all(`
         SELECT id, field, teamA AS teamA_id, teamB AS teamB_id, winner
         FROM matches
@@ -209,7 +272,7 @@ module.exports = (io3) => {
       let source = 'matches';
       let usedBatchId = null;
 
-      // 2) FALLBACK: R-1 aus History-Batch, wenn unvollständig/ohne Sieger
+      // --- Fallback: History ---
       const prevIncomplete = (!Array.isArray(prev) || prev.length !== 3 || prev.some(m => m.winner == null));
       if (prevIncomplete) {
         const lastBatch = await get(`
@@ -222,7 +285,7 @@ module.exports = (io3) => {
         `, [groupName, prevRound]);
 
         if (!lastBatch?.batchId) {
-          return res.status(400).json({ error: `Vorige Runde (${prevRound}) unvollständig (3 Spiele erwartet) und kein passender History-Batch gefunden.` });
+          return res.status(400).json({ error: `Vorige Runde (${prevRound}) unvollständig und kein History-Batch gefunden.` });
         }
 
         const histPrev = await all(`
@@ -233,7 +296,7 @@ module.exports = (io3) => {
         `, [lastBatch.batchId]);
 
         if (!Array.isArray(histPrev) || histPrev.length !== 3 || histPrev.some(m => m.winner == null)) {
-          return res.status(400).json({ error: `History-Batch zu Runde ${prevRound} unvollständig/ohne Sieger.` });
+          return res.status(400).json({ error: `History-Batch zu Runde ${prevRound} unvollständig.` });
         }
 
         prev = histPrev;
@@ -241,12 +304,13 @@ module.exports = (io3) => {
         usedBatchId = lastBatch.batchId;
       }
 
-      // Gewinner/Verlierer aus prev ableiten
+      // Gewinner/Verlierer bestimmen
       const winners = prev.map(m => Number(m.winner));
       const losers  = prev.map(m => {
         const a = Number(m.teamA_id), b = Number(m.teamB_id), w = Number(m.winner);
         return (w === a) ? b : a;
       });
+
       const pairs = [
         { teamA: winners[0], teamB: winners[1], field: 1 },
         { teamA: winners[2], teamB: losers[0],  field: 2 },
@@ -255,49 +319,56 @@ module.exports = (io3) => {
 
       // geplante Zeit der aktuellen Runde beibehalten
       const keepPlanned = (await get(`
-        SELECT plannedStart FROM matches
+        SELECT plannedStart
+        FROM matches
         WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'
         ORDER BY id ASC LIMIT 1
       `, [groupName, lastRound]))?.plannedStart || null;
-	  
+
       await run(`BEGIN IMMEDIATE`);
       try {
+        // IDs der alten Runde merken
         const row = await get(`
-		  SELECT id FROM matches
-		  WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'
-		  ORDER BY id ASC LIMIT 1
-		  `, [groupName, lastRound]);
+          SELECT id FROM matches
+          WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'
+          ORDER BY id ASC LIMIT 1
+        `, [groupName, lastRound]);
 
-		const keepID = row?.id || null;
-	  
-		// aktuelle Runde R löschen …
+        const keepID = row?.id || null;
+
+        // alte Runde löschen
         await run(`DELETE FROM matches WHERE UPPER(groupName) = ? AND round = ? AND mode='3v3'`, [groupName, lastRound]);
-        // … und neu einfügen (mit gleicher plannedStart und alten IDs)
-        for (let i = 0; i < pairs.length; i++) {
-		  const p = pairs[i];
-		  const oldId = prev[i].id ?? prev[i].originalMatchId;
 
-		  await run(`
-			INSERT INTO matches
-			  (id, teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
-			VALUES
-			  (?, ?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')
-		  `, [
-			keepID+i,
-			p.teamA,
-			p.teamB,
-			groupName,
-			lastRound,
-			p.field,
-			keepPlanned
-		  ]);
-		}
+        // neue Runde einfügen (mit gleichen IDs)
+        for (let i = 0; i < pairs.length; i++) {
+          const p = pairs[i];
+
+          await run(`
+            INSERT INTO matches
+              (id, teamA, teamB, groupName, round, field,
+               scoreA, scoreB, winner, plannedStart, mode)
+            VALUES (?, ?, ?, ?, ?, ?, 0, 0, NULL, ?, '3v3')
+          `, [
+            keepID + i,
+            p.teamA,
+            p.teamB,
+            groupName,
+            lastRound,
+            p.field,
+            keepPlanned
+          ]);
+        }
 
         await run(`COMMIT`);
 
         // Log + Snapshot
         try {
-          await appendOp(db, 'funino:rebuildCurrentRound', { groupName, round: lastRound, source, batchId: usedBatchId });
+          await appendOp(db, 'funino:rebuildCurrentRound', {
+            groupName,
+            round: lastRound,
+            source,
+            batchId: usedBatchId
+          });
           await makeSnapshot(db);
         } catch {}
 
@@ -305,7 +376,15 @@ module.exports = (io3) => {
         io3.emit('round:rebuilt', { groupName, round: lastRound });
         io3.emit('resultUpdate',  { type: 'roundRebuilt', groupName, round: lastRound });
 
-        res.json({ ok: true, groupName, round: lastRound, rebuilt: 3, plannedStart: keepPlanned, source, batchId: usedBatchId });
+        res.json({
+          ok: true,
+          groupName,
+          round: lastRound,
+          rebuilt: 3,
+          plannedStart: keepPlanned,
+          source,
+          batchId: usedBatchId
+        });
       } catch (inner) {
         await run(`ROLLBACK`);
         throw inner;

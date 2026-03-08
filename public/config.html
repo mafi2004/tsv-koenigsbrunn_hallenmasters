@@ -1,3 +1,19 @@
+<!-- config.html -->
+<!-- -----------------------------------------------------------------------------
+     Admin-Konfigurationsseite für das Hallenmasters-System.
+
+     Hauptaufgaben:
+     - Clientseitiger Passwortschutz (sessionStorage)
+     - Reset-Aktionen für 3v3, 5v5 und Komplett-Reset
+     - Übersichtliche Karten-UI im Dark-Theme
+     ----------------------------------------------------------------------------- -->
+
+<!-- ---------------------------------------------------------------------------
+     CLIENTSEITIGER LOGIN
+     - Passwort wird einmal abgefragt
+     - In sessionStorage gespeichert
+     - Bei falschem Passwort → Redirect zum Viewer
+--------------------------------------------------------------------------- -->
 <script>
   const PW = "hm2026mf";
 
@@ -12,6 +28,7 @@
   }
 </script>
 
+<!-- Logout-Funktion -->
 <script>
   function logoutConfig() {
     sessionStorage.removeItem("cfgAuth");
@@ -20,7 +37,12 @@
   }
 </script>
 
-<script> if (!sessionStorage.getItem("cfgAuth")) { window.location.href = "/"; } </script>
+<!-- Schutz: Falls jemand die Seite ohne gültige Session lädt -->
+<script>
+  if (!sessionStorage.getItem("cfgAuth")) {
+    window.location.href = "/";
+  }
+</script>
 
 <!doctype html>
 <html lang="de">
@@ -28,14 +50,20 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Konfiguration – Hallenmasters</title>
+
+  <!-- Icons -->
   <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
   <link rel="icon" href="/assets/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
-  
+
+  <!-- Logout-Button -->
   <button onclick="logoutConfig()" class="btn btn-danger">
-	Logout
+    Logout
   </button>
 
+  <!-- -------------------------------------------------------------------------
+       STYLES: Dark-Theme + Karten-Layout
+  ------------------------------------------------------------------------- -->
   <style>
     body {
       margin: 0;
@@ -149,6 +177,7 @@
 
 <body>
 
+  <!-- HEADER -->
   <header>
     <img src="/assets/Fussballwappen_logo.png" class="logo" alt="Vereinslogo" />
     <div class="titleBlock">
@@ -157,6 +186,7 @@
     </div>
   </header>
 
+  <!-- HAUPTBEREICH -->
   <main>
     <div class="col">
       <h2 class="colTitle">Datenbank‑Reset</h2>
@@ -182,6 +212,11 @@
     © Markus Finke - TSV Königsbrunn
   </footer>
 
+  <!-- -------------------------------------------------------------------------
+       RESET-FUNKTION
+       - Fragt Sicherheitsbestätigung ab
+       - Ruft passende Backend-Route auf
+  ------------------------------------------------------------------------- -->
   <script>
     async function resetModule(type) {
       const confirmText = prompt("Zum Bestätigen 'RESET' eingeben:");

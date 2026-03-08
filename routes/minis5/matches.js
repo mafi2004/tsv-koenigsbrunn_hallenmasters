@@ -1,4 +1,16 @@
-// routes/minis5/matches.js
+// server/routes/minis5/matches.js
+// -----------------------------------------------------------------------------
+// API-Routen für den 5v5-Spielbetrieb.
+//
+// Hauptaufgaben:
+// - Alle 5v5-Matches laden
+// - Alle 5v5-Matches löschen
+// - Spielplan generieren (Round-Robin für Gruppen A und B)
+// - Ergebnisse aktualisieren
+// - Live-Events an den 5v5-Viewer senden
+//
+// Diese Datei ist das zentrale Backend-Modul für den 5v5-Modus.
+// -----------------------------------------------------------------------------
 
 const express = require('express');
 const db = require('../../db');
@@ -7,9 +19,11 @@ const { generateScheduleForGroups } = require('./generator');
 module.exports = function(io5) {
   const router = express.Router();
 
-  /* -------------------------------------------------------
+  /* -------------------------------------------------------------------------
      GET /api/minis5/matches
-  ------------------------------------------------------- */
+     Liefert alle 5v5-Matches inkl. Teamnamen.
+     Sortierung: plannedStart, field
+  ------------------------------------------------------------------------- */
   router.get('/', (req, res) => {
     db.all(
       `SELECT m.*, 
@@ -27,9 +41,11 @@ module.exports = function(io5) {
     );
   });
 
-  /* -------------------------------------------------------
+  /* -------------------------------------------------------------------------
      DELETE /api/minis5/matches
-  ------------------------------------------------------- */
+     Löscht alle 5v5-Matches.
+     Sendet danach ein Live-Event.
+  ------------------------------------------------------------------------- */
   router.delete('/', (req, res) => {
     db.run(
       `DELETE FROM matches WHERE mode='5v5'`,
@@ -42,9 +58,18 @@ module.exports = function(io5) {
     );
   });
 
-  /* -------------------------------------------------------
+  /* -------------------------------------------------------------------------
      POST /api/minis5/matches/generate
-  ------------------------------------------------------- */
+     Erzeugt den kompletten 5v5-Spielplan.
+
+     Ablauf:
+     1) Schedule validieren
+     2) Teams für A und B laden (je 6 Teams erforderlich)
+     3) Round-Robin-Spielplan generieren
+     4) Alte Matches löschen
+     5) Neue Matches einfügen
+     6) Live-Event senden
+  ------------------------------------------------------------------------- */
   router.post('/generate', (req, res) => {
     const { timeHHMM, dur, brk } = req.body;
 
@@ -69,9 +94,11 @@ module.exports = function(io5) {
         const schedule = { timeHHMM, dur, brk };
         const matches = generateScheduleForGroups(groupA, groupB, schedule);
 
+        // Alte Matches löschen
         db.run(`DELETE FROM matches WHERE mode='5v5'`, (delErr) => {
           if (delErr) return res.status(500).json({ error: delErr.message });
 
+          // Neue Matches einfügen
           const stmt = db.prepare(`
             INSERT INTO matches
             (teamA, teamB, groupName, round, field, scoreA, scoreB, winner, plannedStart, mode)
@@ -93,6 +120,7 @@ module.exports = function(io5) {
               m.plannedStart
             );
 
+            // Runde erhöhen, wenn 3 Spiele erreicht
             if (m.groupName === 'A') {
               if (matches.filter(x => x.groupName === 'A' && x.round === round).length === 3) {
                 roundCounterA++;
@@ -113,9 +141,18 @@ module.exports = function(io5) {
     );
   });
 
-  /* -------------------------------------------------------
+  /* -------------------------------------------------------------------------
      POST /api/minis5/matches/updateResult
-  ------------------------------------------------------- */
+     Aktualisiert das Ergebnis eines 5v5-Matches.
+
+     Body:
+       { id, scoreA, scoreB }
+
+     winner:
+       - 'A' wenn scoreA > scoreB
+       - 'B' wenn scoreB > scoreA
+       - null bei Gleichstand oder fehlenden Werten
+  ------------------------------------------------------------------------- */
   router.post('/updateResult', (req, res) => {
     const { id, scoreA, scoreB } = req.body;
 

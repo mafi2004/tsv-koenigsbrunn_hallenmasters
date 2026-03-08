@@ -1,24 +1,45 @@
+<!-- index.html – Turnierauswahl
+-------------------------------------------------------------------------------
+Diese Seite ist der zentrale Einstiegspunkt des gesamten Hallenmasters-Systems.
+
+Hauptaufgaben:
+- Auswahl zwischen 3v3- und 5v5-Modus
+- Auswahl zwischen Admin- und Viewer-Bereich
+- Einheitliches Dark-Theme für Wiedererkennung
+- Mobile-optimiertes Kartenlayout
+- Keine Skripte notwendig – reine HTML/CSS-Navigation
+
+Die Seite dient als „Hub“, von dem aus Trainer, Eltern und Admins
+die passenden Module öffnen.
+------------------------------------------------------------------------------- -->
+
 <!doctype html>
 <html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>3. Königsbrunner Hallenmasters – Turnierauswahl</title>
+
+  <!-- Icons für Browser, iOS, Android -->
   <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
   <link rel="icon" href="/assets/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/Fussballwappen_logo.png">
 
+  <!-- -------------------------------------------------------------------------
+       GLOBAL STYLES – Dark Theme + Kartenlayout
+  ------------------------------------------------------------------------- -->
   <style>
     body {
       margin: 0;
-      background: #0f172a;
-      color: #e5e7eb;
+      background: #0f172a; /* dunkles Blau */
+      color: #e5e7eb;      /* helles Grau */
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
 
+    /* HEADER --------------------------------------------------------------- */
     header {
       background: #111827;
       border-bottom: 1px solid #1f2937;
@@ -45,6 +66,7 @@
       font-size: .9rem;
     }
 
+    /* MAIN-BEREICH --------------------------------------------------------- */
     main {
       flex: 1;
       display: flex;
@@ -53,6 +75,7 @@
       padding: 2rem;
     }
 
+    /* Zwei Spalten für Admin/Viewer */
     .twoCols {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -75,6 +98,7 @@
       letter-spacing: .5px;
     }
 
+    /* Karten-Design -------------------------------------------------------- */
     .card {
       aspect-ratio: 1 / 1;
       background: #111827;
@@ -93,11 +117,11 @@
       transform: translateY(-4px);
     }
 
+    /* Farbcode: Admin = Blau, Viewer = Grün */
     .adminCard {
       border-color: #1d4ed8;
       background: rgba(29, 78, 216, 0.15);
     }
-
     .adminCard:hover {
       border-color: #3b82f6;
     }
@@ -106,7 +130,6 @@
       border-color: #16a34a;
       background: rgba(22, 163, 74, 0.15);
     }
-
     .viewerCard:hover {
       border-color: #22c55e;
     }
@@ -123,92 +146,81 @@
       font-size: .95rem;
     }
 
+    /* Links sollen wie Karten aussehen */
     a {
       text-decoration: none;
       color: inherit;
     }
 
+    /* FOOTER --------------------------------------------------------------- */
     footer {
       text-align: center;
       padding: 1rem;
       color: #6b7280;
       font-size: .85rem;
     }
-
-    @media (max-width: 700px) {
-      .twoCols {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-      }
-    }
   </style>
 </head>
 
 <body>
 
+  <!-- HEADER --------------------------------------------------------------- -->
   <header>
     <img src="/assets/Fussballwappen_logo.png" class="logo" alt="Vereinslogo" />
     <div class="titleBlock">
       <h1>3. Königsbrunner Hallenmasters</h1>
-      <span>Turnierplattform</span>
+      <span>Turnierauswahl</span>
     </div>
   </header>
 
+  <!-- HAUPTBEREICH --------------------------------------------------------- -->
   <main>
-    <div class="twoCols" style="grid-template-columns: 1fr 1fr 1fr; max-width: 800px;">
+    <div class="twoCols">
 
+      <!-- SPALTE 1: ADMIN -------------------------------------------------- -->
       <div class="col">
-        <h2 class="colTitle">3vs3</h2>
+        <h2 class="colTitle">Admin</h2>
 
-        <a href="/3v3/admin.html">
+        <a href="/3v3/admin">
           <div class="card adminCard">
-            <h3>Admin</h3>
-            <p>Teams, Spielplan & Ergebnisse</p>
+            <h3>3v3 Admin</h3>
+            <p>Turnierverwaltung für Mini‑Fußball</p>
           </div>
         </a>
 
-        <a href="/3v3/viewer.html">
-          <div class="card viewerCard">
-            <h3>Viewer</h3>
-            <p>Live‑Ansicht für Zuschauer</p>
+        <a href="/5v5/admin.html">
+          <div class="card adminCard">
+            <h3>5v5 Admin</h3>
+            <p>Spielplan & Ergebnisse verwalten</p>
           </div>
         </a>
       </div>
 
+      <!-- SPALTE 2: VIEWER ------------------------------------------------- -->
       <div class="col">
-        <h2 class="colTitle">5v5</h2>
+        <h2 class="colTitle">Viewer</h2>
 
-        <a href="/5v5/admin.html">
-          <div class="card adminCard">
-            <h3>Admin</h3>
-            <p>Teams, Spielplan & Ergebnisse</p>
+        <a href="/3v3/viewer">
+          <div class="card viewerCard">
+            <h3>3v3 Viewer</h3>
+            <p>Live‑Ergebnisse & Spielplan</p>
           </div>
         </a>
 
         <a href="/5v5/viewer.html">
           <div class="card viewerCard">
-            <h3>Viewer</h3>
-            <p>Live‑Ansicht für Zuschauer</p>
+            <h3>5v5 Viewer</h3>
+            <p>Live‑Ergebnisse & Spielplan</p>
           </div>
         </a>
       </div>
-	  
-	<div class="col">
-      <h2 class="colTitle">Config</h2>
-
-      <a href="/config.html">
-        <div class="card" style="border-color:#d97706; background:rgba(217,119,6,0.15);">
-          <h3>Konfiguration</h3>
-          <p>Reset & Systemeinstellungen</p>
-        </div>
-      </a>
-    </div>
 
     </div>
   </main>
 
+  <!-- FOOTER --------------------------------------------------------------- -->
   <footer>
-    © Markus Finke - TSV Königsbrunn
+    © Markus Finke – TSV Königsbrunn
   </footer>
 
 </body>

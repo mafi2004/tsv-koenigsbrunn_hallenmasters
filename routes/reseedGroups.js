@@ -1,10 +1,29 @@
 // server/routes/reseedGroups.js
-// ----------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Diese Datei steuert den kompletten Reseed-Prozess nach Runde 4.
+//
+// Hauptaufgaben:
+// - Teams aus A/B/C laden
+// - Prüfen, ob alle Gruppen Runde 4 erreicht haben
+// - Neue Gruppenzuordnung für D/E/F anhand der Felder der Runde 4
+// - Teams in DB auf neue Gruppen setzen
+// - Alle alten Matches löschen
+// - Neue Matches für D/E/F erzeugen (blockweise, 3 Felder pro Gruppe)
+// - Startzeit der neuen Runde = aktuelle Uhrzeit + 3 Minuten
+// - group_state aktualisieren
+// - Snapshot + Admin-Operation
+// - Live-Events an Viewer/Admin senden
+//
+// Diese Datei ist das Herzstück der Finalrunden-Logik.
+// -----------------------------------------------------------------------------
+
 const express = require('express');
 const router = express.Router();
 const { appendOp, makeSnapshot } = require('../utils/recovery');
 
 /* -------------------------- SQLite Promise-Wrapper -------------------------- */
+// all(db, sql, params) → mehrere Zeilen
+// run(db, sql, params) → INSERT/UPDATE/DELETE
 function all(db, sql, params = []) {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
@@ -20,6 +39,7 @@ function run(db, sql, params = []) {
 }
 
 /* ------------------------------- DB-Helfer -------------------------------- */
+// Teams einer Gruppe laden
 async function getTeamsByGroup(dbHandle, g) {
   return all(
     dbHandle,
@@ -29,6 +49,8 @@ async function getTeamsByGroup(dbHandle, g) {
     [String(g || '').trim()]
   );
 }
+
+// Matches einer Gruppe laden
 async function getMatchesByGroup(dbHandle, g) {
   return all(
     dbHandle,
@@ -45,6 +67,8 @@ async function getMatchesByGroup(dbHandle, g) {
     [String(g || '').trim()]
   );
 }
+
+// Team in neue Gruppe verschieben
 async function updateTeamGroup(dbHandle, teamId, newGroup) {
   return run(
     dbHandle,
@@ -52,6 +76,8 @@ async function updateTeamGroup(dbHandle, teamId, newGroup) {
     [String(newGroup || '').trim().toUpperCase(), Number(teamId)]
   );
 }
+
+// group_state aktualisieren
 async function upsertGroupState(dbHandle, groupName, lastRound) {
   return run(
     dbHandle,
@@ -63,16 +89,21 @@ async function upsertGroupState(dbHandle, groupName, lastRound) {
 }
 
 /* ------------------------------- Zeit-Utils ------------------------------- */
+// HH:MM → Minuten
 function hhmmToMin(hhmm) {
   if (!/^\d{2}:\d{2}$/.test(hhmm)) return NaN;
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 }
+
+// Minuten → HH:MM
 function minToHHMM(total) {
   const h = Math.floor(total / 60) % 24;
   const m = total % 60;
   return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
 }
+
+// HH:MM + Minuten
 function addMinutesHHMM(hhmm, plus) {
   const base = hhmmToMin(hhmm);
   if (!Number.isFinite(base)) return null;
@@ -80,6 +111,7 @@ function addMinutesHHMM(hhmm, plus) {
 }
 
 /* ------------------------------ Paarbildung ------------------------------- */
+// Wandelt Team-IDs in 2er-Paare um
 function makePairs(teamIds) {
   const pairs = [];
   for (let i = 0; i + 1 < teamIds.length; i += 2) {
@@ -89,6 +121,7 @@ function makePairs(teamIds) {
 }
 
 /* --------------------------- letzte geplante Zeit -------------------------- */
+// Ermittelt die kleinste geplante Zeit aus A/B/C
 function minPlannedHHMMAcrossABC(matchesByG) {
   let last = null;
   ['A', 'B', 'C'].forEach((g) => {
@@ -108,6 +141,7 @@ function minPlannedHHMMAcrossABC(matchesByG) {
 }
 
 /* ----------------------- BLOCKWEISE Einfügen (D/E/F) ---------------------- */
+// Erzeugt die neuen Matches für D/E/F blockweise (3 Felder pro Gruppe)
 async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNumber, schedule, lastPlannedHHMM) {
   const dur = schedule && Number(schedule.dur);
   const brk = schedule && Number(schedule.brk);
@@ -126,6 +160,7 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
   let iD = 0, iE = 0, iF = 0;
   const hasLeft = () => (iD < pairsD.length) || (iE < pairsE.length) || (iF < pairsF.length);
 
+  // Fügt bis zu 3 Spiele einer Gruppe ein
   async function insertGroupBlock(groupName, pairs, idxRef) {
     const startIdx = idxRef.idx;
     const countHere = Math.min(3, pairs.length - startIdx);
@@ -153,6 +188,7 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
 
     idxRef.idx = startIdx + countHere;
 
+    // Nächste Startzeit
     if (currentHHMM && Number.isFinite(Number(slotMin))) {
       currentHHMM = addMinutesHHMM(currentHHMM, Number(slotMin));
     }
@@ -160,6 +196,7 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
     return true;
   }
 
+  // Blockweise: D → E → F → D → E → F …
   while (hasLeft()) {
     await insertGroupBlock('D', pairsD, { get idx(){return iD;}, set idx(v){iD=v;} });
     await insertGroupBlock('E', pairsE, { get idx(){return iE;}, set idx(v){iE=v;} });
@@ -168,6 +205,7 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
 }
 
 /* --------------------- Route: POST /reseedGroups -------------------------- */
+// Führt den kompletten Reseed durch
 module.exports = (sqliteDb, io3) => {
   router.post('/reseedGroups', async (req, res) => {
     try {
@@ -177,11 +215,13 @@ module.exports = (sqliteDb, io3) => {
       const matchesByG = {};
       const teamsByG = {};
 
+      // Teams + Matches aus A/B/C laden
       for (const g of groupsABC) {
         teamsByG[g] = await getTeamsByGroup(sqliteDb, g);
         matchesByG[g] = await getMatchesByGroup(sqliteDb, g);
       }
 
+      // Prüfen, ob alle Gruppen Runde 4 erreicht haben
       const okAll = groupsABC.every((g) =>
         (matchesByG[g] || []).some(m => Number(m.round) >= 4)
       );
@@ -221,22 +261,27 @@ module.exports = (sqliteDb, io3) => {
 
       await run(sqliteDb, 'BEGIN IMMEDIATE');
       try {
+        // Teams in neue Gruppen verschieben
         for (const t of bucketD) await updateTeamGroup(sqliteDb, t.id, 'D');
         for (const t of bucketE) await updateTeamGroup(sqliteDb, t.id, 'E');
         for (const t of bucketF) await updateTeamGroup(sqliteDb, t.id, 'F');
 
+        // Alte Matches löschen
         await run(sqliteDb, `DELETE FROM matches WHERE mode='3v3'`);
 
         const toIds = rows => rows.map(t => Number(t.id));
 
+        // Teams der neuen Gruppen laden
         const gDTeams = await getTeamsByGroup(sqliteDb, 'D');
         const gETeams = await getTeamsByGroup(sqliteDb, 'E');
         const gFTeams = await getTeamsByGroup(sqliteDb, 'F');
 
+        // Paarungen erzeugen
         const pairsD = makePairs(toIds(gDTeams));
         const pairsE = makePairs(toIds(gETeams));
         const pairsF = makePairs(toIds(gFTeams));
 
+        // Neue Matches einfügen
         await insertMatchesBlockwise(
           sqliteDb,
           pairsD, pairsE, pairsF,
@@ -245,17 +290,20 @@ module.exports = (sqliteDb, io3) => {
           lastPlannedABC
         );
 
+        // group_state aktualisieren
         await upsertGroupState(sqliteDb, 'D', 4);
         await upsertGroupState(sqliteDb, 'E', 4);
         await upsertGroupState(sqliteDb, 'F', 4);
 
         await run(sqliteDb, 'COMMIT');
 
+        // Log + Snapshot
         try {
           await appendOp(sqliteDb, 'reseed:groups', { schedule });
           await makeSnapshot(sqliteDb);
         } catch {}
 
+        // Events
         if (io3 && typeof io3.emit === 'function') {
           io3.emit('matches:reset');
           io3.emit('groups:reseeded', {

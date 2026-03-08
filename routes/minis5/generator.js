@@ -1,7 +1,20 @@
 // server/routes/minis5/generator.js
+// -----------------------------------------------------------------------------
+// Generator für den 5v5-Spielplan (Mini-Fußball).
+//
+// Hauptaufgaben:
+// - Round-Robin für 6 Teams erzeugen (5 Runden, je 3 Spiele)
+// - Spiele auf 2 Felder verteilen
+// - Gruppen A und B abwechselnd planen (A1 → B1 → A2 → B2 …)
+// - Zeitplanung basierend auf Startzeit, Dauer und Pause
+//
+// Diese Datei erzeugt den vollständigen Spielplan für zwei 6er-Gruppen.
+// -----------------------------------------------------------------------------
 
 /* -------------------------------------------------------
    Zeit-Helfer
+   addMinutes(hhmm, minutes)
+   Addiert Minuten zu einer HH:MM-Zeit.
 ------------------------------------------------------- */
 function addMinutes(hhmm, minutes) {
   const [h, m] = hhmm.split(':').map(Number);
@@ -14,6 +27,9 @@ function addMinutes(hhmm, minutes) {
 /* -------------------------------------------------------
    Round Robin für 6 Teams (korrekt)
    Ergebnis: 5 Runden, je 3 Spiele
+   Schema:
+     Runde 1: [0-5], [1-4], [2-3]
+     Rotation: letzter nach Position 1
 ------------------------------------------------------- */
 function roundRobin6(teams) {
   const rounds = [];
@@ -26,7 +42,7 @@ function roundRobin6(teams) {
       [t[2], t[3]]
     ]);
 
-    // Rotation
+    // Rotation: letzter wandert auf Position 1
     const last = t.pop();
     t.splice(1, 0, last);
   }
@@ -39,7 +55,7 @@ function roundRobin6(teams) {
    Schema:
    - Spiel 1 → Feld 1
    - Spiel 2 → Feld 2
-   - Spiel 3 → Feld 1 (nächster Slot)
+   - Spiel 3 → Feld 1 im nächsten Slot
 ------------------------------------------------------- */
 function schedule3GamesOn2Fields(games, startTime, dur, brk) {
   const result = [];
@@ -163,6 +179,8 @@ function scheduleAB(roundsA, roundsB, schedule) {
 
 /* -------------------------------------------------------
    Exportierte Hauptfunktion
+   generateScheduleForGroups(groupA, groupB, schedule)
+   Erzeugt den vollständigen Spielplan für zwei 6er-Gruppen.
 ------------------------------------------------------- */
 function generateScheduleForGroups(groupA, groupB, schedule) {
   const roundsA = roundRobin6(groupA);

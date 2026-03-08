@@ -1,69 +1,190 @@
-
+/* ============================================================================
+   ROOT-VARIABLEN – Grunddesign & Layout
+   - zentrale Farben, Abstände und dynamische Werte
+============================================================================ */
 :root{
-  --bg:#0f172a; --card:#111827; --fg:#e5e7eb; --muted:#9ca3af;
-  --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --border:#1f2937;
+  --bg:#0f172a;          /* Seitenhintergrund (dunkles Blau) */
+  --card:#111827;        /* Karten-/Panel-Hintergrund */
+  --fg:#e5e7eb;          /* Standard-Textfarbe */
+  --muted:#9ca3af;       /* gedämpfte Textfarbe */
+  --ok:#22c55e;          /* Erfolgs-/OK-Farbe */
+  --warn:#f59e0b;        /* Warnfarbe */
+  --err:#ef4444;         /* Fehlerfarbe */
+  --border:#1f2937;      /* Standard-Rahmenfarbe */
 
   /* Sticky-Offsets (werden per JS gesetzt) */
   --sticky-offset: 64px;  /* Höhe Haupt-Header */
   --sticky-sec: 42px;     /* Höhe Abschnitt-Header */
 
   /* Zeitspaltenbreite + Gap (Tiles) */
-  --time-col-w: 102px;    /* 90px .slotTime + 12px Gap */
+  --time-col-w: 102px;    /* 90px .slotTime + 12px Abstand */
 
   /* Höhe des Feld-Kopfes über den Tiles (per JS gesetzt) */
   --tiles-head-h: 0px;
 }
 
+/* ============================================================================
+   GLOBAL – Grundlayout, Schrift, Farben
+============================================================================ */
 html,body{height:100%;}
+
 body{
-  margin:0; background:var(--bg); color:var(--fg);
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
   font-family:system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, Arial;
 }
 
-/* ===== STICKY: Hauptheader (Logo/Status) ===== */
+/* ============================================================================
+   STICKY: HAUPTHEADER (Logo / Titel / Status)
+============================================================================ */
 body > header{
-  position: sticky; top: 0; z-index: 1000;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   background: var(--card);
   border-bottom:1px solid var(--border);
   box-shadow: 0 2px 0 rgba(0,0,0,.15);
 }
-.bar{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.75rem 1rem;}
-.leftWrap{display:flex; align-items:center; gap:.75rem;}
-.clubLogo{width:48px; height:48px; object-fit:contain; border-radius:6px; background:#0b1020; border:1px solid var(--border);}
-h1{margin:0; font-size:1.15rem;}
-.meta{display:flex; gap:.75rem; align-items:center; color:#9ca3af; font-size:.9rem;}
-.pill{display:inline-flex; align-items:center; gap:.35rem; padding:.15rem .5rem; border-radius:999px; border:1px solid var(--border); font-size:.85rem;}
-.pill.ok{color:#d1fae5; border-color:#065f46; background:#064e3b;}
-.pill.err{color:#fee2e2; border-color:#7f1d1d; background:#1b0f0a;}
 
-main{max-width:1200px; margin:0 auto; padding:1rem;}
+.bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:.75rem 1rem;
+}
 
-/* ===== STICKY: Abschnitt-Header ===== */
-section{background:var(--card); border:1px solid var(--border); border-radius:8px; margin-bottom:1rem;}
+.leftWrap{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+}
+
+.clubLogo{
+  width:48px;
+  height:48px;
+  object-fit:contain;
+  border-radius:6px;
+  background:#0b1020;
+  border:1px solid var(--border);
+}
+
+h1{
+  margin:0;
+  font-size:1.15rem;
+}
+
+.meta{
+  display:flex;
+  gap:.75rem;
+  align-items:center;
+  color:#9ca3af;
+  font-size:.9rem;
+}
+
+/* Kleine Status-Badges (z.B. Verbindung, Jahrgang) */
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  padding:.15rem .5rem;
+  border-radius:999px;
+  border:1px solid var(--border);
+  font-size:.85rem;
+}
+
+.pill.ok{
+  color:#d1fae5;
+  border-color:#065f46;
+  background:#064e3b;
+}
+
+.pill.err{
+  color:#fee2e2;
+  border-color:#7f1d1d;
+  background:#1b0f0a;
+}
+
+main{
+  max-width:1200px;
+  margin:0 auto;
+  padding:1rem;
+}
+
+/* ============================================================================
+   STICKY: ABSCHNITT-HEADER (Ansichtsauswahl)
+============================================================================ */
+section{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:1rem;
+}
+
 section > header{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:.75rem 1rem; border-bottom:1px solid var(--border);
-  position: sticky; top: var(--sticky-offset); z-index: 900;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:.75rem 1rem;
+  border-bottom:1px solid var(--border);
+
+  /* Sticky unterhalb des Haupt-Headers */
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: 900;
   background: var(--card);
   box-shadow: 0 2px 0 rgba(0,0,0,.15);
 }
-.viewToggle{display:flex; gap:.35rem; flex-wrap:wrap;}
-.btn{
-  cursor:pointer; border:1px solid var(--border); background:#0b1020; color:#e5e7eb;
-  padding:.35rem .6rem; border-radius:6px; font-weight:600; font-size:.85rem;
-}
-.btn-active{background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe;}
 
-/* ===== Tabellenansicht ===== */
-.tableWrap{padding:1rem; overflow:auto;}
+.viewToggle{
+  display:flex;
+  gap:.35rem;
+  flex-wrap:wrap;
+}
+
+/* ============================================================================
+   BUTTONS – Standard-Buttons & aktive Ansicht
+============================================================================ */
+.btn{
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:#0b1020;
+  color:#e5e7eb;
+  padding:.35rem .6rem;
+  border-radius:6px;
+  font-weight:600;
+  font-size:.85rem;
+}
+
+.btn-active{
+  background:#0b1b3a;
+  border-color:#1d4ed8;
+  color:#bfdbfe;
+}
+
+/* ============================================================================
+   TABELLENANSICHT – Spielplan
+============================================================================ */
+.tableWrap{
+  padding:1rem;
+  overflow:auto;
+}
+
 table{
   width:100%;
-  border-collapse: separate; /* kein collapse bei sticky */
+  border-collapse: separate; /* kein collapse, damit sticky sauber funktioniert */
   table-layout: fixed;       /* identische Spaltenbreiten */
 }
+
 th,td{
-  padding:.5rem; border-bottom:1px solid var(--border); text-align:left;
-  box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  padding:.5rem;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  box-sizing:border-box;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 /* Zeilenfärbung je Gruppe A–F */
@@ -74,7 +195,16 @@ tr.grpD td{ background:rgba(245,158,11,.12); }
 tr.grpE td{ background:rgba(139,92,246,.12); }
 tr.grpF td{ background:rgba(20,184,166,.12); }
 
-.grpBadge{display:inline-block; padding:.1rem .4rem; border-radius:999px; font-size:.75rem; border:1px solid var(--border);}
+/* Badge in der Gruppenspalte */
+.grpBadge{
+  display:inline-block;
+  padding:.1rem .4rem;
+  border-radius:999px;
+  font-size:.75rem;
+  border:1px solid var(--border);
+}
+
+/* Farbvarianten für Gruppen-Badge */
 .grpBadge.A{color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8;}
 .grpBadge.B{color:#fecaca; background:#2b0c0c; border-color:#7f1d1d;}
 .grpBadge.C{color:#86efac; background:#052e1b; border-color:#166534;}
@@ -82,34 +212,111 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .grpBadge.E{color:#ddd6fe; background:#1f2937; border-color:#8b5cf6;}
 .grpBadge.F{color:#a7f3d0; background:#0f3b3a; border-color:#14b8a6;}
 
-.winIcon{font-size:1rem; margin-right:.3rem; vertical-align:middle;}
-.winnerText{color:var(--ok); font-weight:600;}
-.loserText{color:var(--muted);}
-.note{color:#9ca3af; font-size:.85rem; padding:0 1rem 1rem;}
+.winIcon{
+  font-size:1rem;
+  margin-right:.3rem;
+  vertical-align:middle;
+}
 
-/* ===== Kachelansicht ===== */
-.tilesWrap{padding:1rem;}
-.slotRow{display:flex; align-items:flex-start; gap:12px; margin-bottom:14px;}
-.slotTime{min-width:90px; flex:0 0 90px; text-align:right; padding-top:.35rem;}
-.slotTime .timeBadge{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.2rem .5rem; font-weight:700; color:#cbd5e1; background:#0b1020;}
+.winnerText{
+  color:var(--ok);
+  font-weight:600;
+}
 
-.tilesHeadGlobal{display:grid; gap:12px; margin:8px 0 10px;}
-.fieldHead{display:flex; justify-content:center;}
-.fieldHeadBadge{display:inline-block; border:1px solid var(--border); border-radius:10px; padding:.25rem .6rem; font-weight:700; font-size:.95rem; color:#cbd5e1; background:#0b1020;}
-.tilesGrid{display:grid; gap:12px; flex:1;}
+.loserText{
+  color:var(--muted);
+}
+
+.note{
+  color:#9ca3af;
+  font-size:.85rem;
+  padding:0 1rem 1rem;
+}
+
+/* ============================================================================
+   KACHELANSICHT – Spielfeldbelegung
+============================================================================ */
+.tilesWrap{
+  padding:1rem;
+}
+
+/* Eine Zeitreihe (Slot) mit Zeitspalte + Kachelgrid */
+.slotRow{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+/* Zeitspalte links */
+.slotTime{
+  min-width:90px;
+  flex:0 0 90px;
+  text-align:right;
+  padding-top:.35rem;
+}
+
+.slotTime .timeBadge{
+  display:inline-block;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.2rem .5rem;
+  font-weight:700;
+  color:#cbd5e1;
+  background:#0b1020;
+}
+
+/* Kopfzeile über den Feldern (Feld 1–3) */
+.tilesHeadGlobal{
+  display:grid;
+  gap:12px;
+  margin:8px 0 10px;
+}
+
+.fieldHead{
+  display:flex;
+  justify-content:center;
+}
+
+.fieldHeadBadge{
+  display:inline-block;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:.25rem .6rem;
+  font-weight:700;
+  font-size:.95rem;
+  color:#cbd5e1;
+  background:#0b1020;
+}
+
+/* Grid mit Kacheln pro Zeit-Slot */
+.tilesGrid{
+  display:grid;
+  gap:12px;
+  flex:1;
+}
+
+/* Mobile: Zeitspalte & Kopf ausblenden, Layout kompakter */
 @media (max-width: 680px){
   .slotTime{display:none;}
   .tilesHeadGlobal{display:none;}
   :root{ --time-col-w: 0px; }
 }
 
+/* ============================================================================
+   TILE – einzelne Spielkachel
+============================================================================ */
 .tile{
   background-color: #111827;
   border:1px solid var(--border);
   border-radius:10px;
   padding:.6rem .8rem;
-  display:flex; flex-direction:column; gap:.4rem;
+  display:flex;
+  flex-direction:column;
+  gap:.4rem;
 }
+
+/* Gruppenfarben für Tiles */
 .tile.grpA{ background-color: #0b1b3a; border-color: #1d4ed8; }
 .tile.grpB{ background-color: #2b0c0c; border-color: #7f1d1d; }
 .tile.grpC{ background-color: #052e1b; border-color: #166534; }
@@ -117,26 +324,87 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .tile.grpE{ background-color: #1f2937; border-color: #8b5cf6; }
 .tile.grpF{ background-color: #0f3b3a; border-color: #14b8a6; }
 
-.tileTop{display:flex; justify-content:space-between; align-items:center;}
-.tileTopLeft{display:flex; gap:.4rem; align-items:center; flex-wrap:wrap;}
-.tileTag{display:inline-flex; align-items:center; gap:.35rem; border:1px solid var(--border); border-radius:999px; padding:.1rem .5rem; font-size:.85rem; color:#cbd5e1;}
-.tileMain{display:flex; justify-content:space-between; gap:.75rem; align-items:center;}
-.teamText{display:inline-flex; align-items:center; gap:.35rem;}
-.emptyMsg{color:#9ca3af; padding:1rem;}
-.idTag{display:inline-block; border:1px solid var(--border); border-radius:8px; padding:.1rem .45rem; font-size:.8rem; color:#cbd5e1; background:#0b1020; margin-left:.4rem;}
-.roundBadge{display:inline-block; margin-top:.35rem; border:1px solid var(--border); border-radius:8px; padding:.12rem .5rem; font-weight:700; font-size:.9rem; color:#e5e7eb; background:#0b1020;}
+.tileTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-/* Hinweis-Großkachel */
+.tileTopLeft{
+  display:flex;
+  gap:.4rem;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+/* Tag "Gruppe X" */
+.tileTag{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:.1rem .5rem;
+  font-size:.85rem;
+  color:#cbd5e1;
+}
+
+/* Bereich mit Teamnamen */
+.tileMain{
+  display:flex;
+  justify-content:space-between;
+  gap:.75rem;
+  align-items:center;
+}
+
+.teamText{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+}
+
+.emptyMsg{
+  color:#9ca3af;
+  padding:1rem;
+}
+
+/* Runde-Badge in der Kachel */
+.roundBadge{
+  display:inline-block;
+  margin-top:.35rem;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.12rem .5rem;
+  font-weight:700;
+  font-size:.9rem;
+  color:#e5e7eb;
+  background:#0b1020;
+}
+
+/* ============================================================================
+   BIG NOTICE – Hinweis-Kachel (Gruppe beendet)
+============================================================================ */
 .bigNotice{
   grid-column: 1 / -1;
   border: 2px dashed var(--border);
   border-radius: 12px;
   padding: 1rem 1.2rem;
-  display:flex; flex-direction:column; gap:.5rem;
+  display:flex;
+  flex-direction:column;
+  gap:.5rem;
 }
-.bigNoticeTitle{ font-weight:800; font-size:1.1rem; }
-.bigNoticeHint{ color:#cbd5e1; font-size:.95rem; }
 
+.bigNoticeTitle{
+  font-weight:800;
+  font-size:1.1rem;
+}
+
+.bigNoticeHint{
+  color:#cbd5e1;
+  font-size:.95rem;
+}
+
+/* Farbvarianten je Gruppe */
 .bigNotice.A{ background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe; }
 .bigNotice.B{ background:#2b0c0c; border-color:#7f1d1d; color:#fecaca; }
 .bigNotice.C{ background:#052e1b; border-color:#166534; color:#86efac; }
@@ -144,13 +412,17 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .bigNotice.E{ background:#1f2937; border-color:#8b5cf6; color:#ddd6fe; }
 .bigNotice.F{ background:#0f3b3a; border-color:#14b8a6; color:#a7f3d0; }
 
-/* Hinweis-Zeile in Tabelle */
+/* ============================================================================
+   TABLE NOTICE – Hinweiszeile in der Tabelle
+============================================================================ */
 .tableNotice {
   border: 2px dashed var(--border);
   border-radius: 10px;
   padding: .6rem .8rem;
   font-weight:700;
 }
+
+/* Farbvarianten je Gruppe */
 .tableNotice.A{ background:#0b1b3a; border-color:#1d4ed8; color:#bfdbfe; }
 .tableNotice.B{ background:#2b0c0c; border-color:#7f1d1d; color:#fecaca; }
 .tableNotice.C{ background:#052e1b; border-color:#166534; color:#86efac; }
@@ -158,7 +430,9 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .tableNotice.E{ background:#1f2937; border-color:#8b5cf6; color:#ddd6fe; }
 .tableNotice.F{ background:#0f3b3a; border-color:#14b8a6; color:#a7f3d0; }
 
-/* Hallenlayout */
+/* ============================================================================
+   HALLENLAYOUT – Bild + Team-Overlays
+============================================================================ */
 .hallWrap{
   position: relative;
   padding: 1rem;
@@ -167,6 +441,7 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
   justify-content: center;
   min-height: 40vh;
 }
+
 .hallWrap .hall-img{
   max-width: 100%;
   height: auto;
@@ -175,6 +450,8 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
   box-shadow: 0 4px 18px rgba(0,0,0,.25);
   background: #0b1020;
 }
+
+/* Team-Overlays auf dem Hallenbild */
 .team-overlay { 
   position: absolute;
   padding: 6px 10px;
@@ -186,30 +463,14 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
   pointer-events: none;
   text-align: center;
 }
-.group-A {
-	background-color: #1d4ed8;
-	border-color: #1d4ed8;
-} 
-.group-B { 
-	background-color: #7f1d1d;
-	border-color: #7f1d1d;
-}
-.group-C {
-	background-color: #166534;
-	border-color: #166534;
-} 
-.group-D { 
-	background-color: #f59e0b;
-	border-color: #f59e0b;
-}
-.group-E {
-	background-color: #8b5cf6;
-	border-color: #8b5cf6;
-} 
-.group-F { 
-	background-color: #14b8a6;
-	border-color: #14b8a6;
-}
+
+/* Gruppenfarben für Overlays */
+.group-A { background-color: #1d4ed8; border-color: #1d4ed8; } 
+.group-B { background-color: #7f1d1d; border-color: #7f1d1d; }
+.group-C { background-color: #166534; border-color: #166534; } 
+.group-D { background-color: #f59e0b; border-color: #f59e0b; }
+.group-E { background-color: #8b5cf6; border-color: #8b5cf6; } 
+.group-F { background-color: #14b8a6; border-color: #14b8a6; }
 
 /* Feld 1 */
 #field1-teamA { top: 15%; left: 12%; }
@@ -223,9 +484,9 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 #field3-teamA { top: 15%; left: 72%; }
 #field3-teamB { top: 78%; left: 72%; }
 
-/* ============================================
+/* ============================================================================
    MOBILE FIX: Team-Overlay-Positionen im Querformat
-   ============================================ */
+============================================================================ */
 @media (max-width: 900px) and (min-aspect-ratio: 1/1) {
 
   /* Feld 1 */
@@ -247,9 +508,9 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
   }
 }
 
-/* ============================================
+/* ============================================================================
    MOBILE FIX: Team-Overlay-Positionen im Hochformat
-   ============================================ */
+============================================================================ */
 @media (max-width: 600px) and (orientation: portrait) {
 
   /* Feld 1 */
@@ -271,12 +532,41 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
   }
 }
 
-/* Teams-View */
-.teamsWrap{ padding:1rem; }
-.teamsGrid{ display:grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 16px; }
-@media (max-width: 980px){ .teamsGrid{ grid-template-columns: repeat(2, minmax(260px, 1fr)); } }
-@media (max-width: 680px){ .teamsGrid{ grid-template-columns: 1fr; } }
-.teamCard{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px; }
+/* ============================================================================
+   TEAMS-VIEW – Gruppenkarten mit Teamlisten
+============================================================================ */
+.teamsWrap{
+  padding:1rem;
+}
+
+/* Grid für Teamkarten */
+.teamsGrid{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 980px){
+  .teamsGrid{
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 680px){
+  .teamsGrid{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Einzelne Teamkarte */
+.teamCard{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px;
+}
+
+/* Gruppenrahmen */
 .teamCard.grpA{ border-color:#1d4ed8; }
 .teamCard.grpB{ border-color:#7f1d1d; }
 .teamCard.grpC{ border-color:#166534; }
@@ -284,8 +574,26 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .teamCard.grpE{ border-color:#8b5cf6; }
 .teamCard.grpF{ border-color:#14b8a6; }
 
-.teamCardHeader{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem; }
-.teamBadge{ display:inline-block; border:1px solid var(--border); border-radius:10px; padding:.2rem .5rem; font-weight:700; font-size:.9rem; color:#cbd5e1; background:#0b1020; }
+.teamCardHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:.5rem;
+}
+
+/* Badge "Gruppe X" */
+.teamBadge{
+  display:inline-block;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:.2rem .5rem;
+  font-weight:700;
+  font-size:.9rem;
+  color:#cbd5e1;
+  background:#0b1020;
+}
+
+/* Farbvarianten */
 .teamBadge.A{ color:#bfdbfe; background:#0b1b3a; border-color:#1d4ed8; }
 .teamBadge.B{ color:#fecaca; background:#2b0c0c; border-color:#7f1d1d; }
 .teamBadge.C{ color:#86efac; background:#052e1b; border-color:#166534; }
@@ -293,12 +601,38 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .teamBadge.E{ color:#ddd6fe; background:#1f2937; border-color:#8b5cf6; }
 .teamBadge.F{ color:#a7f3d0; background:#0f3b3a; border-color:#14b8a6; }
 
-.teamList{ list-style:none; margin:0; padding:0; }
-.teamItem{ padding:.35rem .5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:.5rem; }
-.teamEmpty{ color:#9ca3af; font-style:italic; }
-.teamCount{ color:#9ca3af; font-size:.85rem; }
+.teamList{
+  list-style:none;
+  margin:0;
+  padding:0;
+}
 
-.teamDot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+.teamItem{
+  padding:.35rem .5rem;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+}
+
+.teamEmpty{
+  color:#9ca3af;
+  font-style:italic;
+}
+
+.teamCount{
+  color:#9ca3af;
+  font-size:.85rem;
+}
+
+/* Farbpunkte vor den Teamnamen */
+.teamDot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+}
+
 .teamDot.A{ background:#1d4ed8; }
 .teamDot.B{ background:#7f1d1d; }
 .teamDot.C{ background:#166534; }
@@ -306,47 +640,118 @@ tr.grpF td{ background:rgba(20,184,166,.12); }
 .teamDot.E{ background:#8b5cf6; }
 .teamDot.F{ background:#14b8a6; }
 
-/* View-Umschaltung */
-#tableView, #tilesView, #hallView, #teamsView, #rulesView { display:none; }
+/* ============================================================================
+   VIEW-UMSCHALTUNG – welche Ansicht ist sichtbar?
+============================================================================ */
+#tableView,
+#tilesView,
+#hallView,
+#teamsView,
+#rulesView{
+  display:none;
+}
+
 .view-table #tableView{ display:block; }
 .view-tiles #tilesView{ display:block; }
 .view-hall  #hallView { display:block; }
 .view-teams #teamsView{ display:block; }
 .view-rules #rulesView{ display:block; }
 
-/* Werbungskachel */
-.adWrap{ padding: 1rem; }
-.adTile { border:1px solid var(--border); border-radius:10px; padding:.8rem 1rem; background:#0b3640; color:#c0fafe; }
-.adTileHeader{
-  display:flex; align-items:center; justify-content:space-between;
-  gap: 12px; cursor:pointer;
+/* ============================================================================
+   WERBUNGSKACHEL – Sommerfestival
+============================================================================ */
+.adWrap{
+  padding: 1rem;
 }
-.adTitle{ margin:0; font-size:1.2rem; font-weight:700; }
+
+/* Grundkachel */
+.adTile {
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:.8rem 1rem;
+  background:#0b3640;
+  color:#c0fafe;
+}
+
+/* Header mit Titel + Bild */
+.adTileHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  cursor:pointer;
+}
+
+.adTitle{
+  margin:0;
+  font-size:1.2rem;
+  font-weight:700;
+}
+
+/* Headerbild (Save the Date) */
 .adHeaderImg{
-  height: 48px; max-height: 48px; width: auto;
-  border-radius:6px; border:1px solid var(--border); background:#0b1020;
+  height: 48px;
+  max-height: 48px;
+  width: auto;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#0b1020;
   box-shadow:0 2px 8px rgba(0,0,0,.25);
 }
-.adToggleIcon{ display:inline-block; margin-left:.5rem; transition: transform .18s ease; }
-.adBody{
-  margin-top:.6rem; line-height:1.55;
-  max-height: 0; overflow: hidden;
-  transition: max-height .22s ease, opacity .22s ease, margin-top .22s ease;
-  opacity: 0; font-size: 0.95rem;
-}
-.adTile[aria-expanded="true"] .adBody{ max-height: 500px; opacity: 1; margin-top: .6rem; }
-.adTileHeader:focus{ outline: 2px solid #14b8a6; outline-offset: 2px; border-radius: 6px; }
-@media (max-width: 560px){ .adTileHeader{ flex-wrap:wrap; } .adHeaderImg{ order: 2; margin-top:.35rem; } }
 
+/* Pfeil-Symbol (Dreieck) */
+.adToggleIcon{
+  display:inline-block;
+  margin-left:.5rem;
+  transition: transform .18s ease;
+}
+
+/* Ausklappbarer Body */
+.adBody{
+  margin-top:.6rem;
+  line-height:1.55;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .22s ease, opacity .22s ease, margin-top .22s ease;
+  opacity: 0;
+  font-size: 0.95rem;
+}
+
+/* Wenn aria-expanded="true": Body sichtbar */
+.adTile[aria-expanded="true"] .adBody{
+  max-height: 500px;
+  opacity: 1;
+  margin-top: .6rem;
+}
+
+/* Tastaturfokus auf Header */
+.adTileHeader:focus{
+  outline: 2px solid #14b8a6;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Mobile: Bild unter den Text schieben */
+@media (max-width: 560px){
+  .adTileHeader{
+    flex-wrap:wrap;
+  }
+  .adHeaderImg{
+    order: 2;
+    margin-top:.35rem;
+  }
+}
+
+/* Liste mit Einrückung (Regeln / Werbung) */
 .indentList {
   list-style: none;
   padding-left: 1.2rem; /* Einrückung */
   margin: 0;
 }
 
-/* ============================================
-   RESPONSIVE SCHRIFTGRÖSSEN FÜR HANDYS & TABLETS
-   ============================================ */
+/* ============================================================================
+   RESPONSIVE SCHRIFTGRÖSSEN – für Handy & Tablet
+============================================================================ */
 
 /* Standard Desktop */
 html {
@@ -374,20 +779,20 @@ html {
   }
 }
 
-/* ============================================
+/* ============================================================================
    SPIELPLAN – SPALTENBREITEN
-   ============================================ */
-.col-id     { width: 45px; }
-.col-grp    { width: 75px; }
-.col-round  { width: 65px; }
-.col-field  { width: 50px; }
-.col-time   { width: 70px; }
+============================================================================ */
+.col-id     { width: 45px; }  /* Match-ID */
+.col-grp    { width: 75px; }  /* Gruppe */
+.col-round  { width: 65px; }  /* Runde */
+.col-field  { width: 50px; }  /* Feld */
+.col-time   { width: 70px; }  /* Zeit */
 
 /* Teams sollen viel Platz bekommen */
 .col-teamA  { width: 1fr; }
 .col-teamB  { width: 1fr; }
 
-/* Mobile Optimierung */
+/* Mobile Optimierung – Querformat */
 @media (max-width: 900px) and (min-aspect-ratio: 1/1) {
   .col-id     { width: 35px; }
   .col-grp    { width: 55px; }
@@ -399,6 +804,7 @@ html {
   .col-teamB  { width: auto; }
 }
 
+/* Mobile Optimierung – Hochformat */
 @media (max-width: 600px) and (orientation: portrait) {
   .col-id     { width: 30px; }
   .col-grp    { width: 35px; }
@@ -410,9 +816,9 @@ html {
   .col-teamB  { width: auto; }
 }
 
-/* ============================================
-   SPIELPLAN – SPALTEN ZENTRIEREN
-   ============================================ */
+/* ============================================================================
+   SPIELPLAN – SPALTEN ZENTRIEREN (Gruppe/Runde/Feld)
+============================================================================ */
 
 /* Kopfzeile */
 table thead th:nth-child(2),
@@ -428,21 +834,26 @@ table tbody td:nth-child(4) {
   text-align: center;
 }
 
+/* ============================================================================
+   FOOTER – fester Balken unten
+============================================================================ */
 .viewerFooter {
   position: fixed;
   width: 100%;
-  background: #0f172a; /* dunkles Blau wie dein Header */
+  background: #0f172a;  /* wie Header */
   color: #94a3b8;       /* helles Grau */
   padding: .5rem 1rem;
   font-size: .85rem;
   text-align: center;
   border-top: 1px solid #1e293b;
   margin-top: 1rem;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .viewerFooter a {
-  color: #38bdf8; /* cyan */
+  color: #38bdf8;       /* Cyan-Linkfarbe */
   text-decoration: none;
 }
 
@@ -455,21 +866,23 @@ table tbody td:nth-child(4) {
   margin: 0 auto;
 }
 
-/* -------------------------------------------------------
-  Regelblock
-------------------------------------------------------- */
+/* ============================================================================
+   REGELBLOCK – optisch hervorgehobene Regelübersicht
+============================================================================ */
 .rulesWrap {
-  background: rgba(197, 34, 94, 0.25);
+  background: rgba(197, 34, 94, 0.25);          /* leichtes Pink/Rot */
   border: 1px solid rgba(197, 34, 94, 0.25);
   padding: 0.75rem;
   border-radius: 8px;
   margin-top: 1.5rem;
 }
 
+/* Falls du eine eigene .rulesTile-Kachel nutzt */
 .rulesTile {
-  background: transparent !important; /* wichtig: nicht überschreiben lassen */
+  background: transparent !important;           /* nicht von anderen Styles überschreiben lassen */
 }
 
+/* Header mit Titel + Bild */
 .rulesTileHeader {
   display: flex;
   align-items: center;
@@ -482,11 +895,10 @@ table tbody td:nth-child(4) {
   font-size: 1rem;
 }
 
-/* HIER: Bild klein machen */
+/* Bild im Regelblock (klein gehalten) */
 .rulesHeaderImg {
-  width: 96px;      /* oder 20px, wenn du es noch kleiner willst */
+  width: 96px;      /* bewusst klein, damit Text dominiert */
   height: auto;
   flex-shrink: 0;
-  border-radius: 4px; /* optional, wirkt etwas feiner */
+  border-radius: 4px; /* leicht abgerundet */
 }
-
