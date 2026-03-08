@@ -94,6 +94,13 @@ const apiTeamsList      = () => safeFetch('/teams', { method:'GET' });
 const apiTeamsDeleteAll = () => safeFetch('/teams', { method:'DELETE' });
 const apiTeamAdd        = (name, groupName) => safeFetch('/teams', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, groupName }) });
 const apiTeamDelete     = (id) => safeFetch('/teams/' + encodeURIComponent(id), { method:'DELETE' });
+const apiTeamUpdateName = (id, name) =>
+  safeFetch('/teams/' + encodeURIComponent(id), {
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name })
+  });
+
 
 const apiMatchesList    = () => safeFetch('/matches', { method:'GET' });
 const apiGroupStart     = async (group) => {
@@ -259,36 +266,133 @@ function buildTeamsGrid(groups){
   });
   document.querySelectorAll('[id^="teams-table-"]').forEach(tbl => {
     tbl.addEventListener('click', async (e) => {
-      const btn = e.target.closest('button'); if(!btn) return;
-      if(btn.dataset.action === 'delete'){
-        try { await deleteTeam(btn.dataset.id); await refreshTeams(); }
-        catch (err) { showMsg('#teamsMsg', 'Fehler beim Löschen: ' + err.message, true); }
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      // DELETE
+      if (btn.dataset.action === 'delete') {
+        try {
+          await deleteTeam(btn.dataset.id);
+          await refreshTeams();
+        } catch (err) {
+          showMsg('#teamsMsg', 'Fehler beim Löschen: ' + err.message, true);
+        }
+        return;
+      }
+
+      // EDIT
+      if (btn.dataset.action === 'edit') {
+        const id = btn.dataset.id;
+        const nameCell = document.querySelector(`.teamName[data-id="${id}"]`);
+        const oldName = nameCell.textContent.trim();
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = oldName;
+        input.className = 'editInput';
+        input.style.width = '100%';
+
+        nameCell.replaceWith(input);
+        input.focus();
+
+        btn.textContent = '💾';
+        btn.dataset.action = 'save';
+
+        input.addEventListener('keydown', (ev2) => {
+          if (ev2.key === 'Escape') {
+            input.replaceWith(nameCell);
+            btn.textContent = '✎';
+            btn.dataset.action = 'edit';
+          }
+        });
+
+        return;
+      }
+
+      // SAVE
+      if (btn.dataset.action === 'save') {
+        const id = btn.dataset.id;
+        const input = document.querySelector('input.editInput');
+        const newName = input.value.trim();
+
+        if (!newName) {
+          showMsg('#teamsMsg', 'Name darf nicht leer sein.', true);
+          return;
+        }
+
+        try {
+          await apiTeamUpdateName(id, newName);
+          await refreshTeams();
+          showMsg('#teamsMsg', 'Name aktualisiert.');
+        } catch (err) {
+          showMsg('#teamsMsg', 'Fehler: ' + err.message, true);
+        }
+
+        return;
       }
     });
   });
 }
-function renderTeams(){
-  const groupsSet = new Set(TEAMS.map(t => String(t.groupName || '').trim().toUpperCase()).filter(Boolean));
+function renderTeams() {
+  const groupsSet = new Set(
+    TEAMS.map(t => String(t.groupName || '').trim().toUpperCase()).filter(Boolean)
+  );
   const groups = groupsSet.size ? Array.from(groupsSet) : ['A','B','C'];
+
   buildTeamsGrid(groups);
-  groups.forEach(g => { const tbody = document.getElementById(`teams-tbody-${g}`); if (tbody) tbody.innerHTML = ''; });
+
+  groups.forEach(g => {
+    const tbody = document.getElementById(`teams-tbody-${g}`);
+    if (tbody) tbody.innerHTML = '';
+  });
+
   TEAMS.forEach(t => {
     const g = String(t.groupName || '').trim().toUpperCase();
-    const tbody = document.getElementById(`teams-tbody-${g}`); if (!tbody) return;
+    const tbody = document.getElementById(`teams-tbody-${g}`);
+    if (!tbody) return;
+
     const tr = document.createElement('tr');
-    const cls = groupClass(t.groupName); if (cls) tr.classList.add(cls);
-    const tdId = document.createElement('td'); tdId.textContent = t.id ?? '';
-    const tdName = document.createElement('td'); tdName.textContent = t.name ?? '';
+    const cls = groupClass(t.groupName);
+    if (cls) tr.classList.add(cls);
+
+    // ID
+    const tdId = document.createElement('td');
+    tdId.textContent = t.id ?? '';
+
+    // NAME (editierbar)
+    const tdName = document.createElement('td');
+    tdName.className = 'teamName';
+    tdName.dataset.id = String(t.id);
+    tdName.textContent = t.name ?? '';
+
+    // ACTIONS
     const tdAction = document.createElement('td');
+    tdAction.style.display = 'flex';
+    tdAction.style.gap = '.5rem';
+
+    // EDIT
+    const btnEdit = document.createElement('button');
+    btnEdit.className = 'btn btn-muted';
+    btnEdit.type = 'button';
+    btnEdit.dataset.action = 'edit';
+    btnEdit.dataset.id = String(t.id);
+    btnEdit.textContent = '✎';
+
+    // DELETE
     const btnDel = document.createElement('button');
-    btnDel.className='btn btn-danger'; btnDel.type='button';
-    btnDel.dataset.action='delete'; btnDel.dataset.id=String(t.id);
-    btnDel.textContent='Löschen';
-    tdAction.appendChild(btnDel);
-    tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdAction);
+    btnDel.className = 'btn btn-danger';
+    btnDel.type = 'button';
+    btnDel.dataset.action = 'delete';
+    btnDel.dataset.id = String(t.id);
+    btnDel.textContent = 'Löschen';
+
+    tdAction.append(btnEdit, btnDel);
+
+    tr.append(tdId, tdName, tdAction);
     tbody.appendChild(tr);
   });
 }
+
 async function refreshTeams(){
 	try { 
 		TEAMS = await loadTeams(); 

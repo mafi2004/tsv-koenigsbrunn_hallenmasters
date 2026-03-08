@@ -57,6 +57,32 @@ module.exports = (io3) => {
 	  });
 	});
 
+	router.patch('/:id', async (req, res) => {
+		try {
+			const id = Number(req.params.id);
+			const { name } = req.body;
+
+			if (!id || !name || !name.trim()) {
+			return res.status(400).json({ ok: false, msg: 'Ungültige Daten.' });
+			}
+
+			await db.run(`UPDATE teams SET name = ? WHERE id = ? AND mode='3v3'`,
+			[name.trim(), id]
+			);
+
+			// Viewer live aktualisieren
+			if (io3) {
+			io3.emit('teams:updated', { id, name });
+			}
+
+			res.json({ ok: true });
+		} catch (err) {
+			console.error('PATCH /teams/:id Fehler:', err);
+			res.status(500).json({ ok: false, msg: err.message });
+		}
+		});
+
+
 	// Alle Teams löschen (+ Autoincrement zurücksetzen)
 	router.delete('/', (req, res) => {
 	  db.run(`DELETE FROM teams WHERE mode = '3v3'`, [], async function (err) {

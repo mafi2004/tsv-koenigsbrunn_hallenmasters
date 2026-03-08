@@ -196,3 +196,32 @@ tr:hover td { background:#0a0f1f; }
   font-weight: 700;
 }
 
+/* Inline-Edit Input für Teamnamen */
+.editInput {
+  background: #0b1020;
+  color: var(--fg);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: .35rem .5rem;
+  width: 100%;
+  font-size: .95rem;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.25);
+}
+
+/* Aktionen-Spalte in der Teamtabelle */
+td .actions {
+  display: flex;
+  gap: .5rem;
+}
+
+/* Buttons in der Teamtabelle etwas kompakter */
+td .actions .btn {
+  padding: .35rem .5rem;
+  font-size: .8rem;
+}
+
+/* Optional: Zeile im Edit-Modus hervorheben */
+tr.editing td {
+  background: #0a1a2f !important;
+}
+

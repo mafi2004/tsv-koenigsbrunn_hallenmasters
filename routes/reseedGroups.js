@@ -113,13 +113,15 @@ async function insertMatchesBlockwise(sqliteDb, pairsD, pairsE, pairsF, roundNum
   const brk = schedule && Number(schedule.brk);
   const slotMin = (dur && brk) ? (dur + brk) : null;
 
-  let currentHHMM = null;
+  // NEU: Startzeit = aktuelle Uhrzeit + 3 Minuten
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 3);
 
-  if (lastPlannedHHMM && dur) {
-    currentHHMM = addMinutesHHMM(lastPlannedHHMM, dur + 5);
-  } else if (schedule && schedule.timeHHMM) {
-    currentHHMM = addMinutesHHMM(schedule.timeHHMM, 5);
-  }
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+
+  // Erste Spielzeit nach Reseed
+  let currentHHMM = `${hh}:${mm}`;
 
   let iD = 0, iE = 0, iF = 0;
   const hasLeft = () => (iD < pairsD.length) || (iE < pairsE.length) || (iF < pairsF.length);
@@ -238,14 +240,14 @@ module.exports = (sqliteDb, io3) => {
         await insertMatchesBlockwise(
           sqliteDb,
           pairsD, pairsE, pairsF,
-          5,
+          4,
           schedule,
           lastPlannedABC
         );
 
-        await upsertGroupState(sqliteDb, 'D', 5);
-        await upsertGroupState(sqliteDb, 'E', 5);
-        await upsertGroupState(sqliteDb, 'F', 5);
+        await upsertGroupState(sqliteDb, 'D', 4);
+        await upsertGroupState(sqliteDb, 'E', 4);
+        await upsertGroupState(sqliteDb, 'F', 4);
 
         await run(sqliteDb, 'COMMIT');
 
@@ -259,7 +261,7 @@ module.exports = (sqliteDb, io3) => {
           io3.emit('groups:reseeded', {
             D: gDTeams.length, E: gETeams.length, F: gFTeams.length,
             created: { D: pairsD.length, E: pairsE.length, F: pairsF.length },
-            round: 5
+            round: 4
           });
           io3.emit('round:advanced', { groupName: 'D', round: 5 });
           io3.emit('round:advanced', { groupName: 'E', round: 5 });
@@ -269,9 +271,9 @@ module.exports = (sqliteDb, io3) => {
 
         return res.json({
           ok: true,
-          msg: 'Gruppen neu zusammengestellt und Runde 5 für D/E/F angelegt.',
+          msg: 'Gruppen neu zusammengestellt und Runde 4 für D/E/F angelegt.',
           result: {
-            round: 5,
+            round: 4,
             D: gDTeams.map(t => ({ id: t.id, name: t.name })),
             E: gETeams.map(t => ({ id: t.id, name: t.name })),
             F: gFTeams.map(t => ({ id: t.id, name: t.name })),
