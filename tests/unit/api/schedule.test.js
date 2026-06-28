@@ -1,4 +1,4 @@
-const { generateSchedule } = require("../../utils/schedule");
+const { generateSchedule } = require("../../../routes/schedule");
 
 test("generates schedule with correct number of matches", () => {
   const result = generateSchedule("09:00", 10, 2);

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Festival Admin – TSV Königsbrunn</title>
+
+  <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+      padding-bottom: 4rem;
+    }
+
+    header {
+      background: #111827;
+      border-bottom: 1px solid #1f2937;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    h2 {
+      margin: 0 0 .5rem;
+      font-size: 1.4rem;
+      color: #f3f4f6;
+    }
+
+    section {
+      background: #111827;
+      border: 1px solid #1f2937;
+      padding: 1.5rem;
+      border-radius: 12px;
+    }
+
+    input, select {
+      padding: .5rem .7rem;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: #e5e7eb;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: .6rem 1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      background: #2563eb;
+      color: white;
+      transition: background .15s ease;
+    }
+
+    button:hover {
+      background: #3b82f6;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: .6rem;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    th {
+      text-align: left;
+      color: #9ca3af;
+    }
+
+    .danger {
+      background: #dc2626;
+    }
+    .danger:hover {
+      background: #ef4444;
+    }
+
+    .fieldRow {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Festival Admin</h1>
+</header>
+
+<main>
+
+  <!-- TEAMS --------------------------------------------------------------- -->
+  <section>
+    <h2>Teams</h2>
+
+    <div class="fieldRow">
+      <input id="teamName" placeholder="Teamname eingeben…" />
+      <button onclick="addTeam()">Team hinzufügen</button>
+      <button class="danger" onclick="deleteAllTeams()">Alle löschen</button>
+    </div>
+
+    <table id="teamTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Siege</th>
+          <th>Feld</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- FELDER -------------------------------------------------------------- -->
+  <section>
+    <h2>Felder</h2>
+
+    <div class="fieldRow">
+      <input id="fieldCount" type="number" min="1" placeholder="Anzahl Felder" />
+      <button onclick="saveFieldCount()">Speichern</button>
+    </div>
+
+    <p id="fieldInfo" style="margin-top:.8rem; color:#9ca3af;"></p>
+  </section>
+
+  <!-- NEUVERTEILUNG ------------------------------------------------------- -->
+  <section>
+    <h2>Neu-Verteilung nach Siegen</h2>
+
+    <button onclick="redistribute()">Neu verteilen</button>
+  </section>
+
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/festival/admin.js"></script>
+
+</body>
+</html>

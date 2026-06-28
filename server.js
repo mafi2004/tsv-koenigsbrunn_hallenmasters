@@ -33,6 +33,16 @@ app.get('/3v3/viewer', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '3v3', 'viewer.html'));
 });
 
+// FESTIVAL ADMIN + VIEWER
+app.get('/festival/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'festival', 'admin.html'));
+});
+
+app.get('/festival/viewer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'festival', 'viewer.html'));
+});
+
+
 // -----------------------------------------------------------------------------
 // Socket.io einrichten
 // Zwei Namespaces:
@@ -42,6 +52,7 @@ app.get('/3v3/viewer', (req, res) => {
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 const io3 = io.of("/minis3");
 const io5 = io.of("/minis5");
+const ioF = io.of("/festival");
 
 // io global verfügbar machen (z. B. für Broadcasts in Routen)
 app.set('io', io);
@@ -131,6 +142,14 @@ const minis5TeamsRouter   = require('./routes/minis5/teams')(io5);
 const minis5MatchesRouter = require('./routes/minis5/matches')(io5);
 
 // -----------------------------------------------------------------------------
+// NEU: Routen importieren (Festival)
+// -----------------------------------------------------------------------------
+const festivalTeamsRouter   = require('./routes/festival/teams')(ioF);
+const festivalMatchesRouter = require('./routes/festival/matches')(ioF);
+const festivalRedisRouter   = require('./routes/festival/redistribute')(db, ioF);
+const festivalMetaRouter    = require('./routes/festival/meta')(ioF);
+
+// -----------------------------------------------------------------------------
 // Routen registrieren
 // -----------------------------------------------------------------------------
 app.use('/api/teams', teamsRouter);
@@ -148,6 +167,14 @@ app.use('/api/qr', qrRouter);
 app.use('/api/minis5', minis5Router);
 app.use('/api/minis5/teams', minis5TeamsRouter);
 app.use('/api/minis5/matches', minis5MatchesRouter);
+
+// Festival
+app.use('/api/festival/teams', festivalTeamsRouter);
+app.use('/api/festival/matches', festivalMatchesRouter);
+app.use('/api/festival/redistribute', festivalRedisRouter);
+app.use('/api/festival/meta', festivalMetaRouter);
+
+console.log("Namespaces:", io._nsps.keys());
 
 // -----------------------------------------------------------------------------
 // RESET-ROUTES (mit Socket-Broadcasts)
@@ -197,6 +224,28 @@ app.post('/admin/reset-5v5', async (req, res) => {
   }
 });
 
+// --- Reset Festival ---
+app.post('/admin/reset-festival', async (req, res) => {
+  try {
+    await db.exec(`
+      DELETE FROM teams   WHERE mode = 'festival';
+      DELETE FROM matches WHERE mode = 'festival';
+      DELETE FROM match_history WHERE mode = 'festival';
+      VACUUM;
+    `);
+
+    console.log("Festival-Modul zurückgesetzt");
+    ioF.emit("reset-festival");
+
+    res.json({ success: true, message: "Festival-Modul erfolgreich zurückgesetzt" });
+
+  } catch (err) {
+    console.error("Fehler beim Reset Festival:", err);
+    res.status(500).json({ success: false, message: "Fehler beim Reset Festival" });
+  }
+});
+
+
 // --- Komplett-Reset ---
 app.post('/admin/reset-all', async (req, res) => {
   try {
@@ -219,6 +268,7 @@ app.post('/admin/reset-all', async (req, res) => {
     console.log("Komplett-Reset durchgeführt");
     io3.emit("reset-all");
     io5.emit("reset-all");
+    ioF.emit("reset-all");
 
     res.json({ success: true, message: "Komplett‑Reset erfolgreich durchgeführt" });
 
@@ -231,7 +281,11 @@ app.post('/admin/reset-all', async (req, res) => {
 // -----------------------------------------------------------------------------
 // Server starten
 // -----------------------------------------------------------------------------
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Backend läuft auf Port ${PORT}`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 3001;
+  server.listen(PORT, () => {
+    console.log(`Backend läuft auf Port ${PORT}`);
+  });
+}
+
+module.exports = app; // fürs testen..

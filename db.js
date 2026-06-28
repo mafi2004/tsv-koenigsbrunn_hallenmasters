@@ -29,7 +29,9 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY,
       name TEXT NOT NULL,
       groupName TEXT,
-      mode TEXT NOT NULL
+      mode TEXT NOT NULL,
+      wins INTEGER DEFAULT 0,
+      field INTEGER DEFAULT 0
     )
   `);
 

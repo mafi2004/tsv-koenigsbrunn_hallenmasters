@@ -14,5 +14,6 @@ db/*.db-journal
 # Env
 .env
 
+/coverage
 /logs
 *.db

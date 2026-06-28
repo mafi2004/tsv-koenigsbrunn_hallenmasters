@@ -181,12 +181,14 @@ public/
 ## 🧪 Lokale Entwicklung (Empfohlen)
 
 - Lokalen Webserver starten (`npm start`)
+- Index öffnen:
+  - `http://localhost:3001/index.html`
 - Admin öffnen:
   - `http://localhost/5v5/admin.html`
   - `http://localhost/3v3/admin.html`
 - Viewer öffnen:
-  - `http://localhost/5v5/viewer.html`
-  - `http://localhost/3v3/viewer.html`
+  - `http://localhost:3001/5v5/viewer.html`
+  - `http://localhost:3001/3v3/viewer.html`
 - Socket‑Events werden automatisch verbunden
 
 
