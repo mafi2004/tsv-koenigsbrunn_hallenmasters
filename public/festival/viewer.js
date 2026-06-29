@@ -85,6 +85,20 @@ async function loadGameInfo() {
   info.textContent = [start, dur, cnt].filter(Boolean).join(" | ");
 }
 
+function generateQrCode() {
+  const img = document.getElementById("qrCode");
+  if (!img) return;
+
+  const url = document.body.dataset.qrUrl;
+  if (!url) {
+    console.warn("Kein QR-Code URL definiert!");
+    img.style.display = "none";
+    return;
+  }
+
+  const encoded = encodeURIComponent(url);
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encoded}`;
+}
 
 // -------------------------------------------------------------
 // LIVE-EVENTS
@@ -103,3 +117,10 @@ load();
 loadGameType();
 loadFieldCount();
 loadGameInfo();
+
+document.addEventListener("DOMContentLoaded", () => {
+  load();
+  loadGameType();
+  loadGameInfo();
+  generateQrCode();
+});

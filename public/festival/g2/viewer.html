@@ -114,10 +114,14 @@
   </style>
 </head>
 
-<body>
+<body data-qr-url="https://tsv-koenigsbrunn-hallenmasters.onrender.com/festival/g2/viewer">
 
-<header>
+<header style="display:flex; justify-content:space-between; align-items:center;">
+  <!-- QR-Code wird dynamisch generiert -->
+  <img id="qrCode" alt="QR Code" style="height:80px; margin-right:10px;" />
+  
   <h1>Sommerfestival TSV Königsbrunn</h1>
+  
   <div id="gameInfo" style="
     margin-bottom: 1rem;
     font-size: 1.2rem;
