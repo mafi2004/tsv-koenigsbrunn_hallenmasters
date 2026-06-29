@@ -3,10 +3,14 @@
 // Festival Viewer – ausgelagerte Logik
 // -----------------------------------------------------------------------------
 
-const socket = io("/festival");
+// Modus automatisch aus URL bestimmen (g1 oder g2)
+const mode = window.location.pathname.split("/")[2];
+
+// Socket.io Namespace für dieses Festival
+const socket = io(`/festival_${mode}`);
 
 async function load() {
-  const res = await fetch("/api/festival/teams");
+  const res = await fetch(`/api/festival/${mode}/teams`);
   const teams = await res.json();
 
   const container = document.getElementById("fieldsContainer");
@@ -35,6 +39,47 @@ async function load() {
   });
 }
 
-socket.on("festival:teams:updated", load);
+// -------------------------------------------------------------
+// SPIELTYP LADEN (3v3 / 5v5) UND HINTERGRUNDBILD SETZEN
+// -------------------------------------------------------------
+async function loadGameType() {
+  const res = await fetch(`/api/festival/${mode}/meta`);
+  const data = await res.json();
 
+  const gt = data?.festival?.gameType || "3v3";
+
+  const img = document.getElementById("bgImage");
+
+  if (gt === "3v3") {
+    img.src = "/assets/TSV_Gelände_3vs3.jpg";
+  } else {
+    img.src = "/assets/TSV_Gelände_5vs5.jpg";
+  }
+}
+
+// -------------------------------------------------------------
+// FELDANZAHL LADEN (optional für Anzeige)
+// -------------------------------------------------------------
+async function loadFieldCount() {
+  const res = await fetch(`/api/festival/${mode}/meta`);
+  const data = await res.json();
+
+  const fc = data?.festival?.fieldCount;
+  // Falls du später eine Anzeige willst, hier wäre der Platz.
+}
+
+// -------------------------------------------------------------
+// LIVE-EVENTS
+// -------------------------------------------------------------
+socket.on("festival:teams:updated", load);
+socket.on("festival:meta:updated", () => {
+  loadGameType();
+  loadFieldCount();
+});
+
+// -------------------------------------------------------------
+// INITIAL LOAD
+// -------------------------------------------------------------
 load();
+loadGameType();
+loadFieldCount();

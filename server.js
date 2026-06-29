@@ -1,16 +1,6 @@
 // server.js
 // -----------------------------------------------------------------------------
 // Haupt-Serverdatei des Turniersystems.
-//
-// Verantwortlichkeiten:
-// - Express-Server + HTTP-Server starten
-// - Socket.io für 3v3 (/minis3) und 5v5 (/minis5) initialisieren
-// - Viewer-Tracking (aktuelle Zuschauer + Gesamtbesucher)
-// - Statische Dateien bereitstellen (Admin/Viewer)
-// - Alle API-Routen registrieren (3v3 + 5v5)
-// - Reset-Endpunkte für 3v3, 5v5 und Komplett-Reset
-//
-// Diese Datei verbindet das gesamte Backend zu einem funktionierenden System.
 // -----------------------------------------------------------------------------
 
 const express = require('express');
@@ -18,7 +8,6 @@ const http = require('http');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -34,47 +23,48 @@ app.get('/3v3/viewer', (req, res) => {
 });
 
 // FESTIVAL ADMIN + VIEWER
-app.get('/festival/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'festival', 'admin.html'));
+app.get('/festival/g1/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'festival', 'g1', 'admin.html'));
+});
+app.get('/festival/g2/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'festival', 'g2', 'admin.html'));
+});
+app.get('/festival/g1/viewer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'festival', 'g1', 'viewer.html'));
+});
+app.get('/festival/g2/viewer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'festival', 'g2', 'viewer.html'));
 });
 
-app.get('/festival/viewer', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'festival', 'viewer.html'));
-});
-
+// FIX 6 – Pretty Redirects
+app.get('/festival/g1', (req, res) => res.redirect('/festival/g1/admin'));
+app.get('/festival/g2', (req, res) => res.redirect('/festival/g2/admin'));
 
 // -----------------------------------------------------------------------------
 // Socket.io einrichten
-// Zwei Namespaces:
-//   /minis3 → 3v3-Modus
-//   /minis5 → 5v5-Modus
 // -----------------------------------------------------------------------------
 const io = require('socket.io')(server, { cors: { origin: '*' } });
 const io3 = io.of("/minis3");
 const io5 = io.of("/minis5");
-const ioF = io.of("/festival");
+const ioF_g1 = io.of("/festival_g1");
+const ioF_g2 = io.of("/festival_g2");
 
-// io global verfügbar machen (z. B. für Broadcasts in Routen)
 app.set('io', io);
 
 // -----------------------------------------------------------------------------
-// Viewer-Tracking (Live-Zuschauer + Gesamtbesucher)
-// Für Admins wird nicht gezählt.
+// Viewer-Tracking (3v3 + 5v5)
 // -----------------------------------------------------------------------------
 let viewerCount3 = 0;
 let viewerCount5 = 0;
 let totalVisitors3 = 0;
 let totalVisitors5 = 0;
 
-// --- 3v3 Viewer-Tracking ---
 io3.on("connection", socket => {
   const isAdmin = socket.handshake.query.admin === "true";
-
   if (!isAdmin) {
     viewerCount3++;
     totalVisitors3++;
   }
-
   io3.emit("totalVisitors3", totalVisitors3);
   io3.emit("viewerCount3", viewerCount3);
 
@@ -86,15 +76,12 @@ io3.on("connection", socket => {
   });
 });
 
-// --- 5v5 Viewer-Tracking ---
 io5.on("connection", socket => {
   const isAdmin = socket.handshake.query.admin === "true";
-
   if (!isAdmin) {
     viewerCount5++;
     totalVisitors5++;
   }
-
   io5.emit("totalVisitors5", totalVisitors5);
   io5.emit("viewerCount5", viewerCount5);
 
@@ -111,8 +98,6 @@ io5.on("connection", socket => {
 // -----------------------------------------------------------------------------
 app.use(cors());
 app.use(bodyParser.json());
-
-// Statische Dateien aus /public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // -----------------------------------------------------------------------------
@@ -142,16 +127,18 @@ const minis5TeamsRouter   = require('./routes/minis5/teams')(io5);
 const minis5MatchesRouter = require('./routes/minis5/matches')(io5);
 
 // -----------------------------------------------------------------------------
-// NEU: Routen importieren (Festival)
+// Routen importieren (Festival)
 // -----------------------------------------------------------------------------
-const festivalTeamsRouter   = require('./routes/festival/teams')(ioF);
-const festivalMatchesRouter = require('./routes/festival/matches')(ioF);
-const festivalRedisRouter   = require('./routes/festival/redistribute')(db, ioF);
-const festivalMetaRouter    = require('./routes/festival/meta')(ioF);
+const festivalTeamsRouter     = require('./routes/festival/teams');
+const festivalMatchesRouter   = require('./routes/festival/matches');
+const festivalRedisRouter     = require('./routes/festival/redistribute');
+const festivalMetaRouter      = require('./routes/festival/meta');
 
 // -----------------------------------------------------------------------------
 // Routen registrieren
 // -----------------------------------------------------------------------------
+
+// 3v3
 app.use('/api/teams', teamsRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/results', resultsRouter);
@@ -168,17 +155,22 @@ app.use('/api/minis5', minis5Router);
 app.use('/api/minis5/teams', minis5TeamsRouter);
 app.use('/api/minis5/matches', minis5MatchesRouter);
 
-// Festival
-app.use('/api/festival/teams', festivalTeamsRouter);
-app.use('/api/festival/matches', festivalMatchesRouter);
-app.use('/api/festival/redistribute', festivalRedisRouter);
-app.use('/api/festival/meta', festivalMetaRouter);
+// Festival g1 (KORREKTES MOUNTING)
+app.use('/api/festival/g1', festivalTeamsRouter(ioF_g1));
+app.use('/api/festival/g1', festivalMatchesRouter(ioF_g1));
+app.use('/api/festival/g1', festivalRedisRouter(db, ioF_g1));
+app.use('/api/festival/g1', festivalMetaRouter(ioF_g1));
+
+// Festival g2 (KORREKTES MOUNTING)
+app.use('/api/festival/g2', festivalTeamsRouter(ioF_g2));
+app.use('/api/festival/g2', festivalMatchesRouter(ioF_g2));
+app.use('/api/festival/g2', festivalRedisRouter(db, ioF_g2));
+app.use('/api/festival/g2', festivalMetaRouter(ioF_g2));
 
 console.log("Namespaces:", io._nsps.keys());
 
 // -----------------------------------------------------------------------------
-// RESET-ROUTES (mit Socket-Broadcasts)
-// Diese Endpunkte setzen Module oder das gesamte Turnier zurück.
+// RESET-ROUTES
 // -----------------------------------------------------------------------------
 
 // --- Reset 3v3 ---
@@ -191,15 +183,10 @@ app.post('/admin/reset-3v3', async (req, res) => {
       DELETE FROM group_state;
       VACUUM;
     `);
-
-    console.log("3v3 Modul zurückgesetzt");
     io3.emit("reset-3v3");
-
-    res.json({ success: true, message: "3v3 Modul erfolgreich zurückgesetzt" });
-
+    res.json({ success: true });
   } catch (err) {
-    console.error("Fehler beim Reset 3v3:", err);
-    res.status(500).json({ success: false, message: "Fehler beim Reset 3v3" });
+    res.status(500).json({ success: false });
   }
 });
 
@@ -212,39 +199,44 @@ app.post('/admin/reset-5v5', async (req, res) => {
       DELETE FROM match_history WHERE mode = '5v5';
       VACUUM;
     `);
-
-    console.log("5v5 Modul zurückgesetzt");
     io5.emit("reset-5v5");
-
-    res.json({ success: true, message: "5v5 Modul erfolgreich zurückgesetzt" });
-
+    res.json({ success: true });
   } catch (err) {
-    console.error("Fehler beim Reset 5v5:", err);
-    res.status(500).json({ success: false, message: "Fehler beim Reset 5v5" });
+    res.status(500).json({ success: false });
   }
 });
 
-// --- Reset Festival ---
-app.post('/admin/reset-festival', async (req, res) => {
+// --- Reset Festival G1 ---
+app.post('/admin/reset-festival-g1', async (req, res) => {
   try {
     await db.exec(`
-      DELETE FROM teams   WHERE mode = 'festival';
-      DELETE FROM matches WHERE mode = 'festival';
-      DELETE FROM match_history WHERE mode = 'festival';
+      DELETE FROM teams   WHERE mode = 'g1';
+      DELETE FROM matches WHERE mode = 'g1';
+      DELETE FROM match_history WHERE mode = 'g1';
       VACUUM;
     `);
-
-    console.log("Festival-Modul zurückgesetzt");
-    ioF.emit("reset-festival");
-
-    res.json({ success: true, message: "Festival-Modul erfolgreich zurückgesetzt" });
-
+    ioF_g1.emit("reset-festival-g1");
+    res.json({ success: true });
   } catch (err) {
-    console.error("Fehler beim Reset Festival:", err);
-    res.status(500).json({ success: false, message: "Fehler beim Reset Festival" });
+    res.status(500).json({ success: false });
   }
 });
 
+// --- Reset Festival G2 ---
+app.post('/admin/reset-festival-g2', async (req, res) => {
+  try {
+    await db.exec(`
+      DELETE FROM teams   WHERE mode = 'g2';
+      DELETE FROM matches WHERE mode = 'g2';
+      DELETE FROM match_history WHERE mode = 'g2';
+      VACUUM;
+    `);
+    ioF_g2.emit("reset-festival-g2");
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
 
 // --- Komplett-Reset ---
 app.post('/admin/reset-all', async (req, res) => {
@@ -264,17 +256,13 @@ app.post('/admin/reset-all', async (req, res) => {
         updatedAt = datetime('now');
       VACUUM;
     `);
-
-    console.log("Komplett-Reset durchgeführt");
     io3.emit("reset-all");
     io5.emit("reset-all");
-    ioF.emit("reset-all");
-
-    res.json({ success: true, message: "Komplett‑Reset erfolgreich durchgeführt" });
-
+    ioF_g1.emit("reset-all");
+    ioF_g2.emit("reset-all");
+    res.json({ success: true });
   } catch (err) {
-    console.error("Fehler beim Komplett‑Reset:", err);
-    res.status(500).json({ success: false, message: "Fehler beim Komplett‑Reset" });
+    res.status(500).json({ success: false });
   }
 });
 
@@ -288,4 +276,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = app; // fürs testen..
+module.exports = app;

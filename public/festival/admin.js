@@ -1,18 +1,25 @@
 // /public/festival/admin.js
 // -----------------------------------------------------------------------------
-// Festival Admin – OHNE MATCHES
+// Festival Admin – Teams, Felder, Spieltyp (3v3 / 5v5)
 // -----------------------------------------------------------------------------
 
-const socket = io("/festival");
+// Modus automatisch aus URL bestimmen (g1 oder g2)
+const mode = window.location.pathname.split("/")[2];
+
+// Socket.io Namespace für dieses Festival
+const socket = io(`/festival_${mode}`);
 
 socket.on("festival:teams:updated", loadTeams);
-socket.on("festival:meta:updated", loadFieldCount);
+socket.on("festival:meta:updated", () => {
+  loadFieldCount();
+  loadGameType();
+});
 
 // -------------------------------------------------------------
 // TEAMS
 // -------------------------------------------------------------
 async function loadTeams() {
-  const res = await fetch("/api/festival/teams");
+  const res = await fetch(`/api/festival/${mode}/teams`);
   const teams = await res.json();
 
   const tbody = document.querySelector("#teamTable tbody");
@@ -37,7 +44,7 @@ async function loadTeams() {
 }
 
 async function updateWins(id, wins) {
-  await fetch(`/api/festival/teams/${id}/wins`, {
+  await fetch(`/api/festival/${mode}/teams/${id}/wins`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ wins: Number(wins) })
@@ -48,7 +55,7 @@ async function addTeam() {
   const name = document.getElementById("teamName").value.trim();
   if (!name) return;
 
-  await fetch("/api/festival/teams", {
+  await fetch(`/api/festival/${mode}/teams`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name })
@@ -59,12 +66,12 @@ async function addTeam() {
 }
 
 async function deleteTeam(id) {
-  await fetch(`/api/festival/teams/${id}`, { method: "DELETE" });
+  await fetch(`/api/festival/${mode}/teams/${id}`, { method: "DELETE" });
   loadTeams();
 }
 
 async function deleteAllTeams() {
-  await fetch(`/api/festival/teams`, { method: "DELETE" });
+  await fetch(`/api/festival/${mode}/teams`, { method: "DELETE" });
   loadTeams();
 }
 
@@ -72,7 +79,7 @@ async function deleteAllTeams() {
 // FELDER
 // -------------------------------------------------------------
 async function loadFieldCount() {
-  const res = await fetch("/api/festival/meta");
+  const res = await fetch(`/api/festival/${mode}/meta`);
   const data = await res.json();
 
   const fc = data?.festival?.fieldCount;
@@ -84,7 +91,7 @@ async function saveFieldCount() {
   const fieldCount = Number(document.getElementById("fieldCount").value);
   if (!fieldCount) return;
 
-  await fetch("/api/festival/meta", {
+  await fetch(`/api/festival/${mode}/meta`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fieldCount })
@@ -94,10 +101,33 @@ async function saveFieldCount() {
 }
 
 // -------------------------------------------------------------
+// SPIELTYP (3v3 / 5v5)
+// -------------------------------------------------------------
+async function loadGameType() {
+  const res = await fetch(`/api/festival/${mode}/meta`);
+  const data = await res.json();
+
+  const gt = data?.festival?.gameType || "3v3";
+  document.getElementById("gameType").value = gt;
+}
+
+async function saveGameType() {
+  const gameType = document.getElementById("gameType").value;
+
+  await fetch(`/api/festival/${mode}/meta`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ gameType })
+  });
+
+  loadGameType();
+}
+
+// -------------------------------------------------------------
 // NEUVERTEILUNG
 // -------------------------------------------------------------
 async function redistribute() {
-  const res = await fetch("/api/festival/meta");
+  const res = await fetch(`/api/festival/${mode}/meta`);
   const meta = await res.json();
   const fieldCount = meta?.festival?.fieldCount;
 
@@ -106,7 +136,7 @@ async function redistribute() {
     return;
   }
 
-  await fetch("/api/festival/redistribute", {
+  await fetch(`/api/festival/${mode}/redistribute`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ fieldCount })
@@ -120,3 +150,4 @@ async function redistribute() {
 // -------------------------------------------------------------
 loadTeams();
 loadFieldCount();
+loadGameType();

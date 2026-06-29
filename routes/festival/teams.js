@@ -1,13 +1,4 @@
 // server/routes/festival/teams.js
-// -----------------------------------------------------------------------------
-// Teams für das Outdoor-Festival.
-// Extrem einfache Struktur:
-// - Keine Gruppen
-// - Nur eine flache Teamliste
-// - mode='festival'
-// - Admin-Log + Snapshot + Live-Events
-// -----------------------------------------------------------------------------
-
 const express = require('express');
 const db = require('../../db');
 const { appendOp, makeSnapshot } = require('../../utils/recovery');
@@ -15,14 +6,18 @@ const { appendOp, makeSnapshot } = require('../../utils/recovery');
 module.exports = (ioF) => {
   const router = express.Router();
 
-  // ---------------------------------------------------------------------------
-  // GET /api/festival/teams
-  // Liefert alle Festival-Teams.
-  // ---------------------------------------------------------------------------
-  router.get('/', (req, res) => {
+  // Modus aus Base-URL extrahieren (g1 oder g2)
+  function getMode(req) {
+    return req.baseUrl.split('/').pop();
+  }
+
+  // GET /api/festival/g1/teams
+  router.get('/teams', (req, res) => {
+    const mode = getMode(req);
+
     db.all(
-      `SELECT id, name, wins, field FROM teams WHERE mode='festival' ORDER BY id ASC`,
-      [],
+      `SELECT id, name, wins, field FROM teams WHERE mode=? ORDER BY id ASC`,
+      [mode],
       (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows || []);
@@ -30,22 +25,18 @@ module.exports = (ioF) => {
     );
   });
 
-  // ---------------------------------------------------------------------------
-  // POST /api/festival/teams
-  // Fügt ein neues Team hinzu.
-  //
-  // Body:
-  //   { name }
-  // ---------------------------------------------------------------------------
-  router.post('/', (req, res) => {
+  // POST /api/festival/g1/teams
+  router.post('/teams', (req, res) => {
+    const mode = getMode(req);
     const name = String(req.body?.name || '').trim();
+
     if (!name) {
       return res.status(400).json({ error: 'Teamname fehlt' });
     }
 
     db.run(
-      `INSERT INTO teams (name, groupName, mode) VALUES (?, NULL, 'festival')`,
-      [name],
+      `INSERT INTO teams (name, groupName, mode) VALUES (?, NULL, ?)`,
+      [name, mode],
       async function (err) {
         if (err) return res.status(500).json({ error: err.message });
 
@@ -55,17 +46,14 @@ module.exports = (ioF) => {
         } catch {}
 
         ioF.emit('festival:teams:updated');
-
         res.json({ id: this.lastID, name });
       }
     );
   });
 
-  // ---------------------------------------------------------------------------
-  // PATCH /api/festival/teams/:id
-  // Teamnamen ändern.
-  // ---------------------------------------------------------------------------
-  router.patch('/:id', (req, res) => {
+  // PATCH /api/festival/g1/teams/:id
+  router.patch('/teams/:id', (req, res) => {
+    const mode = getMode(req);
     const id = Number(req.params.id);
     const name = String(req.body?.name || '').trim();
 
@@ -74,8 +62,8 @@ module.exports = (ioF) => {
     }
 
     db.run(
-      `UPDATE teams SET name=? WHERE id=? AND mode='festival'`,
-      [name, id],
+      `UPDATE teams SET name=? WHERE id=? AND mode=?`,
+      [name, id, mode],
       async function (err) {
         if (err) return res.status(500).json({ error: err.message });
 
@@ -85,22 +73,19 @@ module.exports = (ioF) => {
         } catch {}
 
         ioF.emit('festival:teams:updated', { id, name });
-
         res.json({ ok: true });
       }
     );
   });
 
-  // ---------------------------------------------------------------------------
-  // DELETE /api/festival/teams/:id
-  // Einzelnes Team löschen.
-  // ---------------------------------------------------------------------------
-  router.delete('/:id', (req, res) => {
+  // DELETE /api/festival/g1/teams/:id
+  router.delete('/teams/:id', (req, res) => {
+    const mode = getMode(req);
     const id = Number(req.params.id);
 
     db.run(
-      `DELETE FROM teams WHERE id=? AND mode='festival'`,
-      [id],
+      `DELETE FROM teams WHERE id=? AND mode=?`,
+      [id, mode],
       async function (err) {
         if (err) return res.status(500).json({ error: err.message });
 
@@ -110,50 +95,45 @@ module.exports = (ioF) => {
         } catch {}
 
         ioF.emit('festival:teams:updated');
-
         res.json({ ok: true, deletedId: id });
       }
     );
   });
 
-  // ---------------------------------------------------------------------------
-// POST /api/festival/teams/:id/wins
-// Siege eines Teams setzen
-// ---------------------------------------------------------------------------
-router.post('/:id/wins', (req, res) => {
-  const id = Number(req.params.id);
-  const wins = Number(req.body?.wins || 0);
+  // POST /api/festival/g1/teams/:id/wins
+  router.post('/teams/:id/wins', (req, res) => {
+    const mode = getMode(req);
+    const id = Number(req.params.id);
+    const wins = Number(req.body?.wins || 0);
 
-  if (!id) {
-    return res.status(400).json({ error: 'Ungültige Team-ID' });
-  }
-
-  db.run(
-    `UPDATE teams SET wins=? WHERE id=? AND mode='festival'`,
-    [wins, id],
-    async function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-
-      try {
-        await appendOp(db, 'festival:team:wins', { id, wins });
-        await makeSnapshot(db);
-      } catch {}
-
-      ioF.emit('festival:teams:updated');
-
-      res.json({ ok: true });
+    if (!id) {
+      return res.status(400).json({ error: 'Ungültige Team-ID' });
     }
-  );
-});
 
-  // ---------------------------------------------------------------------------
-  // DELETE /api/festival/teams
-  // Alle Festival-Teams löschen.
-  // ---------------------------------------------------------------------------
-  router.delete('/', (req, res) => {
     db.run(
-      `DELETE FROM teams WHERE mode='festival'`,
-      [],
+      `UPDATE teams SET wins=? WHERE id=? AND mode=?`,
+      [wins, id, mode],
+      async function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        try {
+          await appendOp(db, 'festival:team:wins', { id, wins });
+          await makeSnapshot(db);
+        } catch {}
+
+        ioF.emit('festival:teams:updated');
+        res.json({ ok: true });
+      }
+    );
+  });
+
+  // DELETE /api/festival/g1/teams
+  router.delete('/teams', (req, res) => {
+    const mode = getMode(req);
+
+    db.run(
+      `DELETE FROM teams WHERE mode=?`,
+      [mode],
       async function (err) {
         if (err) return res.status(500).json({ error: err.message });
 
@@ -164,7 +144,6 @@ router.post('/:id/wins', (req, res) => {
           } catch {}
 
           ioF.emit('festival:teams:updated');
-
           res.json({ ok: true, deletedAll: true });
         });
       }

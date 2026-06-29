@@ -1,13 +1,6 @@
 // server/routes/festival/meta.js
 // -----------------------------------------------------------------------------
-// Festival-Meta-Einstellungen.
-// Aktuell:
-//   - fieldCount (Anzahl Felder)
-//
-// Speicherung:
-//   Wir nutzen tournament_meta.yearLabel als JSON-Container.
-//   Beispiel:
-//     yearLabel = '{"festival":{"fieldCount":12}}'
+// Festival-Meta-Einstellungen für g1 und g2.
 // -----------------------------------------------------------------------------
 
 const express = require('express');
@@ -17,9 +10,7 @@ const { appendOp, makeSnapshot } = require('../../utils/recovery');
 module.exports = (ioF) => {
   const router = express.Router();
 
-  // ---------------------------------------------------------------------------
-  // Hilfsfunktion: Festival-Meta aus DB lesen
-  // ---------------------------------------------------------------------------
+  // Festival-Meta laden
   function loadFestivalMeta() {
     return new Promise((resolve, reject) => {
       db.get(
@@ -35,91 +26,96 @@ module.exports = (ioF) => {
             meta = {};
           }
 
-          resolve(meta.festival || {});
+          if (!meta.festival) meta.festival = {};
+          if (!meta.festival.g1) meta.festival.g1 = {};
+          if (!meta.festival.g2) meta.festival.g2 = {};
+
+          resolve(meta);
         }
       );
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Hilfsfunktion: Festival-Meta speichern
-  // ---------------------------------------------------------------------------
-  function saveFestivalMeta(festivalMeta) {
+  // Festival-Meta speichern
+  function saveFestivalMeta(meta) {
     return new Promise((resolve, reject) => {
-      db.get(
-        `SELECT yearLabel FROM tournament_meta WHERE id=1`,
-        [],
-        (err, row) => {
-          if (err) return reject(err);
+      const now = new Date().toISOString();
 
-          let meta = {};
-          try {
-            meta = row?.yearLabel ? JSON.parse(row.yearLabel) : {};
-          } catch {
-            meta = {};
-          }
-
-          meta.festival = festivalMeta;
-
-          const now = new Date().toISOString();
-
-          db.run(
-            `
-            INSERT INTO tournament_meta (id, yearLabel, updatedAt)
-            VALUES (1, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET
-              yearLabel = excluded.yearLabel,
-              updatedAt = excluded.updatedAt
-            `,
-            [JSON.stringify(meta), now],
-            (err2) => {
-              if (err2) return reject(err2);
-              resolve({ ok: true, updatedAt: now, festival: festivalMeta });
-            }
-          );
+      db.run(
+        `
+        INSERT INTO tournament_meta (id, yearLabel, updatedAt)
+        VALUES (1, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          yearLabel = excluded.yearLabel,
+          updatedAt = excluded.updatedAt
+        `,
+        [JSON.stringify(meta), now],
+        (err2) => {
+          if (err2) return reject(err2);
+          resolve({ ok: true, updatedAt: now, festival: meta.festival });
         }
       );
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // GET /api/festival/meta
-  // Liefert Festival-Meta (z.B. fieldCount)
-  // ---------------------------------------------------------------------------
-  router.get('/', async (req, res) => {
+  // Modus aus Base-URL extrahieren (g1 oder g2)
+  function getMode(req) {
+    return req.baseUrl.split('/').pop();
+  }
+
+  // GET /api/festival/g1/meta
+  router.get('/meta', async (req, res) => {
     try {
+      const mode = getMode(req);
       const meta = await loadFestivalMeta();
-      res.json({ ok: true, festival: meta });
+
+      res.json({
+        ok: true,
+        festival: meta.festival[mode] || {}
+      });
+
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
   });
 
-  // ---------------------------------------------------------------------------
-  // POST /api/festival/meta
-  // Setzt Festival-Meta.
-  //
-  // Body:
-  //   { fieldCount }
-  // ---------------------------------------------------------------------------
-  router.post('/', async (req, res) => {
+  // POST /api/festival/g1/meta
+  router.post('/meta', async (req, res) => {
     try {
+      const mode = getMode(req);
       const fieldCount = Number(req.body?.fieldCount);
+      const gameType = req.body?.gameType;
 
-      if (!Number.isFinite(fieldCount) || fieldCount <= 0) {
-        return res.status(400).json({ error: 'Ungültige Feldanzahl' });
+      const newMeta = {};
+
+      // Feldanzahl aktualisieren
+      if (Number.isFinite(fieldCount) && fieldCount > 0) {
+        newMeta.fieldCount = fieldCount;
       }
 
-      const festivalMeta = { fieldCount };
+      // Spieltyp aktualisieren
+      if (gameType === "3v3" || gameType === "5v5") {
+        newMeta.gameType = gameType;
+      }
 
-      const saved = await saveFestivalMeta(festivalMeta);
+      if (!Object.keys(newMeta).length) {
+        return res.status(400).json({ error: 'Keine gültigen Meta-Daten' });
+      }
+
+      const meta = await loadFestivalMeta();
+      meta.festival[mode] = {
+        ...meta.festival[mode],
+        ...newMeta
+      };
+
+      const saved = await saveFestivalMeta(meta);
 
       try {
-        await appendOp(db, 'festival:meta:update', festivalMeta);
+        await appendOp(db, `festival:${mode}:meta:update`, newMeta);
         await makeSnapshot(db);
       } catch {}
 
-      ioF.emit('festival:meta:updated', festivalMeta);
+      ioF.emit('festival:meta:updated', { mode, ...newMeta });
 
       res.json(saved);
 

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Festival Viewer – TSV Königsbrunn</title>
+
+  <link rel="icon" type="image/png" href="/assets/Fussballwappen_logo.png">
+
+  <style>
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Arial;
+      overflow: hidden;
+    }
+
+    header {
+      background: #111827;
+      border-bottom: 1px solid #1f2937;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    /* --- LAYOUT ------------------------------------------------------------ */
+    main.layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr; /* 2/3 links, 1/3 rechts */
+      height: calc(100vh - 100px);
+      gap: 1.5rem;
+      padding: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    /* Linke Spalte: Bild */
+    .leftPane {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      display: flex;
+    }
+
+    .bgImage {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      background: #000;
+      display: block;
+    }
+
+    /* Rechte Spalte: 2-Spalten-Liste */
+    .rightPane {
+      overflow-y: auto;
+      padding-right: .5rem;
+    }
+
+    .fieldGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* 2 Spalten */
+      gap: 1rem;
+    }
+
+    /* Karten */
+    .fieldCard {
+      width: 100%;
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(4px);
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      box-sizing: border-box;
+    }
+
+    .fieldTitle {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #f3f4f6;
+      text-align: center;
+    }
+
+    .teamRow {
+      display: flex;
+      justify-content: space-between;
+      padding: .4rem .6rem;
+      border-radius: 6px;
+      background: rgba(31, 41, 55, 0.75);
+      font-size: .95rem;
+    }
+
+    .winner {
+      background: rgba(20, 83, 45, 0.85) !important;
+      color: #bbf7d0;
+      font-weight: 600;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #6b7280;
+      font-size: .85rem;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Sommerfestival TSV Königsbrunn</h1>
+</header>
+
+<main class="layout">
+  <!-- Linke Spalte: Großes Bild -->
+  <div class="leftPane">
+    <!-- WICHTIG: Bild wird jetzt dynamisch gesetzt -->
+    <img id="bgImage" class="bgImage" alt="Spielfeld" />
+  </div>
+
+  <!-- Rechte Spalte: 2-Spalten-Feldliste -->
+  <div class="rightPane">
+    <div class="fieldGrid" id="fieldsContainer">
+      <!-- Dynamisch gefüllt -->
+    </div>
+  </div>
+</main>
+
+<footer>
+  © TSV Königsbrunn – Festival Viewer
+</footer>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/festival/viewer.js"></script>
+
+</body>
+</html>

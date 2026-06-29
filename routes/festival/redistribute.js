@@ -1,58 +1,95 @@
-// backend/modules/festival/redistribute.js
-const express = require("express");
-const router = express.Router();
+// server/routes/festival/redistribute.js
+// -----------------------------------------------------------------------------
+// Festival-Neuverteilung der Teams auf Felder (g1 / g2).
+// Immer 2 Teams pro Feld.
+// -----------------------------------------------------------------------------
+
+const express = require('express');
+const { appendOp, makeSnapshot } = require('../../utils/recovery');
 
 module.exports = (db, ioF) => {
+  const router = express.Router();
 
-  router.post("/", async (req, res) => {
+  // Modus aus Base-URL extrahieren (g1 oder g2)
+  function getMode(req) {
+    return req.baseUrl.split('/').pop(); // "g1" oder "g2"
+  }
+
+  // ---------------------------------------------------------------------------
+  // POST /api/festival/g1/redistribute
+  // Body: { fieldCount }
+  // ---------------------------------------------------------------------------
+  router.post('/redistribute', async (req, res) => {
     try {
-      const { fieldCount } = req.body;
+      const mode = getMode(req);
+      const fieldCount = Number(req.body?.fieldCount);
 
-      if (!fieldCount || fieldCount < 1) {
-        return res.status(400).json({ error: "fieldCount fehlt oder ungültig" });
+      if (!Number.isFinite(fieldCount) || fieldCount <= 0) {
+        return res.status(400).json({ error: 'Ungültige Feldanzahl' });
       }
 
-      // Teams holen (sortiert nach Siegen)
+      // Teams laden
       const teams = await new Promise((resolve, reject) => {
         db.all(
-          "SELECT * FROM teams WHERE mode='festival' ORDER BY wins DESC, name ASC",
-          [],
-          (err, rows) => err ? reject(err) : resolve(rows)
+          `SELECT id, name, wins 
+           FROM teams 
+           WHERE mode=? 
+           ORDER BY wins DESC, id ASC`,
+          [mode],
+          (err, rows) => {
+            if (err) return reject(err);
+            resolve(rows || []);
+          }
         );
       });
 
       if (!teams.length) {
-        return res.json({ ok: true, message: "Keine Teams vorhanden" });
+        return res.json({ ok: true, message: 'Keine Teams vorhanden.' });
       }
 
-      // Paarbildung: immer 2 Teams pro Feld
-      let field = 1;
+      // -----------------------------------------------------------------------
+      // BLOCKWEISE ZUWEISUNG: IMMER 2 TEAMS PRO FELD
+      // -----------------------------------------------------------------------
+      let fieldIndex = 1;
 
       for (let i = 0; i < teams.length; i++) {
         const t = teams[i];
 
         await new Promise((resolve, reject) => {
           db.run(
-            "UPDATE teams SET field = ? WHERE id = ?",
-            [field, t.id],
-            (err) => err ? reject(err) : resolve()
+            `UPDATE teams SET field=? WHERE id=? AND mode=?`,
+            [fieldIndex, t.id, mode],
+            (err) => {
+              if (err) return reject(err);
+              resolve();
+            }
           );
         });
 
-        // Nach jedem 2er-Paar Feld erhöhen
-        if (i % 2 === 1) {
-          field++;
-          if (field > fieldCount) field = 1;
+        // Nach jedem zweiten Team Feld wechseln
+        if ((i + 1) % 2 === 0) {
+          fieldIndex++;
+          if (fieldIndex > fieldCount) fieldIndex = 1;
         }
       }
 
-      ioF.emit("festival:teams:updated");
+      // Admin-Log + Snapshot
+      try {
+        await appendOp(db, `festival:${mode}:redistribute`, { fieldCount });
+        await makeSnapshot(db);
+      } catch {}
 
-      res.json({ ok: true });
+      // Live-Update
+      ioF.emit('festival:teams:updated');
+
+      res.json({
+        ok: true,
+        fieldCount,
+        teamsAssigned: teams.length
+      });
 
     } catch (err) {
-      console.error("Fehler bei redistribute:", err);
-      res.status(500).json({ error: "Serverfehler bei redistribute" });
+      res.status(500).json({ error: err.message });
     }
   });
 
