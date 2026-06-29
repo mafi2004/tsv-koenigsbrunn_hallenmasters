@@ -146,8 +146,36 @@ async function redistribute() {
 }
 
 // -------------------------------------------------------------
+// Festival Settings
+// -------------------------------------------------------------
+async function loadGameSettings() {
+  const res = await fetch(`/api/festival/${mode}/meta`);
+  const data = await res.json();
+  const m = data?.festival || {};
+
+  document.getElementById("startTime").value    = m.startTime    || "";
+  document.getElementById("gameDuration").value = m.gameDuration || "";
+  document.getElementById("gameCount").value    = m.gameCount    || "";
+}
+
+async function saveGameSettings() {
+  const startTime    = document.getElementById("startTime").value;
+  const gameDuration = Number(document.getElementById("gameDuration").value);
+  const gameCount    = Number(document.getElementById("gameCount").value);
+
+  await fetch(`/api/festival/${mode}/meta`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ startTime, gameDuration, gameCount })
+  });
+
+  loadGameSettings();
+}
+
+// -------------------------------------------------------------
 // INITIAL LOAD
 // -------------------------------------------------------------
 loadTeams();
 loadFieldCount();
 loadGameType();
+loadGameSettings();

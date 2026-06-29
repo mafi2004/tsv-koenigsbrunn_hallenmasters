@@ -163,7 +163,23 @@
 
     <button onclick="saveGameType()">Spieltyp speichern</button>
   </section>
-  
+
+  <section>
+    <h2>Spielzeiten</h2>
+
+    <label>Startzeit:</label>
+    <input type="time" id="startTime" />
+
+    <label>Spieldauer (Minuten):</label>
+    <input type="number" id="gameDuration" min="1" />
+
+    <label>Anzahl Spiele:</label>
+    <input type="number" id="gameCount" min="1" />
+
+    <button onclick="saveGameSettings()">Speichern</button>
+  </section>
+
+
   <!-- NEUVERTEILUNG ------------------------------------------------------- -->
   <section>
     <h2>Neu-Verteilung nach Siegen</h2>

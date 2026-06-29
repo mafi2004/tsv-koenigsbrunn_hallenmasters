@@ -85,6 +85,9 @@ module.exports = (ioF) => {
       const mode = getMode(req);
       const fieldCount = Number(req.body?.fieldCount);
       const gameType = req.body?.gameType;
+      const startTime    = req.body?.startTime;     // "HH:MM"
+      const gameDuration = Number(req.body?.gameDuration); // Minuten
+      const gameCount    = Number(req.body?.gameCount);    // Anzahl Spiele
 
       const newMeta = {};
 
@@ -97,6 +100,15 @@ module.exports = (ioF) => {
       if (gameType === "3v3" || gameType === "5v5") {
         newMeta.gameType = gameType;
       }
+
+      if (typeof startTime === "string" && startTime.length >= 4)
+      newMeta.startTime = startTime;
+
+      if (Number.isFinite(gameDuration) && gameDuration > 0)
+        newMeta.gameDuration = gameDuration;
+
+      if (Number.isFinite(gameCount) && gameCount > 0)
+        newMeta.gameCount = gameCount;
 
       if (!Object.keys(newMeta).length) {
         return res.status(400).json({ error: 'Keine gültigen Meta-Daten' });

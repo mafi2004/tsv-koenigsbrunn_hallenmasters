@@ -69,11 +69,30 @@ async function loadFieldCount() {
 }
 
 // -------------------------------------------------------------
+// Festival Setting LADEN
+// -------------------------------------------------------------
+async function loadGameInfo() {
+  const res = await fetch(`/api/festival/${mode}/meta`);
+  const data = await res.json();
+  const m = data?.festival || {};
+
+  const info = document.getElementById("gameInfo");
+
+  const start = m.startTime    ? `Start: ${m.startTime}` : "";
+  const dur   = m.gameDuration ? `Dauer: ${m.gameDuration} min` : "";
+  const cnt   = m.gameCount    ? `Spiele: ${m.gameCount}` : "";
+
+  info.textContent = [start, dur, cnt].filter(Boolean).join(" | ");
+}
+
+
+// -------------------------------------------------------------
 // LIVE-EVENTS
 // -------------------------------------------------------------
 socket.on("festival:teams:updated", load);
 socket.on("festival:meta:updated", () => {
   loadGameType();
+  loadGameInfo();
   loadFieldCount();
 });
 
@@ -83,3 +102,4 @@ socket.on("festival:meta:updated", () => {
 load();
 loadGameType();
 loadFieldCount();
+loadGameInfo();
