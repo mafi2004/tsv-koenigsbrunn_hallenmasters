@@ -88,6 +88,7 @@ module.exports = (ioF) => {
       const startTime    = req.body?.startTime;     // "HH:MM"
       const gameDuration = Number(req.body?.gameDuration); // Minuten
       const gameCount    = Number(req.body?.gameCount);    // Anzahl Spiele
+      const ageGroup = req.body?.ageGroup;
 
       const newMeta = {};
 
@@ -109,6 +110,9 @@ module.exports = (ioF) => {
 
       if (Number.isFinite(gameCount) && gameCount > 0)
         newMeta.gameCount = gameCount;
+
+      if (typeof ageGroup === "string")
+        newMeta.ageGroup = ageGroup;
 
       if (!Object.keys(newMeta).length) {
         return res.status(400).json({ error: 'Keine gültigen Meta-Daten' });

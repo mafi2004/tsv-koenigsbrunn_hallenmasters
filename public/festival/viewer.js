@@ -100,6 +100,18 @@ function generateQrCode() {
   img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encoded}`;
 }
 
+async function loadAgeGroup() {
+  const res = await fetch(`/api/festival/${mode}/meta`);
+  const data = await res.json();
+  const m = data?.festival || {};
+
+  const label = document.getElementById("ageGroupLabel");
+  if (!label) return;
+
+  label.textContent = m.ageGroup || "";
+}
+
+
 // -------------------------------------------------------------
 // LIVE-EVENTS
 // -------------------------------------------------------------
@@ -108,6 +120,7 @@ socket.on("festival:meta:updated", () => {
   loadGameType();
   loadGameInfo();
   loadFieldCount();
+  loadAgeGroup();
 });
 
 // -------------------------------------------------------------
@@ -117,10 +130,12 @@ load();
 loadGameType();
 loadFieldCount();
 loadGameInfo();
+loadAgeGroup();
 
 document.addEventListener("DOMContentLoaded", () => {
   load();
   loadGameType();
   loadGameInfo();
   generateQrCode();
+  loadAgeGroup();
 });

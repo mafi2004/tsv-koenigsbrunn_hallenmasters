@@ -172,6 +172,28 @@ async function saveGameSettings() {
   loadGameSettings();
 }
 
+async function loadAgeGroup() {
+  const res = await fetch(`/api/festival/${mode}/meta`);
+  const data = await res.json();
+  const m = data?.festival || {};
+
+  document.getElementById("ageGroup").value = m.ageGroup || "";
+}
+
+async function saveAgeGroup() {
+  const ageGroup = document.getElementById("ageGroup").value;
+
+  await fetch(`/api/festival/${mode}/meta`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ageGroup })
+  });
+
+  loadAgeGroup();
+}
+
+
+
 // -------------------------------------------------------------
 // INITIAL LOAD
 // -------------------------------------------------------------
@@ -179,3 +201,4 @@ loadTeams();
 loadFieldCount();
 loadGameType();
 loadGameSettings();
+loadAgeGroup();
